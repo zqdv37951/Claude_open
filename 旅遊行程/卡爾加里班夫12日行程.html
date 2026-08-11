@@ -1,0 +1,924 @@
+<title>卡爾加里 × 洛磯山脈 12 日行程</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #f1f4f2;
+    --surface: #ffffff;
+    --surface-2: #e7ece9;
+    --ink: #1b2422;
+    --ink-soft: #4b5751;
+    --ink-faint: #7c8985;
+    --line: #d7ded9;
+    --teal: #146b6b;
+    --teal-ink: #0e4f4f;
+    --teal-soft: #e1f0ee;
+    --amber: #a3701f;
+    --amber-ink: #855c19;
+    --amber-soft: #f5ead2;
+    --shadow: 0 1px 2px rgba(20, 30, 28, 0.06), 0 8px 24px -12px rgba(20, 30, 28, 0.18);
+    --font-display: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Noto Serif TC', 'PingFang TC', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Segoe UI', Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101614;
+      --surface: #171f1c;
+      --surface-2: #1f2925;
+      --ink: #e8ece9;
+      --ink-soft: #a9b5af;
+      --ink-faint: #74827c;
+      --line: #2a3630;
+      --teal: #5fc9c4;
+      --teal-ink: #8fdcd8;
+      --teal-soft: #16302e;
+      --amber: #e3ae5c;
+      --amber-ink: #eec078;
+      --amber-soft: #3a2e17;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #101614;
+    --surface: #171f1c;
+    --surface-2: #1f2925;
+    --ink: #e8ece9;
+    --ink-soft: #a9b5af;
+    --ink-faint: #74827c;
+    --line: #2a3630;
+    --teal: #5fc9c4;
+    --teal-ink: #8fdcd8;
+    --teal-soft: #16302e;
+    --amber: #e3ae5c;
+    --amber-ink: #eec078;
+    --amber-soft: #3a2e17;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  a { color: inherit; }
+
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 20px 96px;
+  }
+
+  /* ---------- Hero ---------- */
+
+  .hero {
+    padding: 48px 0 28px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 14px;
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 3.6vw + 1rem, 2.9rem);
+    line-height: 1.15;
+    margin: 0 0 10px;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .hero .sub {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0 0 28px;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .stat .n {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--teal-ink);
+  }
+
+  .stat .l {
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+
+  /* ---------- Flight strip ---------- */
+
+  .flights {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 22px;
+  }
+
+  .ticket {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .ticket .route {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ticket .code {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .ticket .arrow { color: var(--ink-faint); margin: 0 8px; font-size: 0.9rem; }
+
+  .ticket .times {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+
+  .ticket .meta {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+  }
+
+  .ticket .flightno { font-family: var(--font-mono); color: var(--teal-ink); }
+
+  /* ---------- Day nav ---------- */
+
+  .daynav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 0;
+    margin: 0 -20px 32px;
+  }
+
+  .daynav-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .daynav-inner::-webkit-scrollbar { display: none; }
+
+  .daypill {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    text-decoration: none;
+    line-height: 1.2;
+  }
+
+  .daypill .d { font-weight: 700; font-size: 0.85rem; color: var(--ink-soft); }
+
+  .daypill[data-region="calgary"] { border-top: 2px solid var(--teal); }
+  .daypill[data-region="rockies"] { border-top: 2px solid var(--amber); }
+
+  .daypill.active {
+    background: var(--surface-2);
+  }
+  .daypill.active .d { color: var(--ink); }
+
+  /* ---------- Section framing ---------- */
+
+  section { margin-bottom: 56px; scroll-margin-top: 76px; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-head h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin: 0;
+  }
+
+  .section-head .count {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-bottom: 20px;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; }
+  .swatch.calgary { background: var(--teal); }
+  .swatch.rockies { background: var(--amber); }
+
+  /* ---------- Leg divider ---------- */
+
+  .leg-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 40px 0 18px;
+  }
+  .leg-divider .line { flex: 1; height: 1px; background: var(--line); }
+  .leg-divider .label {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  /* ---------- Day card ---------- */
+
+  .day {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 18px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .day:last-child { border-bottom: none; }
+
+  .day .datebox {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+  }
+  .day .datebox .mo { font-size: 0.72rem; color: var(--ink-faint); }
+  .day .datebox .num { font-size: 1.7rem; font-weight: 700; line-height: 1.1; }
+  .day .datebox .wd { font-size: 0.78rem; color: var(--ink-soft); }
+
+  .day[data-region="calgary"] .datebox .num { color: var(--teal-ink); }
+  .day[data-region="rockies"] .datebox .num { color: var(--amber-ink); }
+
+  .day-body h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.2rem;
+    margin: 0 0 4px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+    font-family: var(--font-body);
+  }
+  .tag.calgary { background: var(--teal-soft); color: var(--teal-ink); }
+  .tag.rockies { background: var(--amber-soft); color: var(--amber-ink); }
+
+  .day ul.plan {
+    margin: 0 0 10px;
+    padding: 0;
+    list-style: none;
+  }
+  .day ul.plan li {
+    position: relative;
+    padding-left: 16px;
+    margin-bottom: 6px;
+    color: var(--ink-soft);
+    font-size: 0.94rem;
+  }
+  .day ul.plan li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+  }
+
+  .dinner {
+    font-size: 0.88rem;
+    color: var(--ink);
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: inline-block;
+  }
+  .dinner b { color: var(--ink); font-weight: 600; }
+
+  .note {
+    margin-top: 8px;
+    font-size: 0.84rem;
+    color: var(--ink-faint);
+    border-left: 2px solid var(--line);
+    padding-left: 10px;
+  }
+
+  /* ---------- Restaurant / attraction grids ---------- */
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+
+  .list-title {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 12px;
+  }
+
+  .cardlist { display: flex; flex-direction: column; gap: 10px; }
+
+  .rcard {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .rcard .toprow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .rcard .name { font-weight: 600; font-size: 0.98rem; }
+  .rcard .name a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+  .rcard .name a:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+  .rcard .desc { font-size: 0.86rem; color: var(--ink-soft); margin-top: 2px; }
+  .rcard.flagged { border-color: var(--amber); }
+
+  .book-link {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--teal-ink);
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+    white-space: nowrap;
+  }
+
+  .poi-group { margin-bottom: 22px; }
+  .poi-group h4 {
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .poi-group ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .poi-group li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 0.9rem;
+    padding: 7px 0;
+    border-bottom: 1px dotted var(--line);
+  }
+  .poi-group li a.poiname {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    flex: 1 1 auto;
+    min-width: 140px;
+  }
+  .poi-group li a.poiname:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+  .poi-right { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+
+  .fee-tag {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .fee-tag.free { background: var(--teal-soft); color: var(--teal-ink); }
+  .fee-tag.paid { background: var(--amber-soft); color: var(--amber-ink); }
+
+  .ticket-link {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--teal-ink);
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+    white-space: nowrap;
+  }
+
+  .warn {
+    margin-top: 8px;
+    font-size: 0.84rem;
+    color: var(--amber-ink);
+    background: var(--amber-soft);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
+  /* ---------- Tips ---------- */
+
+  .tips {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tip {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 12px;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  .tip .idx {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-faint);
+    font-size: 0.8rem;
+    padding-top: 2px;
+  }
+  .tip b { color: var(--ink); font-weight: 600; }
+
+  footer {
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 640px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .flights { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .poi-group ul { columns: 1; }
+    .day { grid-template-columns: 56px 1fr; gap: 12px; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">Trip Plan · YEN PO HSUAN + 1</p>
+    <h1>卡爾加里 × 洛磯山脈</h1>
+    <p class="sub">2026 年 10 月 1 日 – 10 月 12 日,以卡爾加里住處為據點,前後兩段市區生活銜接六天洛磯山脈公路旅行。以下是依你的航班時間規劃的完整 12 天行程、路徑安排、必吃餐廳與必去景點清單。</p>
+
+    <div class="stat-row">
+      <div class="stat"><div class="n">12</div><div class="l">天行程</div></div>
+      <div class="stat"><div class="n">5</div><div class="l">晚 · 卡爾加里</div></div>
+      <div class="stat"><div class="n">6</div><div class="l">晚 · 班夫/洛磯山脈</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">人同行</div></div>
+    </div>
+
+    <div class="flights">
+      <div class="ticket">
+        <div class="route"><span class="code">NRT</span><span class="arrow">→</span><span class="code">YYC</span></div>
+        <div class="times"><span>10/1 (四) 18:30 出發</span><span>10/1 12:40 抵達</span></div>
+        <div class="meta"><span class="flightno">WS081 · WestJet</span><span>去程</span></div>
+      </div>
+      <div class="ticket">
+        <div class="route"><span class="code">YYC</span><span class="arrow">→</span><span class="code">NRT</span></div>
+        <div class="times"><span>10/12 (一) 14:50 出發</span><span>10/13 16:20 抵達</span></div>
+        <div class="meta"><span class="flightno">WS080 · WestJet</span><span>回程</span></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="daynav" aria-label="行程日期導覽">
+    <div class="daynav-inner" id="daynavInner">
+      <a class="daypill" data-region="calgary" href="#d1"><span class="d">10/1</span><span>四</span></a>
+      <a class="daypill" data-region="calgary" href="#d2"><span class="d">10/2</span><span>五</span></a>
+      <a class="daypill" data-region="calgary" href="#d3"><span class="d">10/3</span><span>六</span></a>
+      <a class="daypill" data-region="rockies" href="#d4"><span class="d">10/4</span><span>日</span></a>
+      <a class="daypill" data-region="rockies" href="#d5"><span class="d">10/5</span><span>一</span></a>
+      <a class="daypill" data-region="rockies" href="#d6"><span class="d">10/6</span><span>二</span></a>
+      <a class="daypill" data-region="rockies" href="#d7"><span class="d">10/7</span><span>三</span></a>
+      <a class="daypill" data-region="rockies" href="#d8"><span class="d">10/8</span><span>四</span></a>
+      <a class="daypill" data-region="rockies" href="#d9"><span class="d">10/9</span><span>五</span></a>
+      <a class="daypill" data-region="calgary" href="#d10"><span class="d">10/10</span><span>六</span></a>
+      <a class="daypill" data-region="calgary" href="#d11"><span class="d">10/11</span><span>日</span></a>
+      <a class="daypill" data-region="calgary" href="#d12"><span class="d">10/12</span><span>一</span></a>
+    </div>
+  </nav>
+
+  <section id="itinerary">
+    <div class="section-head">
+      <h2>每日行程</h2>
+      <span class="count">12 days · 11 nights</span>
+    </div>
+    <div class="legend">
+      <span><i class="swatch calgary"></i>卡爾加里市區</span>
+      <span><i class="swatch rockies"></i>班夫 / 洛磯山脈</span>
+    </div>
+
+    <div class="leg-divider"><span class="label">LEG 1 · 卡爾加里定錨</span><div class="line"></div></div>
+
+    <article class="day" id="d1" data-region="calgary">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">01</div><div class="wd">週四</div></div>
+      <div class="day-body">
+        <span class="tag calgary">卡爾加里</span>
+        <h3>抵達卡爾加里</h3>
+        <ul class="plan">
+          <li>12:40 抵達 YYC,領行李後直接返回住處放行李、簡單休息</li>
+          <li>傍晚沿 17 Ave SW 或 Kensington 一帶散步,活動筋骨、適應時差</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> National on 17th · 家庭式酒吧料理,長途飛行後好消化</span>
+        <div class="note">東京與卡爾加里時差 15 小時,第一晚建議早點休息,不排太滿的行程。</div>
+      </div>
+    </article>
+
+    <article class="day" id="d2" data-region="calgary">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">02</div><div class="wd">週五</div></div>
+      <div class="day-body">
+        <span class="tag calgary">卡爾加里</span>
+        <h3>市中心文化半日 + 東村</h3>
+        <ul class="plan">
+          <li>上午:Calgary Tower 眺望市景、Stephen Avenue Walk 步行街</li>
+          <li>下午:Studio Bell 國家音樂中心、East Village、Peace Bridge</li>
+          <li>傍晚:中國城晃晃,先墊個胃</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> Charcut Roast House · 在地食材烤肉、招牌 Charcuterie 拼盤</span>
+      </div>
+    </article>
+
+    <article class="day" id="d3" data-region="calgary">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">03</div><div class="wd">週六</div></div>
+      <div class="day-body">
+        <span class="tag calgary">卡爾加里</span>
+        <h3>Prince's Island Park + 週末市集</h3>
+        <ul class="plan">
+          <li>上午:Crossroads Market 或 Hillhurst Sunnyside 週末市集,買點在地小食</li>
+          <li>午後:Prince's Island Park 散步、Eau Claire 河岸</li>
+          <li>選項:若還有餘力,可安排 Calgary Zoo 半日</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> Ten Foot Henry · 蔬食為主、氣氛輕鬆,為明天上山儲備體力</span>
+      </div>
+    </article>
+
+    <div class="leg-divider"><span class="label">LEG 2 · 洛磯山脈探索</span><div class="line"></div></div>
+
+    <article class="day" id="d4" data-region="rockies">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">04</div><div class="wd">週日</div></div>
+      <div class="day-body">
+        <span class="tag rockies">班夫</span>
+        <h3>進山:卡爾加里 → 班夫</h3>
+        <ul class="plan">
+          <li>上午收行李退房,沿 Trans-Canada Hwy 1 西行前往班夫(車程約 1.5 小時)</li>
+          <li>抵達後辦理入住,午後市區走走:Banff Ave、Bow Falls、Surprise Corner</li>
+          <li>傍晚:Banff Gondola 搭乘纜車上 Sulphur Mountain 看日落</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> The Bison Restaurant · 洛磯山野味料理</span>
+      </div>
+    </article>
+
+    <article class="day" id="d5" data-region="rockies">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">05</div><div class="wd">週一</div></div>
+      <div class="day-body">
+        <span class="tag rockies">露易絲湖</span>
+        <h3>露易絲湖 & 夢蓮湖</h3>
+        <ul class="plan">
+          <li>建議 7–8 點前出發,車程約 45 分鐘抵達 Lake Louise</li>
+          <li>湖畔散步、Fairview Lookout,天氣允許可租獨木舟</li>
+          <li>轉搭 Parks Canada 接駁車或 Roam Transit 前往 Moraine Lake(私家車已禁止進入),健行 Rockpile Viewpoint 眺望十峰谷</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> Park Distillery · 回班夫吃炭烤料理配自釀調酒</span>
+        <div class="note">Moraine Lake 接駁服務通常於加拿大感恩節(今年恰好是 10/12)前後停駛,你們 10/5 前往仍在營運季內,但建議出發前再次確認官網班次與是否需預約。</div>
+      </div>
+    </article>
+
+    <article class="day" id="d6" data-region="rockies">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">06</div><div class="wd">週二</div></div>
+      <div class="day-body">
+        <span class="tag rockies">冰原公路</span>
+        <h3>Icefields Parkway 一日遊</h3>
+        <ul class="plan">
+          <li>沿 93 號公路北上,沿途停:Herbert Lake、Bow Lake & Crowfoot Glacier、Peyto Lake 觀景台</li>
+          <li>抵達 Columbia Icefield:可報名 Ice Explorer 冰原雪車或 Glacier Skywalk 玻璃步道</li>
+          <li>回程順遊 Sunwapta Falls</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> 沿線補給站少,建議先備行動糧,回班夫再正式用餐</span>
+        <div class="note">10 月冰原區域早晚接近零度,務必攜帶保暖層與防風外套;Ice Explorer / Skywalk 10 月中旬起會縮短營運時段,出發前一週再確認。</div>
+      </div>
+    </article>
+
+    <article class="day" id="d7" data-region="rockies">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">07</div><div class="wd">週三</div></div>
+      <div class="day-body">
+        <span class="tag rockies">Yoho</span>
+        <h3>Yoho 國家公園 + Johnston Canyon</h3>
+        <ul class="plan">
+          <li>跨省界進入卑詩省 Yoho 國家公園:Emerald Lake、Natural Bridge、Takakkaw Falls(視道路開放狀況)</li>
+          <li>回程沿 Bow Valley Parkway(1A 號公路)停 Johnston Canyon,健行 Lower / Upper Falls 峽谷步道</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> Farm and Fire · 班夫少見的柴燒披薩</span>
+      </div>
+    </article>
+
+    <article class="day" id="d8" data-region="rockies">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">08</div><div class="wd">週四</div></div>
+      <div class="day-body">
+        <span class="tag rockies">班夫</span>
+        <h3>班夫慢遊日</h3>
+        <ul class="plan">
+          <li>上午:Banff Upper Hot Springs 溫泉,放鬆連日健行的雙腿</li>
+          <li>午後:Cave and Basin National Historic Site,或延續 Sulphur Mountain 步道</li>
+          <li>傍晚:Banff Ave 逛街買紀念品</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> Grizzly House · 1967 年老店,經典瑞士鍋,適合山區行程的儀式感晚餐</span>
+      </div>
+    </article>
+
+    <article class="day" id="d9" data-region="rockies">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">09</div><div class="wd">週五</div></div>
+      <div class="day-body">
+        <span class="tag rockies">Canmore</span>
+        <h3>Minnewanka 湖區 + Canmore</h3>
+        <ul class="plan">
+          <li>上午:Lake Minnewanka 環湖車道、Two Jack Lake 拍照點</li>
+          <li>午後:轉往 Canmore,健行 Grassi Lakes(輕鬆步道,湖水清澈,若封閉可改 Policeman's Creek 木棧道)</li>
+          <li>逛 Canmore 小鎮,買咖啡與伴手禮</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> The Trough(Canmore)· 精緻料理,山區行程的安靜句點</span>
+        <div class="warn">⚠ Grassi Lakes 步道目前因落石無限期封閉,The Trough 也有歇業傳聞,兩者出發前都務必再次確認(詳見下方景點與餐廳清單的提醒)。</div>
+      </div>
+    </article>
+
+    <div class="leg-divider"><span class="label">LEG 3 · 卡爾加里回歸</span><div class="line"></div></div>
+
+    <article class="day" id="d10" data-region="calgary">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">10</div><div class="wd">週六</div></div>
+      <div class="day-body">
+        <span class="tag calgary">卡爾加里</span>
+        <h3>回卡爾加里</h3>
+        <ul class="plan">
+          <li>上午退房,啟程返回卡爾加里(車程約 1.5–2 小時,可在 Canmore 稍作停留)</li>
+          <li>下午抵達後採買、整理行李,補齊伴手禮清單</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> Anju · 韓式創意料理,調劑山區大魚大肉的口味</span>
+      </div>
+    </article>
+
+    <article class="day" id="d11" data-region="calgary">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">11</div><div class="wd">週日</div></div>
+      <div class="day-body">
+        <span class="tag calgary">卡爾加里</span>
+        <h3>卡爾加里最後巡禮</h3>
+        <ul class="plan">
+          <li>上午:Inglewood 老城區 + Inglewood Bird Sanctuary 散步</li>
+          <li>午餐:OEB Breakfast Co. 或 Sidewalk Citizen Bakery 早午餐</li>
+          <li>下午:CF Chinook Centre 或 Hudson's Bay 補買禮物,順便確認行李重量</li>
+        </ul>
+        <span class="dinner"><b>晚餐</b> River Cafe · Prince's Island Park 內,作為旅程的告別晚餐</span>
+      </div>
+    </article>
+
+    <article class="day" id="d12" data-region="calgary">
+      <div class="datebox"><div class="mo">OCT</div><div class="num">12</div><div class="wd">週一</div></div>
+      <div class="day-body">
+        <span class="tag calgary">賦歸</span>
+        <h3>賦歸</h3>
+        <ul class="plan">
+          <li>上午悠閒吃早餐,確認行李與證件</li>
+          <li>建議 11:30 前抵達 YYC 機場(國際線建議提前約 3 小時)</li>
+          <li>14:50 WS080 起飛 → 10/13 16:20 抵達東京 NRT</li>
+        </ul>
+        <div class="note">10/12 是加拿大感恩節(Thanksgiving Monday),部分商店與景點可能調整為假日時段,機場與市區交通也可能較忙碌。</div>
+      </div>
+    </article>
+  </section>
+
+  <section id="food">
+    <div class="section-head">
+      <h2>必吃餐廳</h2>
+      <span class="count">15 家精選</span>
+    </div>
+    <div class="grid-2">
+      <div>
+        <p class="list-title">卡爾加里 Calgary</p>
+        <div class="cardlist">
+          <div class="rcard"><div class="toprow"><div class="name"><a href="https://www.river-cafe.com/" target="_blank" rel="noopener">River Cafe</a></div><a class="book-link" href="https://www.river-cafe.com/reservations/" target="_blank" rel="noopener">訂位</a></div><div class="desc">Prince's Island Park 內,加拿大在地食材料理,適合告別晚餐</div></div>
+          <div class="rcard"><div class="name"><a href="https://charcut.com/" target="_blank" rel="noopener">Charcut Roast House</a></div><div class="desc">職人烤肉,招牌自製 Charcuterie 拼盤</div></div>
+          <div class="rcard"><div class="name"><a href="https://tenfoothenry.com/" target="_blank" rel="noopener">Ten Foot Henry</a></div><div class="desc">蔬食為主的地中海風味,想換口味時的好選擇</div></div>
+          <div class="rcard"><div class="toprow"><div class="name"><a href="https://www.ntnl.ca/17th-avenue" target="_blank" rel="noopener">National on 17th</a></div><a class="book-link" href="https://www.ntnl.ca/reserve-17th" target="_blank" rel="noopener">訂位</a></div><div class="desc">家庭式酒吧料理,長途飛行後的首選</div></div>
+          <div class="rcard"><div class="name"><a href="https://anju.ca/" target="_blank" rel="noopener">Anju</a></div><div class="desc">韓式創意料理,想解膩吃辣時來一頓</div></div>
+          <div class="rcard"><div class="name"><a href="https://eatoeb.com/locations/calgary/" target="_blank" rel="noopener">OEB Breakfast Co.</a></div><div class="desc">早午餐名店,常排隊建議提早前往</div></div>
+          <div class="rcard"><div class="name"><a href="https://www.sidewalkcitizenbakery.com/" target="_blank" rel="noopener">Sidewalk Citizen Bakery</a></div><div class="desc">烘焙坊咖啡,散步途中歇腳的好地方</div></div>
+        </div>
+      </div>
+      <div>
+        <p class="list-title">班夫 / Canmore</p>
+        <div class="cardlist">
+          <div class="rcard"><div class="toprow"><div class="name"><a href="https://www.thebison.ca/" target="_blank" rel="noopener">The Bison Restaurant</a></div><a class="book-link" href="https://www.thebison.ca/book-a-table" target="_blank" rel="noopener">訂位</a></div><div class="desc">洛磯山野味,野牛、鹿肉料理</div></div>
+          <div class="rcard"><div class="name"><a href="https://parkdistillery.com/" target="_blank" rel="noopener">Park Distillery</a></div><div class="desc">炭烤料理配自釀烈酒調酒,氣氛熱鬧</div></div>
+          <div class="rcard"><div class="name"><a href="https://banffgrizzlyhouse.com/" target="_blank" rel="noopener">Grizzly House</a></div><div class="desc">1967 年老店,經典起司 / 巧克力瑞士鍋</div></div>
+          <div class="rcard"><div class="name"><a href="https://www.banffjaspercollection.com/dining/farm-fire/" target="_blank" rel="noopener">Farm and Fire</a></div><div class="desc">班夫少見的柴燒披薩</div></div>
+          <div class="rcard"><div class="name"><a href="https://www.wildflourbakery.ca/" target="_blank" rel="noopener">Wild Flour Bakery</a></div><div class="desc">每日限量麵包,健行前的補給站</div></div>
+          <div class="rcard"><div class="name"><a href="https://tooloulous.com/" target="_blank" rel="noopener">Tooloulou's</a></div><div class="desc">紐奧良風味早午餐,份量十足</div></div>
+          <div class="rcard flagged"><div class="name"><a href="https://thetrough.ca/" target="_blank" rel="noopener">The Trough(Canmore)</a></div><div class="desc">精緻料理,適合安靜的山區告別晚餐</div><div class="warn">⚠ 近期有多筆資訊顯示可能已歇業,出發前請先致電 (403) 678-2820 確認營業狀態</div></div>
+          <div class="rcard"><div class="name"><a href="https://www.thecommunitea.com/" target="_blank" rel="noopener">communitea(Canmore)</a></div><div class="desc">蔬食 / 茶飲,健行後的清爽選擇(The Trough 若未營業可改來這裡)</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="see">
+    <div class="section-head">
+      <h2>必去景點</h2>
+      <span class="count">6 大區域</span>
+    </div>
+
+    <div class="poi-group">
+      <h4>卡爾加里 Calgary</h4>
+      <ul>
+        <li><a class="poiname" href="https://www.calgarytower.com/" target="_blank" rel="noopener">Calgary Tower</a><span class="poi-right"><span class="fee-tag paid">約 $23 起</span><a class="ticket-link" href="https://www.calgarytower.com/buytickets" target="_blank" rel="noopener">購票</a></span></li>
+        <li><a class="poiname" href="https://www.studiobell.ca/" target="_blank" rel="noopener">Studio Bell 國家音樂中心</a><span class="poi-right"><span class="fee-tag paid">約 $17–25</span><a class="ticket-link" href="https://www.studiobell.ca/general-admission" target="_blank" rel="noopener">購票</a></span></li>
+        <li><a class="poiname" href="https://www.calgary.ca/parks/princes-island-park.html" target="_blank" rel="noopener">Prince's Island Park & Eau Claire</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.visitcalgary.com/plan-and-stay/itineraries-and-travel-inspiration/east-village-neighbourhood-guide" target="_blank" rel="noopener">East Village / Peace Bridge</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.calgary.ca/parks/inglewood-bird-sanctuary.html" target="_blank" rel="noopener">Inglewood 老城區 + Bird Sanctuary</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://heritagepark.ca/" target="_blank" rel="noopener">Heritage Park Historical Village(選項)</a><span class="poi-right"><span class="fee-tag paid">成人 $39.95+</span><a class="ticket-link" href="https://heritagepark.ca/admission/" target="_blank" rel="noopener">購票</a></span></li>
+        <li><a class="poiname" href="https://www.calgaryzoo.com/" target="_blank" rel="noopener">Calgary Zoo(選項)</a><span class="poi-right"><span class="fee-tag paid">約 $30–38</span><a class="ticket-link" href="https://websales.calgaryzoo.com/buy/daily-tickets/" target="_blank" rel="noopener">購票</a></span></li>
+      </ul>
+    </div>
+
+    <div class="poi-group">
+      <h4>班夫鎮 Banff Town</h4>
+      <ul>
+        <li><a class="poiname" href="https://www.banffjaspercollection.com/attractions/banff-gondola/" target="_blank" rel="noopener">Banff Gondola(Sulphur Mountain)</a><span class="poi-right"><span class="fee-tag paid">約 $55–95</span><a class="ticket-link" href="https://www.banffjaspercollection.com/attractions/banff-gondola/tickets/" target="_blank" rel="noopener">購票</a></span></li>
+        <li><a class="poiname" href="https://banff.ca/654/Bow-Falls-Trail" target="_blank" rel="noopener">Bow Falls</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://banff.ca/1110/Surprise-Corner" target="_blank" rel="noopener">Surprise Corner</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/lhn-nhs/ab/caveandbasin" target="_blank" rel="noopener">Cave and Basin National Historic Site</a><span class="poi-right"><span class="fee-tag paid">約 $9–10</span><a class="ticket-link" href="https://parks.canada.ca/lhn-nhs/ab/caveandbasin/visit/tarifs-fees" target="_blank" rel="noopener">票價(現場購票)</a></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff/sources-banff-springs" target="_blank" rel="noopener">Banff Upper Hot Springs</a><span class="poi-right"><span class="fee-tag paid">成人 $19.75</span><a class="ticket-link" href="https://parks.canada.ca/pn-np/ab/banff/sources-banff-springs/tarifs-fees" target="_blank" rel="noopener">票價(現場購票)</a></span></li>
+      </ul>
+    </div>
+
+    <div class="poi-group">
+      <h4>露易絲湖 & 夢蓮湖</h4>
+      <ul>
+        <li><a class="poiname" href="https://www.banfflakelouise.com/" target="_blank" rel="noopener">Lake Louise 湖畔</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.chateau-lake-louise.com/activities/canoeing/" target="_blank" rel="noopener">獨木舟租借(Fairmont Boathouse)</a><span class="poi-right"><span class="fee-tag paid">約 $180+/hr</span><a class="ticket-link" href="https://www.chateau-lake-louise.com/activities/canoeing/" target="_blank" rel="noopener">現場排隊</a></span></li>
+        <li><a class="poiname" href="https://www.banfflakelouise.com/experiences/fairview-lookout-trail" target="_blank" rel="noopener">Fairview Lookout</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff" target="_blank" rel="noopener">Moraine Lake / Rockpile Viewpoint</a><span class="poi-right"><span class="fee-tag free">免費(需接駁)</span><a class="ticket-link" href="https://reservation.pc.gc.ca" target="_blank" rel="noopener">Parks Canada 接駁</a><a class="ticket-link" href="https://roamtransit.com/schedules-routes/lake-louise-banff-express-route-8x/" target="_blank" rel="noopener">Roam 8X</a></span></li>
+        <li><a class="poiname" href="https://www.banfflakelouise.com/experiences" target="_blank" rel="noopener">Lake Agnes Tea House 健行(體力允許可加碼)</a><span class="poi-right"><span class="fee-tag free">步道免費</span></span></li>
+      </ul>
+    </div>
+
+    <div class="poi-group">
+      <h4>冰原公路 Icefields Parkway</h4>
+      <ul>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff" target="_blank" rel="noopener">Herbert Lake</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff" target="_blank" rel="noopener">Bow Lake & Crowfoot Glacier</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff" target="_blank" rel="noopener">Peyto Lake 觀景台</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/" target="_blank" rel="noopener">Columbia Icefield(Ice Explorer / Glacier Skywalk)</a><span class="poi-right"><span class="fee-tag paid">約 $95–126</span><a class="ticket-link" href="https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/" target="_blank" rel="noopener">購票</a></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/jasper" target="_blank" rel="noopener">Sunwapta Falls</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+      </ul>
+    </div>
+
+    <div class="poi-group">
+      <h4>Yoho 國家公園 & Johnston Canyon</h4>
+      <ul>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/bc/yoho" target="_blank" rel="noopener">Emerald Lake</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.boathousetradingco.com/summer-rentals" target="_blank" rel="noopener">Emerald Lake 獨木舟租借(選項)</a><span class="poi-right"><span class="fee-tag paid">約 $90/hr</span><a class="ticket-link" href="https://www.boathousetradingco.com/summer-rentals" target="_blank" rel="noopener">現場排隊</a></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/bc/yoho" target="_blank" rel="noopener">Natural Bridge</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/bc/yoho" target="_blank" rel="noopener">Takakkaw Falls</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff" target="_blank" rel="noopener">Johnston Canyon(Lower / Upper Falls)</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+      </ul>
+    </div>
+
+    <div class="poi-group">
+      <h4>Canmore & Kananaskis</h4>
+      <ul>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff" target="_blank" rel="noopener">Lake Minnewanka(湖畔)</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.banffjaspercollection.com/attractions/lake-minnewanka-cruise/" target="_blank" rel="noopener">Lake Minnewanka 遊船(選項)</a><span class="poi-right"><span class="fee-tag paid">約 $65–74.50</span><a class="ticket-link" href="https://www.banffjaspercollection.com/attractions/lake-minnewanka-cruise/" target="_blank" rel="noopener">購票</a></span></li>
+        <li><a class="poiname" href="https://parks.canada.ca/pn-np/ab/banff" target="_blank" rel="noopener">Two Jack Lake</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.albertaparks.ca/parks/kananaskis/canmore-nordic-centre-pp/park-facilities/day-use/grassi-lakes/" target="_blank" rel="noopener">Grassi Lakes</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+        <li><a class="poiname" href="https://www.explorecanmore.ca/" target="_blank" rel="noopener">Canmore 小鎮</a><span class="poi-right"><span class="fee-tag free">免費</span></span></li>
+      </ul>
+      <div class="warn">⚠ Grassi Lakes 步道因落石災害目前無限期封閉(含聯外的 742 號公路),出發前請至 <a href="https://www.albertaparks.ca/parks/kananaskis/kananaskis-country/advisories-and-public-safety/trail-reports/canmore-and-area/" target="_blank" rel="noopener" style="color:inherit">Alberta Parks 步道公告</a> 確認是否重新開放,若仍封閉可改走 Policeman's Creek 木棧道或 Quarry Lake。</div>
+    </div>
+  </section>
+
+  <section id="tips">
+    <div class="section-head">
+      <h2>實用提醒</h2>
+      <span class="count">出發前必看</span>
+    </div>
+    <div class="tips">
+      <div class="tip"><span class="idx">01</span><span><b>Moraine Lake 交通</b> — 私家車自 2023 年起禁止進入,僅能透過 Parks Canada 接駁車、Roam Transit #10 或健行 / 單車前往,接駁服務約在感恩節(10/12)前後停駛,務必出發前確認官網最新班次與是否需要預約。</span></div>
+      <div class="tip"><span class="idx">02</span><span><b>Columbia Icefield 營運季</b> — Ice Explorer 雪車與 Glacier Skywalk 10 月中旬起會轉為冬季縮短時段,建議出發前一週再次確認開放時間。</span></div>
+      <div class="tip"><span class="idx">03</span><span><b>氣候與穿著</b> — 10 月洛磯山區日間均溫約 5–10°C,夜間常低於 0°C,冰原公路沿線更冷、可能降雪,建議洋蔥式穿法,備妥防水登山鞋、手套與毛帽。</span></div>
+      <div class="tip"><span class="idx">04</span><span><b>日照時間</b> — 10 月初日落約 18:50,月中提前到 18:15 左右,山區行程建議把握上午時段,下午 4 點後山路視線變差。</span></div>
+      <div class="tip"><span class="idx">05</span><span><b>國家公園許可</b> — 進入 Banff / Yoho 國家公園需要 Parks Canada 一日票或年度 Discovery Pass,一張年票可通用所有國家公園。查到的資料每日票約 <b>$11–12.25</b>/人、年票約 <b>$75–83.50</b>/人(各來源數字略有出入,可能是新年度調價所致),行程 6 個公園日換算下來年票通常更划算,出發前請以官網 <a href="https://parks.canada.ca/pn-np/ab/banff/visit/tarifs-fees" target="_blank" rel="noopener" style="color:inherit">Parks Canada 票價頁</a> 為準,可線上購買:<a href="https://parkscanadashop.ca/pages/discovery-pass" target="_blank" rel="noopener" style="color:inherit">Discovery Pass 官方商店</a> / <a href="https://reservation.pc.gc.ca" target="_blank" rel="noopener" style="color:inherit">reservation.pc.gc.ca</a>。</span></div>
+      <div class="tip"><span class="idx">06</span><span><b>野生動物與路況</b> — 9–10 月是麋鹿發情季,Bow Valley Parkway 清晨、黃昏易有動物出沒;山區道路可能提早出現初雪,租車建議選配四驅或雪胎,並隨時關注 511 Alberta 路況。</span></div>
+      <div class="tip"><span class="idx">07</span><span><b>時差與作息</b> — 東京與卡爾加里時差 15 小時(卡爾加里較慢),抵達首兩天行程建議放輕鬆,以利調整時差。</span></div>
+      <div class="tip"><span class="idx">08</span><span><b>感恩節假日</b> — 10/12 賦歸日恰逢加拿大感恩節,部分商店景點為假日營業時段,市區與機場交通可能較忙碌,建議提早出發。</span></div>
+    </div>
+  </section>
+
+  <footer>
+    行程依 2026/10/1 出發、10/12 回程航班(WS081 / WS080)規劃,實際景點開放時間、接駁班次與餐廳營業狀況請於出發前以官方資訊為準。
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var pills = Array.prototype.slice.call(document.querySelectorAll('.daypill'));
+    var days = Array.prototype.slice.call(document.querySelectorAll('.day'));
+    if (!('IntersectionObserver' in window) || !days.length) return;
+
+    var byId = {};
+    pills.forEach(function (p) { byId[p.getAttribute('href').slice(1)] = p; });
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var pill = byId[entry.target.id];
+        if (!pill) return;
+        if (entry.isIntersecting) {
+          pills.forEach(function (p) { p.classList.remove('active'); });
+          pill.classList.add('active');
+          if (typeof pill.scrollIntoView === 'function') {
+            pill.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'auto' });
+          }
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+    days.forEach(function (d) { observer.observe(d); });
+  })();
+</script>
