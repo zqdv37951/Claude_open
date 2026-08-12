@@ -23,11 +23,23 @@
 3. 或直接把 `.user.js` 檔案拖曳到瀏覽器分頁,Tampermonkey 會自動彈出安裝
    確認畫面
 
+## backups/
+
+Tampermonkey 官方「匯出」(Export)功能產生的原始備份檔,直接保存、未拆解:
+
+- [`backups/tampermonkey-backup-chrome-2026-08-12T09-12-00-046Z.zip`](backups/tampermonkey-backup-chrome-2026-08-12T09-12-00-046Z.zip):
+  每支腳本各自的 `.user.js` + `.options.json`(啟用狀態、比對規則等設定)
+  + `.storage.json`(腳本自訂偏好資料,如 CSDNGreener 版面配置、Zhihu
+  enhancement 屏蔽關鍵字清單)+ `@require` 依賴的快取檔案。
+
+還原方式:Tampermonkey 儀表板 →「工具」(Utilities)→「檔案(從本機檔案
+安裝)」,直接選取此 `.zip`,可以一次還原所有腳本連同設定與偏好資料,
+不需要像上方單一 `.user.js` 那樣逐一安裝再手動調整設定。
+
 ## 備註
 
-- 個人設定資訊(GUI 選項、`storage` 內存的自訂偏好值,如 CSDNGreener 的
-  版面配置、Zhihu enhancement 的屏蔽關鍵字清單)未包含在此,僅保留腳本
-  程式碼本身;換機器時需要在各腳本的設定選單重新調整偏好。
+- 上方表格中的 `.user.js` 只保留腳本程式碼本身,不含 `storage` 個人化
+  偏好資料;若要連同設定一起還原,請改用 `backups/` 底下的 `.zip`。
 - `csdn-greener.user.js`、`zhihu-enhancement.user.js` 為安裝自 GreasyFork
   等社群來源的第三方腳本,更新時建議直接到原始來源重新下載,而非手動修改
   此備份檔。
