@@ -139,9 +139,156 @@ launchctl list | grep com.aston.dailyexe
 - launchd 的 PATH 與環境可能不同，建議在 plist 中指定絕對路徑或在啟動前由腳本設置必要環境變數。
 - 若 binary 因 `com.apple.quarantine` 被隔離，直接在終端執行雙擊會跳出授權對話，但 launchd 無法顯示 UI，需手動移除 quarantine（見上方 xattr 指令）。
 
+## 根本原因確認與永久解法(2026-08-13)
+
+09:00 + 自動喚醒設定後,排程仍然沒有觸發,進一步排查後找到真正原因。
+
+### 根本原因:launchd 背景行程對 ~/Documents 等資料夾的靜默 TCC 拒絕
+
+macOS 對背景行程(由 `launchd` 直接呼叫,而非從 Terminal / Finder 手動執行)
+存取 `~/Documents`、`~/Desktop`、`~/Downloads` 有額外的隱私保護
+(TCC,Transparency, Consent, and Control),而且**不會跳出授權對話框**,
+是靜默拒絕。手動在 Terminal 執行之所以正常,是因為該行程繼承了 Terminal
+已經被系統授權的權限 —— 這個繼承關係掩蓋了問題,一開始容易誤判成排程
+設定錯誤(對應前面的 exit code 78)。
+
+### 關鍵驗證技巧:用 `env -i` 模擬 launchd 的最小環境
+
+```bash
+env -i /usr/bin/caffeinate -i /Users/aston/Documents/program/dailyEXE
+```
+
+`env -i` 清空環境變數,模擬 launchd 啟動時的最小環境,但因為執行的行程
+仍然是 Terminal 的子行程,所以**騙不過 TCC 權限檢查**(還是能正常存取
+`~/Documents`)。這證明問題不是環境變數(PATH/HOME)造成的,而是專屬於
+「由 launchd 而非使用者互動 App 啟動」這件事本身觸發的 TCC 限制 ——
+是判斷出真正原因的轉折點。
+
+排查過程中也曾懷疑過、但依序排除的方向:
+
+1. 排程時間(9:13 → 9:00)本身有問題 —— 用 `launchctl print` 確認排程
+   設定正確,排除。
+2. 環境變數(PATH/HOME)造成執行失敗 —— 用 `env -i` 測試排除(見上)。
+3. `launchctl list` 顯示的 exit code(如 78/`EX_CONFIG`)是關鍵線索,
+   但光看代碼不夠,必須搭配「log 檔案是否真的有更新」一起判斷,才能
+   分辨是「程式跑了但失敗」還是「根本沒跑起來」。
+
+### 永久解法:把執行檔與 log 路徑搬出 ~/Documents
+
+```bash
+mkdir -p ~/Library/Logs/dailyexe
+mkdir -p ~/dailyexe_program
+cp /Users/aston/Documents/program/dailyEXE ~/dailyexe_program/
+chmod +x ~/dailyexe_program/dailyEXE
+```
+
+`~/Library/Logs/`、`~/dailyexe_program/` 這類位置不受 TCC 特別管制,
+搬過去後不需要每次系統更新後重新手動授權,是一勞永逸的做法(相對地,
+若想保留原本 `~/Documents` 底下的路徑,也可以到「系統設定 > 隱私權與
+安全性 > 完整磁碟取用權限」手動加 `/usr/bin/caffeinate`,但這個授權
+常常在重新開機或系統更新後失效,不如搬家穩定)。
+
+plist 對應調整為(見 [`../launchd/com.aston.dailyexe.plist`](../launchd/com.aston.dailyexe.plist)):
+
+```xml
+<key>ProgramArguments</key>
+<array>
+    <string>/usr/bin/caffeinate</string>
+    <string>-i</string>
+    <string>/Users/aston/dailyexe_program/dailyEXE</string>
+</array>
+<key>StandardOutPath</key>
+<string>/Users/aston/Library/Logs/dailyexe/dailyEXE.log</string>
+<key>StandardErrorPath</key>
+<string>/Users/aston/Library/Logs/dailyexe/dailyEXE.err</string>
+```
+
+改完後 bootout + bootstrap 重新載入,再用 `kickstart -k` 立刻手動觸發驗證:
+
+```bash
+launchctl bootout gui/$(id -u)/com.aston.dailyexe
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aston.dailyexe.plist
+launchctl kickstart -k gui/$(id -u)/com.aston.dailyexe
+sleep 30
+tail -30 ~/Library/Logs/dailyexe/dailyEXE.log
+launchctl list | grep dailyexe
+```
+
+### 驗證結果
+
+2026-08-13 10:51 手動觸發測試,log 完整寫入、五個任務(Money Forward、
+KENPOS Ticket、taobao 簽到、Tepco 自動登入、巴哈姆特)全部執行完畢,
+`launchctl list` 顯示退出碼變成 **`0`**,總耗時約 27 秒,確認搬家後排程
+恢復正常。
+
+## 重新建立 dailyEXE 排程指南
+
+若要重新建立這套排程(例如換新機器),照下面順序做可以一次到位,不用
+再走一次除錯:
+
+1. **執行檔與 log 路徑,一開始就避開 `Documents`/`Desktop`/`Downloads`**
+   —— 放 `~/dailyexe_program/`(或 `/usr/local/var/dailyexe/`),log 放
+   `~/Library/Logs/dailyexe/`。這是這次踩到的坑,直接跳過。
+
+2. **寫 plist 時一次把該有的欄位補齊**:`Label`(唯一識別)、
+   `ProgramArguments`(`caffeinate -i` + 執行檔路徑)、
+   `StartCalendarInterval`(`Hour`/`Minute`)、`StandardOutPath`、
+   `StandardErrorPath`。視情況可加 `EnvironmentVariables`
+   (`HOME`、完整 `PATH`)防患未然 —— 這次證實不是環境變數問題,但補上
+   無害。
+
+3. **放到 `~/Library/LaunchAgents/` 後先用 `plutil` 驗證格式**,避免手動
+   編輯打錯字或缺 tag 導致 bootstrap 失敗:
+
+   ```bash
+   plutil -lint ~/Library/LaunchAgents/com.aston.dailyexe.plist
+   ```
+
+4. **bootstrap 載入**:
+
+   ```bash
+   launchctl bootout gui/$(id -u)/com.aston.dailyexe 2>/dev/null
+   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aston.dailyexe.plist
+   ```
+
+5. **立刻手動觸發一次驗證,不要等到隔天早上才發現問題**:
+
+   ```bash
+   launchctl kickstart -k gui/$(id -u)/com.aston.dailyexe
+   sleep 30
+   tail -30 ~/Library/Logs/dailyexe/dailyEXE.log
+   launchctl list | grep dailyexe   # 確認退出碼是 0
+   ```
+
+6. **確認 Chrome 自動化權限**:「系統設定 > 隱私權與安全性 > 自動化」,
+   檢查 `caffeinate`/`dailyEXE` 對 Google Chrome 的控制權限有沒有被授權
+   (即使這次沒踩到,搬新環境時容易重新觸發權限詢問)。
+
+7. **若需要準時喚醒電腦,設定 `pmset`**:
+
+   ```bash
+   sudo pmset repeat wakeorpoweron MTWRFSU HH:MM:00
+   ```
+
+   時間設在排程時間前 2 分鐘左右,留緩衝讓系統完全清醒。
+
+8. **隔天早上排程時間後,再檢查一次真正自動觸發的結果**:
+
+   ```bash
+   cat ~/Library/Logs/dailyexe/dailyEXE.log | tail -5
+   launchctl list | grep dailyexe
+   ```
+
+   第 5 步的手動測試只能證明「程式本身沒問題」,不能證明「排程真的會
+   自動觸發」,兩者都要驗證過才算完整建置好。
+
 ## 待確認事項
 
-- [ ] `dailyEXE.err` / `dailyEXE.log` 實際內容(尚未取得,無法 100% 確認
-      exit code 78 的根本原因是隔離標記還是其他設定問題)
-- [ ] `xattr -l` 是否真的列出 `com.apple.quarantine`
-- [ ] 調整為 09:00 + 自動喚醒後,是否穩定觸發
+- [x] `dailyEXE.err` / `dailyEXE.log` 實際內容 —— 已於 2026-08-13 取得,
+      確認根本原因是 TCC 對 launchd 背景行程存取 `~/Documents` 的靜默
+      拒絕,而非隔離標記
+- [ ] `xattr -l` 是否真的列出 `com.apple.quarantine`(根本原因已確認
+      為 TCC 權限問題,此項不影響結論,暫不追查)
+- [x] 調整為 09:00 + 自動喚醒後,是否穩定觸發 —— 搬出 `~/Documents`
+      後 2026-08-13 手動觸發測試通過(退出碼 0),隔天 09:00 自動觸發
+      結果待補

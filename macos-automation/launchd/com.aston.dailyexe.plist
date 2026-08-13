@@ -8,7 +8,7 @@
     <array>
         <string>/usr/bin/caffeinate</string>
         <string>-i</string>
-        <string>/Users/aston/Documents/program/dailyEXE</string>
+        <string>/Users/aston/dailyexe_program/dailyEXE</string>
     </array>
     <key>StartCalendarInterval</key>
     <dict>
@@ -18,8 +18,8 @@
         <integer>0</integer>
     </dict>
     <key>StandardOutPath</key>
-    <string>/Users/aston/Documents/program/dailyEXE.log</string>
+    <string>/Users/aston/Library/Logs/dailyexe/dailyEXE.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/aston/Documents/program/dailyEXE.err</string>
+    <string>/Users/aston/Library/Logs/dailyexe/dailyEXE.err</string>
 </dict>
 </plist>
