@@ -19,8 +19,13 @@ macos-automation/
 
 ## launchd/com.aston.dailyexe.plist
 
-`/Users/aston/Documents/program/dailyEXE` 的每日自動執行排程,固定於每天
+`/Users/aston/dailyexe_program/dailyEXE` 的每日自動執行排程,固定於每天
 **09:00** 觸發,執行時透過 `caffeinate -i` 防止電腦在執行期間進入睡眠。
+
+執行檔與 log 路徑刻意放在 `~/dailyexe_program/`、`~/Library/Logs/dailyexe/`
+而不是 `~/Documents/`,原因見下方 `docs/dailyexe-troubleshooting.md` —— 
+macOS 對 launchd 背景行程存取 `~/Documents`/`~/Desktop`/`~/Downloads` 有
+靜默的 TCC 拒絕,搬出來是一勞永逸的解法。
 
 ### 安裝方式
 
@@ -46,6 +51,11 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aston.dailyexe.plist
 - macOS Gatekeeper 隔離標記(`com.apple.quarantine`)如何導致背景排程失敗
 - 如何判斷電腦是否在排程時間點處於睡眠狀態
 - 用 `pmset repeat wakeorpoweron` 設定自動喚醒,確保排程能準時觸發
+- 手動啟動與即時測試 dailyEXE 的方式(`kickstart -k`、`tail -f` 等)
+- **根本原因**:launchd 背景行程存取 `~/Documents` 被 TCC 靜默拒絕,
+  以及用 `env -i` 驗證問題出在 TCC 而非環境變數的技巧
+- **永久解法**:把執行檔與 log 路徑搬出 `~/Documents`
+- 換新機器時重新建立這套排程的完整步驟指南
 
 ## applescript/live-caption-toggle.applescript + docs/live-caption-shortcut-setup.md
 
