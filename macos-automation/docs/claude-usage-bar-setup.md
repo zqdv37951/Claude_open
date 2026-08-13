@@ -112,6 +112,67 @@ security find-generic-password -s "Claude Code-credentials" -w \
    分鐘),在冷卻期間跳過自動刷新的計時器,不會繼續每 5 分鐘重複打一
    次已知會被擋的請求 —— 這是治標,避免持續觸發限流保護。
 
+## 根本預防:每天定期保鮮 Claude Code 登入 session
+
+上面「主動偵測過期 + 429 backoff」只是優雅處理過期,並不能真的防止過期。
+要從源頭防止,需要定期讓 `claude` CLI 本身跑一次會實際觸發認證的動作,
+借助它內建的 refreshToken 換發機制(不重新實作 Anthropic 未公開的
+OAuth refresh 端點)。
+
+### 排查過程:確認哪個指令能真正觸發刷新
+
+`claude auth status` 一開始看起來像是專門檢查登入狀態的指令,實測前後
+比對 `expiresAt` 完全沒變,證實它**只是讀取顯示,不會刷新**:
+
+```bash
+security find-generic-password -s "Claude Code-credentials" -w \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['claudeAiOauth']['expiresAt'])"
+claude auth status
+security find-generic-password -s "Claude Code-credentials" -w \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['claudeAiOauth']['expiresAt'])"
+# 前後兩次數字一樣 → auth status 不會刷新
+```
+
+改用真正會發出認證請求的極簡短 print 模式呼叫:
+
+```bash
+claude -p "ping" --output-format text
+```
+
+這個指令走的是真正需要認證的 API 路徑(拿到 `pong` 回應代表認證成功),
+只要當下 token 已經過期,這次呼叫就會觸發刷新;如果 token 還沒過期,則
+單純正常回應,不會有任何副作用。耗用量僅一次極短對話,可忽略不計。
+
+### 排程設定
+
+用 `which claude` 找到執行檔絕對路徑(跟前面 python 的坑一樣,`launchd`
+不會套用 shell 裡的 PATH):
+
+```bash
+which claude
+# /Users/aston/.local/bin/claude
+```
+
+見 [`../claude-usage-bar/com.aston.claude-keepalive.plist`](../claude-usage-bar/com.aston.claude-keepalive.plist),
+每天 **09:05** 執行一次(接在 `dailyEXE` 的 09:00 之後,沿用同一組
+`pmset repeat wakeorpoweron 08:58:00` 自動喚醒排程,不需要另外設定喚醒
+時間):
+
+```bash
+cp claude-usage-bar/com.aston.claude-keepalive.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aston.claude-keepalive.plist
+launchctl list | grep claude-keepalive
+```
+
+驗證:
+
+```bash
+launchctl kickstart -k gui/$(id -u)/com.aston.claude-keepalive
+sleep 3
+cat ~/Library/Logs/claude-keepalive/claude-keepalive.log   # 應該看到 "pong"
+launchctl list | grep claude-keepalive                     # 結束碼應該是 0
+```
+
 ## 常見問題
 
 **1. `pip3 install` 應該裝在哪個 Python 環境?**

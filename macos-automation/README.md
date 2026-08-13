@@ -14,7 +14,8 @@ macos-automation/
 │   └── live-caption-toggle.applescript     # 即時字幕切換腳本原始碼
 ├── claude-usage-bar/
 │   ├── claude_usage_bar.py                 # Claude 用量選單列小工具原始碼
-│   └── com.paul.claudeusagebar.plist       # 對應的 launchd 設定
+│   ├── com.paul.claudeusagebar.plist       # 對應的 launchd 設定
+│   └── com.aston.claude-keepalive.plist    # 每日保鮮 Claude 登入 session 的排程
 └── docs/
     ├── dailyexe-troubleshooting.md         # dailyEXE 排錯完整記錄
     ├── live-caption-shortcut-setup.md      # 即時字幕快捷鍵設定教學
@@ -79,10 +80,9 @@ macOS 選單列小工具,顯示 Claude Code 的 5 小時 / 7 天用量,登入時
 - 太久沒開 `claude` CLI 時,Keychain 裡的 OAuth token 會過期,拿過期
   token 打用量 API 會被伺服器當成濫用擋成 `HTTP 429`,而非預期的
   `401`;程式已加上主動偵測過期 + 429 backoff 的防護
+- **根本預防**:`com.aston.claude-keepalive.plist` 每天 09:05(接在
+  `dailyEXE` 之後,沿用同一組自動喚醒排程)自動執行一次
+  `claude -p "ping"`,借助 CLI 內建的 refreshToken 換發機制保持登入
+  session 新鮮,防止 token 過期導致 429
 
 詳見 `docs/claude-usage-bar-setup.md`。
-
-## 待補充
-
-- 定期保鮮 Claude Code 登入 session(避免 token 過期)的排程,防止
-  ClaudeUsageBar 429 的根本預防措施(尚在確認合適的 CLI 指令)
