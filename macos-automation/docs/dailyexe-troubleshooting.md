@@ -93,6 +93,52 @@ sudo pmset repeat wakeorpoweron MTWRFSU 08:58:00
 每天 08:58 自動喚醒電腦(比排程時間早 2 分鐘留緩衝),即使螢幕闔著、處於
 睡眠狀態也會被喚醒。
 
+## 手動啟動與測試
+
+若你想在不等到排程時間時立刻測試或手動觸發 dailyEXE，可以用下面步驟：
+
+1) 直接在終端機以相同使用者身分執行可執行檔（可觀察 stdout/err 與回傳碼）：
+
+```bash
+/Users/aston/Documents/program/dailyEXE >> /Users/aston/Documents/program/dailyEXE.log 2>> /Users/aston/Documents/program/dailyEXE.err
+echo "exit code: $?"
+```
+
+- 這會把標準輸出與錯誤輸出分別附加到 log/err 檔案，並印出程序結束碼，方便確認是否與 launchd 執行時的錯誤一致。
+- 注意直接在終端執行會使用使用者互動環境（PATH、HOME、環境變數等）。若要模擬 launchd 的環境，請在執行前清理或顯式設定所需的環境變數。
+
+2) 使用 launchctl 直接觸發（啟用已載入的 agent）：
+
+```bash
+# 建議先確認 agent 是否已 bootstrap
+launchctl list | grep com.aston.dailyexe
+
+# 立即啟動（不改動 plist）：
+launchctl kickstart -k gui/$(id -u)/com.aston.dailyexe
+# 或嘗試較舊語法：
+launchctl start com.aston.dailyexe
+```
+
+- `kickstart -k` 會強制重新啟動該 label（如果 already loaded 會 kill 並 restart），適合測試 run 及重現 launchd 執行流程。
+- 如果 agent 尚未載入，請先用 `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aston.dailyexe.plist` 載入，再用上面指令觸發。
+
+3) 即時觀察 log：
+
+```bash
+tail -f /Users/aston/Documents/program/dailyEXE.log /Users/aston/Documents/program/dailyEXE.err
+```
+
+4) 檢查 launchctl list 的狀態碼與 PID：
+
+```bash
+launchctl list | grep com.aston.dailyexe
+# 若有顯示 PID，代表正在執行；若顯示負號和一個狀態碼，表示最後一次執行的 exit status
+```
+
+5) 若在 launchd 背景執行時出現與終端執行不同的行為，請注意：
+- launchd 的 PATH 與環境可能不同，建議在 plist 中指定絕對路徑或在啟動前由腳本設置必要環境變數。
+- 若 binary 因 `com.apple.quarantine` 被隔離，直接在終端執行雙擊會跳出授權對話，但 launchd 無法顯示 UI，需手動移除 quarantine（見上方 xattr 指令）。
+
 ## 待確認事項
 
 - [ ] `dailyEXE.err` / `dailyEXE.log` 實際內容(尚未取得,無法 100% 確認
