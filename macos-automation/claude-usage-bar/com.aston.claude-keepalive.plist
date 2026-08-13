@@ -12,13 +12,10 @@
         <string>--output-format</string>
         <string>text</string>
     </array>
-    <key>StartCalendarInterval</key>
-    <dict>
-        <key>Hour</key>
-        <integer>9</integer>
-        <key>Minute</key>
-        <integer>5</integer>
-    </dict>
+    <key>StartInterval</key>
+    <integer>14400</integer>
+    <key>RunAtLoad</key>
+    <true/>
     <key>StandardOutPath</key>
     <string>/Users/aston/Library/Logs/claude-keepalive/claude-keepalive.log</string>
     <key>StandardErrorPath</key>

@@ -80,9 +80,9 @@ macOS 選單列小工具,顯示 Claude Code 的 5 小時 / 7 天用量,登入時
 - 太久沒開 `claude` CLI 時,Keychain 裡的 OAuth token 會過期,拿過期
   token 打用量 API 會被伺服器當成濫用擋成 `HTTP 429`,而非預期的
   `401`;程式已加上主動偵測過期 + 429 backoff 的防護
-- **根本預防**:`com.aston.claude-keepalive.plist` 每天 09:05(接在
-  `dailyEXE` 之後,沿用同一組自動喚醒排程)自動執行一次
-  `claude -p "ping"`,借助 CLI 內建的 refreshToken 換發機制保持登入
-  session 新鮮,防止 token 過期導致 429
+- **根本預防**:`com.aston.claude-keepalive.plist` 用 `StartInterval`
+  設定成只要電腦醒著,每 4 小時自動執行一次 `claude -p "ping"`,借助
+  CLI 內建的 refreshToken 換發機制保持登入 session 新鮮,防止 token
+  過期導致 429(不會主動喚醒睡眠中的電腦,醒來後補跑)
 
 詳見 `docs/claude-usage-bar-setup.md`。

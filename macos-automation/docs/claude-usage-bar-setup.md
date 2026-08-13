@@ -154,9 +154,20 @@ which claude
 ```
 
 見 [`../claude-usage-bar/com.aston.claude-keepalive.plist`](../claude-usage-bar/com.aston.claude-keepalive.plist),
-每天 **09:05** 執行一次(接在 `dailyEXE` 的 09:00 之後,沿用同一組
-`pmset repeat wakeorpoweron 08:58:00` 自動喚醒排程,不需要另外設定喚醒
-時間):
+用 `StartInterval`(而非 `StartCalendarInterval`)設定成**只要電腦是醒
+著的,每 4 小時(14400 秒)執行一次**:
+
+```xml
+<key>StartInterval</key>
+<integer>14400</integer>
+<key>RunAtLoad</key>
+<true/>
+```
+
+`StartInterval` 跟 `dailyEXE` 用的 `StartCalendarInterval` 不同,不會主
+動把睡眠中的電腦喚醒;如果排定執行的時間點電腦剛好在睡覺,`launchd` 會
+在電腦醒來後立刻補跑一次,之後繼續照 4 小時間隔算,不需要額外設定
+`pmset` 喚醒排程。加上 `RunAtLoad`,每次登入時也會立刻跑一次。
 
 ```bash
 cp claude-usage-bar/com.aston.claude-keepalive.plist ~/Library/LaunchAgents/
