@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.paul.claudeusagebar</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/aston/.pyenv/shims/python3</string>
+        <string>/Users/aston/ClaudeUsageBar/claude_usage_bar.py</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/Users/aston/ClaudeUsageBar/claude_usage_bar.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/aston/ClaudeUsageBar/claude_usage_bar.err</string>
+</dict>
+</plist>

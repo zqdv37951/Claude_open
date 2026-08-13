@@ -12,9 +12,13 @@ macos-automation/
 │   └── com.aston.dailyexe.plist            # dailyEXE 每日排程設定
 ├── applescript/
 │   └── live-caption-toggle.applescript     # 即時字幕切換腳本原始碼
+├── claude-usage-bar/
+│   ├── claude_usage_bar.py                 # Claude 用量選單列小工具原始碼
+│   └── com.paul.claudeusagebar.plist       # 對應的 launchd 設定
 └── docs/
     ├── dailyexe-troubleshooting.md         # dailyEXE 排錯完整記錄
-    └── live-caption-shortcut-setup.md      # 即時字幕快捷鍵設定教學
+    ├── live-caption-shortcut-setup.md      # 即時字幕快捷鍵設定教學
+    └── claude-usage-bar-setup.md           # ClaudeUsageBar 設定與排錯記錄
 ```
 
 ## launchd/com.aston.dailyexe.plist
@@ -65,6 +69,20 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aston.dailyexe.plist
 (`~/Library/Services/LiveCaption2.workflow`)與快捷鍵設定方式詳見
 `docs/live-caption-shortcut-setup.md`。
 
+## claude-usage-bar/ + docs/claude-usage-bar-setup.md
+
+macOS 選單列小工具,顯示 Claude Code 的 5 小時 / 7 天用量,登入時透過
+`com.paul.claudeusagebar.plist` 自動啟動。排錯記錄涵蓋兩個曾經踩到的坑:
+
+- launchd 指定的 python 跟實際裝套件(`rumps`/`requests`)的 python 不是
+  同一個(系統 Python vs pyenv),導致啟動即失敗且沒有選單列圖示
+- 太久沒開 `claude` CLI 時,Keychain 裡的 OAuth token 會過期,拿過期
+  token 打用量 API 會被伺服器當成濫用擋成 `HTTP 429`,而非預期的
+  `401`;程式已加上主動偵測過期 + 429 backoff 的防護
+
+詳見 `docs/claude-usage-bar-setup.md`。
+
 ## 待補充
 
-- `com.paul.claudeusagebar` 選單列小工具的排程設定與排錯記錄(尚在排查中)
+- 定期保鮮 Claude Code 登入 session(避免 token 過期)的排程,防止
+  ClaudeUsageBar 429 的根本預防措施(尚在確認合適的 CLI 指令)
