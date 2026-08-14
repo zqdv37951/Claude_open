@@ -104,6 +104,8 @@ const trip = {
 
 ## 必须包含的区块（顺序可由美学微调，内容不可缺）
 
+> 实测下来读者期待的阅读动线：行前须知 → 交通/航班+酒店 → **时间序行程（含地图）** → 延伸参考资料（如 `highlights` 总览）→ 免责声明 → 全程贴士。时间序行程本身**不应排在**延伸参考资料之后，它才是主要内容。单日/国内短程行程的区块替代方案见 `references/day-trip-enhancements.md`。
+
 1. **页顶**：行程标题 + 出发前待办清单。清单用 `reminders.js` 的 `computeReminders(trip.startDate, trip.reminders)` 再 `renderChecklistHTML(...)` 生成。
 2. **行前须知区块**：展示 `preTrip` 全部——天气与台风提醒、穿搭、支付、必备 App、购票时机。突出"日期/季节定制"。
 3. **航班区**：`flights.booked` 高亮标"已预订"；`flights.candidates` 列表展示 3-5 个待选班次，每项标"待选 · 请自行核实预订"并显示 `note`。
