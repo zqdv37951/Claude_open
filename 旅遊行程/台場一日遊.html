@@ -1,0 +1,548 @@
+<title>台場一日遊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root {
+    --bg: #f1f4f2; --surface: #ffffff; --surface-2: #e7ece9;
+    --ink: #1b2422; --ink-soft: #4b5751; --ink-faint: #7c8985;
+    --line: #d7ded9;
+    --teal: #146b6b; --teal-ink: #0e4f4f; --teal-soft: #e1f0ee;
+    --amber: #a3701f; --amber-ink: #855c19; --amber-soft: #f5ead2;
+    --shadow: 0 1px 2px rgba(20, 30, 28, 0.06), 0 8px 24px -12px rgba(20, 30, 28, 0.18);
+    --font-display: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Noto Serif TC', 'PingFang TC', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Segoe UI', Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101614; --surface: #171f1c; --surface-2: #1f2925;
+      --ink: #e8ece9; --ink-soft: #a9b5af; --ink-faint: #74827c;
+      --line: #2a3630;
+      --teal: #5fc9c4; --teal-ink: #8fdcd8; --teal-soft: #16302e;
+      --amber: #e3ae5c; --amber-ink: #eec078; --amber-soft: #3a2e17;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101614; --surface: #171f1c; --surface-2: #1f2925;
+    --ink: #e8ece9; --ink-soft: #a9b5af; --ink-faint: #74827c;
+    --line: #2a3630;
+    --teal: #5fc9c4; --teal-ink: #8fdcd8; --teal-soft: #16302e;
+    --amber: #e3ae5c; --amber-ink: #eec078; --amber-soft: #3a2e17;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  a { color: inherit; }
+  img { max-width: 100%; }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 0 20px 96px; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 40px 0 26px; border-bottom: 1px solid var(--line); }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 14px; }
+  .hero h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2rem, 3.6vw + 1rem, 2.9rem); line-height: 1.15; margin: 0 0 10px; text-wrap: balance; color: var(--ink); }
+  .hero .sub { font-size: 1.05rem; color: var(--ink-soft); max-width: 62ch; margin: 0 0 24px; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 22px; }
+  .stat { background: var(--surface); padding: 14px 12px; text-align: center; }
+  .stat .n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.35rem; font-weight: 600; color: var(--teal-ink); }
+  .stat .l { font-size: 0.75rem; color: var(--ink-faint); margin-top: 2px; }
+
+  .pretrip-todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .todo-item { display: flex; align-items: baseline; gap: 8px; font-size: 0.9rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+  .todo-item input { accent-color: var(--teal); margin-top: 2px; }
+  .todo-deadline { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--amber-ink); background: var(--amber-soft); border-radius: 6px; padding: 1px 6px; font-size: 0.78rem; white-space: nowrap; }
+  .todo-text { color: var(--ink-soft); }
+
+  /* ---------- Section framing ---------- */
+  section { margin-bottom: 52px; scroll-margin-top: 20px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .section-head h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; margin: 0; }
+  .section-head .count { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); white-space: nowrap; }
+
+  /* ---------- PreTrip / Transit cards ---------- */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .info-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .info-card h4 { margin: 0 0 8px; font-size: 0.92rem; color: var(--ink); }
+  .info-card p { margin: 0 0 6px; font-size: 0.88rem; color: var(--ink-soft); }
+  .info-card ul { margin: 6px 0 0; padding-left: 18px; font-size: 0.86rem; color: var(--ink-soft); }
+  .apps-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .app-pill { font-family: var(--font-mono); font-size: 0.72rem; background: var(--teal-soft); color: var(--teal-ink); border-radius: 999px; padding: 3px 9px; }
+
+  .transit-list { display: flex; flex-direction: column; gap: 8px; }
+  .transit-item { display: grid; grid-template-columns: 60px 1fr auto; gap: 10px; align-items: baseline; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 0.88rem; }
+  .transit-time { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--teal-ink); font-weight: 600; }
+  .transit-leg { color: var(--ink); }
+  .transit-duration { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); white-space: nowrap; }
+  .transit-note { margin-top: 10px; font-size: 0.84rem; color: var(--ink-faint); border-left: 2px solid var(--line); padding-left: 10px; }
+  .adapt-note { margin-top: 8px; font-size: 0.8rem; color: var(--ink-faint); font-style: italic; }
+
+  .disclaimer-box { font-size: 0.86rem; color: var(--amber-ink); background: var(--amber-soft); border-radius: 10px; padding: 14px 16px; line-height: 1.6; }
+
+  /* ---------- Map ---------- */
+  #map { height: 380px; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .route-pin { background: var(--teal); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px var(--surface), 0 2px 6px rgba(0,0,0,0.3); }
+  .route-pin__num { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; }
+  .leaflet-popup-content-wrapper { background: var(--surface); color: var(--ink); }
+  .leaflet-popup-content a { color: var(--teal-ink); }
+  .leaflet-popup-tip { background: var(--surface); }
+
+  /* ---------- Day block ---------- */
+  .day-block { margin-bottom: 40px; }
+  .day-header { margin-bottom: 18px; }
+  .day-header .datebadge { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); letter-spacing: 0.05em; }
+  .day-header h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; margin: 4px 0 8px; }
+  .day-tips { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .day-tips .tip-line { font-size: 0.86rem; color: var(--ink-soft); background: var(--surface-2); border-radius: 8px; padding: 8px 12px; }
+
+  .alt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .alt-card { border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; background: var(--surface); }
+  .alt-card .alt-label { font-weight: 600; font-size: 0.9rem; color: var(--teal-ink); margin-bottom: 4px; }
+  .alt-card .alt-summary { font-size: 0.84rem; color: var(--ink-soft); }
+
+  .period-heading { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin: 22px 0 12px; padding-bottom: 6px; border-bottom: 1px dotted var(--line); }
+
+  .slot-card { display: grid; grid-template-columns: 120px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .slot-media { position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden; background: linear-gradient(135deg, var(--teal-soft), var(--amber-soft)); display: flex; align-items: center; justify-content: center; text-align: center; padding: 6px; }
+  .slot-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .slot-media .fallback-label { font-size: 0.72rem; color: var(--teal-ink); font-weight: 600; line-height: 1.3; }
+  .slot-body { min-width: 0; }
+  .slot-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .slot-title { font-weight: 600; font-size: 1rem; color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; }
+  .slot-title[href] { border-bottom: 1px solid var(--line); }
+  .slot-title[href]:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+  .slot-time { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.82rem; color: var(--ink-faint); white-space: nowrap; }
+  .slot-rating { font-family: var(--font-mono); font-size: 0.8rem; color: var(--amber-ink); margin-left: 6px; }
+  .slot-review { font-size: 0.88rem; color: var(--ink-soft); margin: 4px 0 8px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .badge { font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .badge.hours { background: var(--surface-2); color: var(--ink-soft); }
+  .badge.closed { background: var(--amber-soft); color: var(--amber-ink); }
+  .badge.price-free { background: var(--teal-soft); color: var(--teal-ink); }
+  .badge.price-paid { background: var(--amber-soft); color: var(--amber-ink); }
+  .badge.transport { background: var(--surface-2); color: var(--ink-soft); }
+  .badge.seasonal { background: var(--teal-soft); color: var(--teal-ink); }
+  .reminder-badge { font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: var(--amber-soft); color: var(--amber-ink); white-space: nowrap; }
+
+  .nearby-toggle { margin-top: 4px; background: none; border: none; padding: 0; font-family: var(--font-body); font-size: 0.82rem; color: var(--teal-ink); cursor: pointer; text-align: left; }
+  .nearby-toggle:hover { text-decoration: underline; }
+  .nearby-panel { margin-top: 8px; padding-top: 8px; border-top: 1px dotted var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .nearby-panel[hidden] { display: none; }
+  .nearby-item { display: flex; justify-content: space-between; gap: 10px; font-size: 0.82rem; color: var(--ink-soft); }
+  .nearby-item .nb-name { flex: 1 1 auto; }
+  .nearby-item .nb-dist { font-family: var(--font-mono); color: var(--ink-faint); white-space: nowrap; }
+  .nearby-item .nb-type { font-size: 0.7rem; color: var(--ink-faint); }
+
+  /* ---------- Dining ---------- */
+  .dining-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .dining-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .dining-card .meal-tag { display: inline-block; font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: var(--teal-soft); color: var(--teal-ink); margin-bottom: 6px; }
+  .dining-card .place-name { font-weight: 600; font-size: 1rem; margin-bottom: 2px; }
+  .dining-card .place-hours { font-size: 0.8rem; color: var(--ink-faint); margin-bottom: 8px; }
+  .dish-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .dish-list li { display: flex; justify-content: space-between; font-size: 0.86rem; color: var(--ink-soft); border-bottom: 1px dotted var(--line); padding-bottom: 4px; }
+  .dish-list li .dish-price { font-family: var(--font-mono); color: var(--amber-ink); white-space: nowrap; }
+
+  /* ---------- Highlights ---------- */
+  .poi-group { margin-bottom: 22px; }
+  .poi-group h4 { font-size: 0.98rem; font-weight: 600; margin: 0 0 8px; color: var(--ink); }
+  .poi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
+  .poi-card { display: flex; flex-direction: column; gap: 2px; font-size: 0.88rem; padding: 8px 0; border-bottom: 1px dotted var(--line); }
+  .poi-card .poi-name { color: var(--ink); font-weight: 600; text-decoration: none; }
+  .poi-card .poi-name[href] { border-bottom: 1px solid var(--line); }
+  .poi-card .poi-name[href]:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+  .poi-card .poi-sub { font-size: 0.76rem; color: var(--ink-faint); }
+  .poi-card .poi-note { color: var(--ink-soft); }
+  .ext-link { font-size: 0.7rem; }
+
+  /* ---------- Tips ---------- */
+  .tips-list { display: flex; flex-direction: column; gap: 12px; }
+  .tip-row { display: grid; grid-template-columns: 20px 1fr; gap: 12px; font-size: 0.92rem; color: var(--ink-soft); }
+  .tip-row .idx { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-faint); font-size: 0.8rem; padding-top: 2px; }
+
+  /* ---------- Glossary ---------- */
+  .glossary-note { font-size: 0.84rem; color: var(--ink-faint); margin-bottom: 16px; }
+  .glossary-group { margin-bottom: 18px; }
+  .glossary-group h4 { font-size: 0.9rem; color: var(--ink); margin: 0 0 8px; }
+  .glossary-group dl { margin: 0; }
+  .glossary-group dt { font-weight: 600; font-size: 0.88rem; color: var(--ink); margin-top: 8px; }
+  .glossary-group dd { margin: 2px 0 0; font-size: 0.82rem; color: var(--ink-soft); }
+
+  .data-sources-note { font-size: 0.78rem; color: var(--ink-faint); margin-top: 10px; }
+
+  footer { padding-top: 24px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-faint); }
+
+  @media (max-width: 640px) {
+    .info-grid, .dining-grid, .alt-grid, .poi-grid { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: repeat(3, 1fr); }
+    .slot-card { grid-template-columns: 84px 1fr; }
+    .slot-media { width: 84px; height: 84px; }
+    #map { height: 300px; }
+  }
+</style>
+
+<div class="page">
+  <header class="hero" id="hero"></header>
+  <section id="pretrip-section">
+    <div class="section-head"><h2>行前須知</h2></div>
+    <div id="pretrip-body"></div>
+  </section>
+  <section id="transit-section">
+    <div class="section-head"><h2>交通</h2></div>
+    <div id="transit-body"></div>
+  </section>
+  <section id="disclaimer-section">
+    <div class="disclaimer-box" id="disclaimer-body"></div>
+    <div class="data-sources-note" id="datasources-body"></div>
+  </section>
+  <section id="itinerary-section">
+    <div class="section-head"><h2>每日行程</h2><span class="count" id="itinerary-count"></span></div>
+    <div id="itinerary-body"></div>
+  </section>
+  <section id="map-section">
+    <div class="section-head"><h2>路線地圖</h2></div>
+    <div id="map"></div>
+  </section>
+  <section id="highlights-section">
+    <div class="section-head"><h2>延伸推薦</h2></div>
+    <div id="highlights-body"></div>
+  </section>
+  <section id="tips-section">
+    <div class="section-head"><h2>全程實用貼士</h2></div>
+    <div class="tips-list" id="tips-body"></div>
+  </section>
+  <section id="glossary-section"></section>
+  <footer id="footer-body"></footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script id="trip-data" type="application/json">{"title":"台場一日遊","startDate":"2026-09-13","colorScheme":"teal-amber","preTrip":{"weather":{"summary":"9月中旬東京平均氣溫約27°C／22°C，仍屬濕熱晚夏；台場為填海人工島，海風較強但正午艷陽下體感依然悶熱。","typhoon":"8–9月是日本台風季，台場沿岸戶外景點（海濱公園、彩虹大橋遊歩道）對強風較敏感，出發前3天起建議關注氣象廳與百合海鷗號的營運公告，強風特報時遊歩道可能封閉。"},"packing":"短袖＋防曬外套或洋傘，海邊風大可備一件薄外套；DiverCity、AquaCity等商場冷氣強，建議洋蔥式穿搭；好走的鞋，濱海步道與商場間步行距離不算短。","payment":"商場、餐廳與交通幾乎全面支援IC卡（Suica／PASMO）及信用卡，現金需求比淺草低，但仍建議備少量現金以防萬一。","apps":["Suica／PASMO（交通儲值卡，百合海鷗號、りんかい線皆可用）","Google 地圖或Japan Official Travel App（路線規劃）","気象庁 天氣App（即時雨雲與強風警報）","各商場官方App（確認營業時間與活動）"],"ticketTip":"台場多數景點為免費開放的公共空間與商場，僅富士電視台展望室、日本科學未來館等室內設施需購票，現場購買即可，不需提前預約。"},"transit":{"outbound":[{"time":"08:30","leg":"（依住宿地點）搭乘JR／地下鐵至新橋駅，轉乘百合海鷗號（ゆりかもめ，無人駕駛新交通系統）→ お台場海浜公園駅","duration":"新橋→台場約20分"}],"return":[{"time":"20:30","leg":"お台場海浜公園駅搭乘百合海鷗號返回新橋駅，轉乘JR／地下鐵返回市區","duration":"約20分"}],"note":"另一路線可選JR埼京線・りんかい線於「東京テレポート駅」下車，離アクアシティ、ダイバーシティ較近，步行約5–10分；百合海鷗號沿線可俯瞰彩虹大橋景觀，建議去程搭乘享受高處視野，回程改走りんかい線較快。IC卡（Suica／PASMO）全線通用。"},"disclaimer":"本頁全部資訊（天氣、交通、景點、門票、價格、營業時間、評分、餐廳菜色與價位等）均為AI基於公開資料整理的參考建議，可能不準確或已過時，不保證與實際狀況一致；請務必在出發前以官方渠道／地圖App／店家公告等資訊核實後再做決定或前往。","tips":["台場戶外的海濱公園、彩虹大橋遊歩道沒有遮蔭，9月中午紫外線強，建議安排在上午與傍晚，正午前後改逛室內商場。","AQUA CiTY、DiverCity等商場平日多為11:00開始營業，週末假日部分提前至10:00，別太早抵達撲空。","彩虹大橋遊歩道4–10月開放時間為9:00–21:00（最後入場20:30），11–3月縮短為10:00–18:00。","百合海鷗號第一節車廂沒有駕駛座，建議去程搶坐最前排，近乎空拍視角欣賞彩虹大橋與台場天際線。","原本的台場地標「大観覧車」與teamLab數位藝術美術館已於2022年結束營業並遷離（teamLab現已搬到麻布台Hills），本行程已依現況改以現存景點規劃。"],"reminders":[{"item":"若想預約灣景景觀餐廳晚餐，建議提前線上訂位","leadDays":3}],"days":[{"date":"2026-09-13","weekday":"週日","theme":"灣岸未來感．台場經典一日","tips":["上午先安排戶外的海濱公園、彩虹大橋，中午改逛室內商場避開日曬與雷陣雨。","商場多為11點才開始營業，若太早抵達可以先在海濱公園散步、拍照。"],"alternatives":[{"label":"方案A．東京グルメスタジアム快速午餐","summary":"DiverCity 4F的平價美食街，拉麵、たこ焼き等多種選擇，適合快速解決午餐、留更多時間逛景點。"},{"label":"方案B．灣景餐廳優雅午餐","summary":"AquaCity或酒店內的海景餐廳，適合想悠閒享用午餐、預算較高的安排，多數建議提前訂位。"}],"slots":[{"period":"morning","name":"台場海浜公園","time":"09:00–09:40","lat":35.6297,"lng":139.7746,"photo":"","rating":4.3,"review":"人工沙灘公園，正面眺望彩虹大橋，清晨海風舒適、遊客尚少。","openingHours":"全天開放","ticketPrice":"免費","needsBooking":false,"leadDays":0},{"period":"morning","name":"自由女神像（台場）","time":"09:40–10:00","lat":35.6298,"lng":139.7726,"photo":"","rating":4.2,"review":"1998年法國贈送的自由女神複製像，背景是彩虹大橋，經典打卡點。","openingHours":"全天開放","ticketPrice":"免費","transport":{"mode":"步行","fare":"—","duration":"從海濱公園沿岸約5分鐘"},"needsBooking":false,"leadDays":0},{"period":"morning","name":"彩虹大橋遊歩道","time":"10:05–10:45","lat":35.632,"lng":139.768,"photo":"","rating":4.4,"review":"可實際步行上橋，近距離感受橋樑結構與東京灣景色，單程走完約30–40分鐘，體力有限可只走一段折返。","openingHours":"4–10月 9:00–21:00（最後入場20:30），11–3月 10:00–18:00","ticketPrice":"免費","transport":{"mode":"步行","fare":"—","duration":"從自由女神像約15分鐘"},"needsBooking":false,"leadDays":0},{"period":"morning","name":"富士電視台本社大樓「はちたま」展望室","time":"11:00–12:00","lat":35.6259,"lng":139.7757,"photo":"","rating":4.1,"review":"25樓球體展望室可360度俯瞰台場與東京灣，電視台本身建築也很有話題性。","openingHours":"10:00–18:00（週一休，最終入場17:30）","ticketPrice":"約¥700–1,000（依票種）","transport":{"mode":"步行","fare":"—","duration":"從彩虹大橋遊歩道折返約15分鐘"},"needsBooking":false,"leadDays":0},{"period":"noon","name":"DiverCity Tokyo Plaza．獨角獸鋼彈像","time":"13:15–14:45","lat":35.6256,"lng":139.7754,"photo":"","rating":4.5,"review":"1:1實體大小的RX-93ff ν鋼彈像是台場新地標，整點還有燈光聲光演出，商場內也有鋼彈基地東京專門店。","openingHours":"商場11:00–21:00（週末假日或提前至10:00），鋼彈像全天可見","ticketPrice":"免費參觀（部分展覽需購票）","transport":{"mode":"步行","fare":"—","duration":"從富士電視台約10分鐘"},"needsBooking":false,"leadDays":0},{"period":"noon","name":"日本科學未來館（Miraikan）","time":"15:00–16:15","lat":35.6193,"lng":139.7757,"photo":"","rating":4.4,"review":"以巨大地球儀「Geo-Cosmos」聞名的科學博物館，機器人展示與互動科技展覽適合大人小孩。","openingHours":"10:00–17:00（週二休，最終入館16:30）","ticketPrice":"常設展約¥630（大人）","transport":{"mode":"步行","fare":"—","duration":"從DiverCity約12分鐘"},"needsBooking":false,"leadDays":0},{"period":"evening","name":"DECKS Tokyo Beach","time":"16:30–17:30","lat":35.6288,"lng":139.7745,"photo":"","rating":4,"review":"複合商場，內有室內遊樂設施與多間餐廳，傍晚時段適合輕鬆逛街、躲避戶外日曬。","openingHours":"11:00–21:00（依店鋪略有不同）","ticketPrice":"免費入場（設施另計）","transport":{"mode":"步行","fare":"—","duration":"從Miraikan約15分鐘"},"needsBooking":false,"leadDays":0},{"period":"evening","name":"台場海浜公園．彩虹大橋夜景","time":"17:45–18:30","lat":35.6297,"lng":139.7746,"photo":"","rating":4.5,"review":"回到海濱公園看夕陽與彩虹大橋點燈，是台場一天最推薦的收尾畫面。","openingHours":"全天開放","ticketPrice":"免費","transport":{"mode":"步行","fare":"—","duration":"從DECKS約5分鐘"},"needsBooking":false,"leadDays":0},{"period":"evening","name":"百合海鷗號夜景乘車","time":"20:00–20:30","lat":35.628,"lng":139.7737,"photo":"","rating":4.3,"review":"無人駕駛列車最前排視角欣賞彩虹大橋與台場燈海，是結束一天行程的浪漫方式。","openingHours":"依營運時刻表","ticketPrice":"依搭乘區間，IC卡直接感應","needsBooking":false,"leadDays":0}],"dining":[{"meal":"午餐","place":"東京グルメスタジアム（DiverCity Tokyo Plaza 4F）","hours":"11:00–21:00","dishes":[{"name":"じゃんがら 九州とんこつラーメン","price":"約¥900"},{"name":"銀だこ たこ焼き","price":"約¥600"}]},{"meal":"晚餐","place":"シースケープ テラス・ダイニング（台場灣景餐廳）","hours":"11:30–22:00（依店休日調整）","dishes":[{"name":"東京灣景觀自助百匯","price":"約¥6,000起（依時段）"},{"name":"主廚精選海鮮盤","price":"約¥3,800起"}]}]}],"highlights":{"spotsTitle":"台場特色景點總覽（12項）","spots":[{"name":"台場海浜公園","note":"人工沙灘公園，正面眺望彩虹大橋","lat":35.6297,"lng":139.7746},{"name":"自由女神像（台場）","note":"1998年法國贈送的複製像","lat":35.6298,"lng":139.7726},{"name":"彩虹大橋遊歩道","note":"可實際步行上橋欣賞東京灣景色","lat":35.632,"lng":139.768},{"name":"富士電視台本社大樓「はちたま」","note":"25樓球體展望室360度俯瞰台場","lat":35.6259,"lng":139.7757},{"name":"DiverCity Tokyo Plaza．獨角獸鋼彈像","note":"1:1實體大小RX-93ff ν鋼彈像","lat":35.6256,"lng":139.7754},{"name":"日本科學未來館","note":"巨大地球儀Geo-Cosmos與機器人展示","lat":35.6193,"lng":139.7757},{"name":"DECKS Tokyo Beach","note":"複合商場，室內遊樂設施眾多","lat":35.6288,"lng":139.7745},{"name":"AQUA CiTY お台場","note":"地中海風格大型購物商場","lat":35.627,"lng":139.7738},{"name":"台場公園（舊要塞遺跡）","note":"江戶末期為防禦黑船建造的砲台遺跡","lat":35.628,"lng":139.7695},{"name":"潮風公園","note":"濱海綠地公園，適合散步與運動","lat":35.6238,"lng":139.7716},{"name":"台場海浜公園駅（百合海鷗號）","note":"無人駕駛新交通系統車站","lat":35.628,"lng":139.7737},{"name":"東京国際展示場（東京Big Sight）","note":"造型獨特的倒金字塔建築，可遠觀拍照","lat":35.63,"lng":139.7906}],"foodTitle":"台場特色美食總覽（10項）","food":[{"name":"九州とんこつラーメン","shop":"じゃんがら（東京グルメスタジアム）","note":"DiverCity美食街的人氣拉麵店","lat":35.6256,"lng":139.7754},{"name":"たこ焼き","shop":"銀だこ","note":"全國連鎖的知名章魚燒","lat":35.6288,"lng":139.7745},{"name":"ハワイアンパンケーキ","shop":"コナズ珈琲（AQUA CiTY）","note":"夏威夷風味鬆餅專門店","lat":35.627,"lng":139.7738},{"name":"牛排","shop":"The Grill on 30th（グランドニッコー東京台場）","note":"高樓層灣景牛排餐廳","lat":35.6255,"lng":139.77},{"name":"鉄板焼き","shop":"鉄板焼 銀杏（ヒルトン東京お台場）","note":"飯店內鐵板燒餐廳","lat":35.6265,"lng":139.777},{"name":"義大利料理","shop":"ラウンジ クオーレ","note":"開放式洋風義式餐廳","lat":35.631,"lng":139.79},{"name":"灣景自助百匯","shop":"シースケープ テラス・ダイニング","note":"眺望東京灣的自助餐廳","lat":35.627,"lng":139.7738},{"name":"迴轉壽司","shop":"AQUA CiTY內連鎖迴轉壽司店","note":"商場內方便快速的迴轉壽司選擇","lat":35.627,"lng":139.7738},{"name":"日式咖哩","shop":"CoCo壱番屋 台場店","note":"可自選辣度與配料的連鎖咖哩飯","lat":35.6288,"lng":139.7745},{"name":"霜淇淋・冰品","shop":"海濱公園沿岸攤販與便利店","note":"散步途中消暑的簡單選擇","lat":35.6297,"lng":139.7746}],"shopsTitle":"台場特色店家總覽（10項）","shops":[{"name":"GUNDAM BASE TOKYO","category":"鋼彈模型專門店","note":"全球最大鋼彈周邊據點之一，位於DiverCity","lat":35.6256,"lng":139.7754},{"name":"LEGOLAND Discovery Center商店","category":"樂高周邊","note":"樂高積木主題周邊商品","lat":35.6288,"lng":139.7745},{"name":"Francfranc","category":"生活雜貨","note":"日系生活家居雜貨品牌","lat":35.6288,"lng":139.7745},{"name":"UNIQLO 台場店","category":"服飾","note":"平價休閒服飾連鎖店","lat":35.627,"lng":139.7738},{"name":"ラウンドワン スタジアム","category":"綜合娛樂","note":"保齡球、卡拉OK、遊戲機台一應俱全","lat":35.6256,"lng":139.7754},{"name":"MEGA ドン・キホーテ 台場店","category":"藥妝雜貨激安殿堂","note":"24小時營業的大型雜貨藥妝店","lat":35.6275,"lng":139.7735},{"name":"3COINS","category":"平價生活小物","note":"均一價生活雜貨與飾品","lat":35.627,"lng":139.7738},{"name":"台場一丁目商店街","category":"昭和懷舊商店街","note":"DECKS內重現昭和年代的復古零食與玩具街","lat":35.6288,"lng":139.7745},{"name":"ダイソー 台場店","category":"百円商店","note":"平價生活雜貨百圓店","lat":35.627,"lng":139.7738},{"name":"Hard Rock Cafe Tokyo","category":"主題餐飲周邊","note":"搖滾主題餐廳與周邊商品店","lat":35.627,"lng":139.7738}]},"glossary":{"title":"日文名詞註解","note":"本頁地名、店名多保留日文原文，以下整理全篇出現過的非中文詞彙的中文說明。","groups":[{"category":"交通","items":[{"term":"ゆりかもめ（百合海鷗號）","note":"連接新橋與台場的無人駕駛新交通系統"},{"term":"りんかい線","note":"JR埼京線可直通運行的臨海地下鐵路線"},{"term":"お台場海浜公園駅","note":"百合海鷗號車站之一，緊鄰海濱公園"},{"term":"東京テレポート駅","note":"りんかい線車站，鄰近AQUA CiTY與DiverCity"}]},{"category":"景點","items":[{"term":"はちたま","note":"富士電視台本社大樓25樓的球體展望室暱稱"},{"term":"ダイバーシティ（DiverCity）","note":"以鋼彈像聞名的購物商場"},{"term":"パレットタウン","note":"原台場地標商場，內含大観覧車與teamLab，已於2022年結束營業"},{"term":"潮風公園","note":"台場濱海的大型綠地公園"},{"term":"台場公園","note":"江戶末期為防禦黑船建造的砲台遺跡公園"}]},{"category":"美食・店家","items":[{"term":"じゃんがら","note":"以九州豚骨拉麵聞名的連鎖拉麵店"},{"term":"銀だこ","note":"全國連鎖的知名章魚燒品牌"},{"term":"ドン・キホーテ","note":"24小時營業的大型雜貨藥妝激安連鎖店"}]}]}}</script>
+
+<script>
+// ===== map.js (inlined) =====
+function escapeHTML(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+function buildMapAppLinks(lat, lng, label) {
+  var amap = { label: '高德地图', url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat + '&name=' + encodeURIComponent(label) + '&coordinate=wgs84&callnative=1&src=travel-plan-viz' };
+  var google = { label: 'Google 地圖', url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng) };
+  return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
+}
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+function isInChinaBBox(lat, lng) { return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271; }
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+function routeCoordinates(points) { return points.map(function (p) { return [p.lat, p.lng]; }); }
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: opts.attribution || '© OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({ className: 'route-pin', html: '<span class="route-pin__num">' + (i + 1) + '</span>', iconSize: [28, 28], iconAnchor: [14, 14] });
+    var navLinks = [{ label: '導航', url: buildNavLink(p.lat, p.lng, p.name, ua) }].concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>' + (p.time ? escapeHTML(p.time) + '<br>' : '') +
+      navLinks.map(function (l) { return '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHTML(l.label) + '</a>'; }).join(' · ')
+    );
+  });
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) { L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map); }
+  map.fitBounds(coords.length ? coords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+</script>
+<script>
+// ===== reminders.js (inlined) =====
+function computeReminders(startDateISO, items) {
+  return items.map(function (it) {
+    var d = new Date(startDateISO + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() - it.leadDays);
+    return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+  }).sort(function (a, b) { return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0; });
+}
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item"><input type="checkbox"> <span class="todo-deadline">' + r.deadline + '前</span> <span class="todo-text">' + escapeHTML(r.item) + '（建議提前' + r.leadDays + '天）</span></li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+function reminderBadgeHTML(leadDays) {
+  return '<span class="reminder-badge">⚠️ 建議提前' + leadDays + '天訂</span>';
+}
+</script>
+<script>
+// ===== page renderer =====
+(function () {
+  var trip = JSON.parse(document.getElementById('trip-data').textContent);
+
+  function normalizeName(s) { return String(s || '').replace(/[（）()／\/・\s]/g, ''); }
+  function sameCore(a, b) {
+    if (!a || !b) return false;
+    var na = normalizeName(a), nb = normalizeName(b);
+    if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
+    var n = Math.min(4, na.length, nb.length);
+    return n >= 3 && na.slice(0, n) === nb.slice(0, n);
+  }
+  function haversineMeters(lat1, lng1, lat2, lng2) {
+    var R = 6371000;
+    var toRad = function (d) { return d * Math.PI / 180; };
+    var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+    var a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  function fmtDist(m) { return m < 1000 ? Math.round(m) + ' m' : (m / 1000).toFixed(1) + ' km'; }
+
+  function mediaHTML(name, photo) {
+    var img = photo ? '<img src="' + escapeHTML(photo) + '" alt="' + escapeHTML(name) + '" onerror="this.style.display=\'none\'">' : '';
+    return '<div class="slot-media">' + img + '<span class="fallback-label">' + escapeHTML(name) + '</span></div>';
+  }
+
+  // ---------- Hero ----------
+  (function renderHero() {
+    var totalStops = trip.days.reduce(function (n, d) { return n + (d.slots ? d.slots.length : 0); }, 0);
+    var reminders = computeReminders(trip.startDate, trip.reminders || []);
+    var d0 = trip.days[0];
+    document.getElementById('hero').innerHTML =
+      '<p class="eyebrow">Trip Plan · ' + escapeHTML(trip.startDate) + '</p>' +
+      '<h1>' + escapeHTML(trip.title) + '</h1>' +
+      '<p class="sub">' + escapeHTML(d0.theme || '') + '</p>' +
+      '<div class="stat-row">' +
+        '<div class="stat"><div class="n">1</div><div class="l">天行程</div></div>' +
+        '<div class="stat"><div class="n">' + totalStops + '</div><div class="l">個行程點</div></div>' +
+        '<div class="stat"><div class="n">' + (d0.weekday || '') + '</div><div class="l">' + escapeHTML(trip.startDate) + '</div></div>' +
+      '</div>' +
+      (reminders.length ? renderChecklistHTML(reminders) : '');
+  })();
+
+  // ---------- PreTrip ----------
+  (function renderPreTrip() {
+    var p = trip.preTrip || {};
+    var w = p.weather || {};
+    var html = '<div class="info-grid">' +
+      '<div class="info-card"><h4>🌤️ 天氣與提醒</h4><p>' + escapeHTML(w.summary || '') + '</p>' + (w.typhoon ? '<p>' + escapeHTML(w.typhoon) + '</p>' : '') + '</div>' +
+      '<div class="info-card"><h4>🎒 穿搭建議</h4><p>' + escapeHTML(p.packing || '') + '</p></div>' +
+      '<div class="info-card"><h4>💳 支付方式</h4><p>' + escapeHTML(p.payment || '') + '</p></div>' +
+      '<div class="info-card"><h4>📱 必備App</h4><div class="apps-row">' + (p.apps || []).map(function (a) { return '<span class="app-pill">' + escapeHTML(a) + '</span>'; }).join('') + '</div></div>' +
+      '</div>' +
+      (p.ticketTip ? '<div class="transit-note">🎫 ' + escapeHTML(p.ticketTip) + '</div>' : '');
+    document.getElementById('pretrip-body').innerHTML = html;
+  })();
+
+  // ---------- Transit (no flights/hotels for a same-day local trip) ----------
+  (function renderTransit() {
+    var t = trip.transit;
+    if (!t) {
+      document.getElementById('transit-section').style.display = 'none';
+      return;
+    }
+    function legList(items) {
+      return '<div class="transit-list">' + (items || []).map(function (it) {
+        return '<div class="transit-item"><span class="transit-time">' + escapeHTML(it.time || '') + '</span><span class="transit-leg">' + escapeHTML(it.leg || '') + '</span><span class="transit-duration">' + escapeHTML(it.duration || '') + '</span></div>';
+      }).join('') + '</div>';
+    }
+    document.getElementById('transit-body').innerHTML =
+      '<div class="info-grid">' +
+      '<div class="info-card"><h4>去程</h4>' + legList(t.outbound) + '</div>' +
+      '<div class="info-card"><h4>回程</h4>' + legList(t.return) + '</div>' +
+      '</div>' +
+      (t.note ? '<div class="transit-note">' + escapeHTML(t.note) + '</div>' : '') +
+      '<div class="adapt-note">本次為市區當日往返行程，不涉及航班與住宿，故以交通區塊取代機票／酒店區塊。</div>';
+  })();
+
+  // ---------- Disclaimer ----------
+  (function renderDisclaimer() {
+    document.getElementById('disclaimer-body').innerHTML = '⚠️ ' + escapeHTML(trip.disclaimer);
+    if (trip.dataSources && trip.dataSources.length) {
+      document.getElementById('datasources-body').textContent =
+        '資料來源：' + trip.dataSources.map(function (s) { return s.name + '（' + s.scope + '）'; }).join('；');
+    }
+  })();
+
+  // ---------- Itinerary (days, slots, nearby, dining) ----------
+  var allPoints = [];
+  (function renderItinerary() {
+    document.getElementById('itinerary-count').textContent = trip.days.length + ' day' + (trip.days.length > 1 ? 's' : '');
+    var periodLabel = { morning: '上午', noon: '中午・下午', evening: '傍晚・晚上' };
+    var html = '';
+    trip.days.forEach(function (day, di) {
+      html += '<div class="day-block" id="day-' + di + '">';
+      html += '<div class="day-header"><div class="datebadge">' + escapeHTML(day.date) + ' · ' + escapeHTML(day.weekday || '') + '</div>';
+      html += '<h3>' + escapeHTML(day.theme || '') + '</h3></div>';
+
+      if (day.tips && day.tips.length) {
+        html += '<div class="day-tips">' + day.tips.map(function (t) { return '<div class="tip-line">💡 ' + escapeHTML(t) + '</div>'; }).join('') + '</div>';
+      }
+      if (day.alternatives && day.alternatives.length) {
+        html += '<div class="alt-grid">' + day.alternatives.map(function (a) {
+          return '<div class="alt-card"><div class="alt-label">' + escapeHTML(a.label) + '</div><div class="alt-summary">' + escapeHTML(a.summary) + '</div></div>';
+        }).join('') + '</div>';
+      }
+
+      var byPeriod = { morning: [], noon: [], evening: [] };
+      (day.slots || []).forEach(function (s) { (byPeriod[s.period] || byPeriod.morning).push(s); allPoints.push({ lat: s.lat, lng: s.lng, name: s.name, time: s.time }); });
+
+      ['morning', 'noon', 'evening'].forEach(function (period) {
+        var slots = byPeriod[period];
+        if (!slots.length) return;
+        html += '<div class="period-heading">' + periodLabel[period] + '</div>';
+        slots.forEach(function (s, si) {
+          var panelId = 'nearby-' + di + '-' + period + '-' + si;
+          var badges = '';
+          if (s.openingHours) badges += '<span class="badge hours">🕒 ' + escapeHTML(s.openingHours) + '</span>';
+          if (s.closedDays) badges += '<span class="badge closed">休：' + escapeHTML(s.closedDays) + '</span>';
+          if (s.ticketPrice) badges += '<span class="badge ' + (s.ticketPrice.indexOf('免費') === 0 ? 'price-free' : 'price-paid') + '">💴 ' + escapeHTML(s.ticketPrice) + '</span>';
+          if (s.transport) badges += '<span class="badge transport">🚶 ' + escapeHTML(s.transport.mode) + (s.transport.fare && s.transport.fare !== '—' ? '・' + escapeHTML(s.transport.fare) : '') + '・' + escapeHTML(s.transport.duration) + '</span>';
+          if (s.seasonal) badges += '<span class="badge seasonal">✨ ' + escapeHTML(s.seasonal) + '</span>';
+          if (s.needsBooking) badges += reminderBadgeHTML(s.leadDays || 0);
+
+          var titleInner = escapeHTML(s.name);
+          var titleTag = s.url
+            ? '<a class="slot-title" href="' + s.url + '" target="_blank" rel="noopener">' + titleInner + ' ↗</a>'
+            : '<span class="slot-title">' + titleInner + '</span>';
+
+          html += '<article class="slot-card">' + mediaHTML(s.name, s.photo) +
+            '<div class="slot-body">' +
+            '<div class="slot-top">' + titleTag + '<span class="slot-time">' + escapeHTML(s.time || '') + '</span></div>' +
+            (typeof s.rating === 'number' ? '<span class="slot-rating">★ ' + s.rating.toFixed(1) + '</span>' : '') +
+            '<p class="slot-review">' + escapeHTML(s.review || '') + '</p>' +
+            '<div class="badge-row">' + badges + '</div>' +
+            (typeof s.lat === 'number' ? '<button class="nearby-toggle" data-target="' + panelId + '" aria-expanded="false">▸ 顯示附近特色美食・店家・景點</button><div class="nearby-panel" id="' + panelId + '" hidden data-slot-name="' + escapeHTML(s.name) + '" data-lat="' + s.lat + '" data-lng="' + s.lng + '"></div>' : '') +
+            '</div></article>';
+        });
+      });
+
+      if (day.dining && day.dining.length) {
+        html += '<div class="period-heading">當日餐飲</div><div class="dining-grid">' + day.dining.map(function (m) {
+          return '<div class="dining-card"><span class="meal-tag">' + escapeHTML(m.meal) + '</span><div class="place-name">' + escapeHTML(m.place) + '</div><div class="place-hours">' + escapeHTML(m.hours || '') + '</div>' +
+            '<ul class="dish-list">' + (m.dishes || []).map(function (d) { return '<li><span>' + escapeHTML(d.name) + '</span><span class="dish-price">' + escapeHTML(d.price) + '</span></li>'; }).join('') + '</ul></div>';
+        }).join('') + '</div>';
+      }
+
+      html += '</div>';
+    });
+    document.getElementById('itinerary-body').innerHTML = html;
+
+    // Lazily fill nearby panels now that highlights + DOM exist
+    var pool = [];
+    var hl = trip.highlights || {};
+    (hl.spots || []).forEach(function (i) { pool.push({ type: '景點', name: i.name, note: i.note, lat: i.lat, lng: i.lng, matchName: i.name }); });
+    (hl.food || []).forEach(function (i) { pool.push({ type: '美食', name: i.name + (i.shop ? '｜' + i.shop : ''), note: i.note, lat: i.lat, lng: i.lng, matchName: i.shop || i.name }); });
+    (hl.shops || []).forEach(function (i) { pool.push({ type: '店家', name: i.name, note: i.note, lat: i.lat, lng: i.lng, matchName: i.name }); });
+
+    document.querySelectorAll('.nearby-panel').forEach(function (panel) {
+      var slotName = panel.getAttribute('data-slot-name');
+      var lat = parseFloat(panel.getAttribute('data-lat'));
+      var lng = parseFloat(panel.getAttribute('data-lng'));
+      var items = pool
+        .filter(function (i) { return typeof i.lat === 'number' && typeof i.lng === 'number' && !sameCore(slotName, i.matchName); })
+        .map(function (i) { return Object.assign({}, i, { dist: haversineMeters(lat, lng, i.lat, i.lng) }); })
+        .sort(function (a, b) { return a.dist - b.dist; });
+      panel.innerHTML = items.length
+        ? items.map(function (i) {
+            return '<div class="nearby-item"><span class="nb-name">' + escapeHTML(i.name) + '<br><span class="nb-type">' + i.type + (i.note ? ' · ' + escapeHTML(i.note) : '') + '</span></span><span class="nb-dist">' + fmtDist(i.dist) + '</span></div>';
+          }).join('')
+        : '<div class="nearby-item"><span class="nb-name">暫無其他收錄項目</span></div>';
+    });
+
+    document.getElementById('itinerary-body').addEventListener('click', function (e) {
+      var btn = e.target.closest('.nearby-toggle');
+      if (!btn) return;
+      var panel = document.getElementById(btn.getAttribute('data-target'));
+      var open = !panel.hidden;
+      panel.hidden = open;
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.textContent = (open ? '▸ 顯示' : '▾ 隱藏') + '附近特色美食・店家・景點';
+    });
+  })();
+
+  // ---------- Map ----------
+  (function renderMap() {
+    if (typeof L !== 'undefined' && allPoints.length) {
+      initTravelMap('map', allPoints);
+    }
+  })();
+
+  // ---------- Highlights ----------
+  (function renderHighlights() {
+    var hl = trip.highlights;
+    if (!hl) { document.getElementById('highlights-section').style.display = 'none'; return; }
+    function linkOrText(name, url) {
+      return url ? '<a class="poi-name" href="' + url + '" target="_blank" rel="noopener">' + escapeHTML(name) + ' <span class="ext-link">↗</span></a>' : '<span class="poi-name">' + escapeHTML(name) + '</span>';
+    }
+    var html = '';
+    if (hl.spots && hl.spots.length) {
+      html += '<div class="poi-group"><h4>' + escapeHTML(hl.spotsTitle || '特色景點總覽') + '</h4><div class="poi-grid">' +
+        hl.spots.map(function (s) { return '<div class="poi-card">' + linkOrText(s.name, s.url) + '<span class="poi-note">' + escapeHTML(s.note || '') + '</span></div>'; }).join('') + '</div></div>';
+    }
+    if (hl.food && hl.food.length) {
+      html += '<div class="poi-group"><h4>' + escapeHTML(hl.foodTitle || '特色美食總覽') + '</h4><div class="poi-grid">' +
+        hl.food.map(function (f) { return '<div class="poi-card">' + linkOrText(f.name, f.url) + (f.shop ? '<span class="poi-sub">' + escapeHTML(f.shop) + '</span>' : '') + '<span class="poi-note">' + escapeHTML(f.note || '') + '</span></div>'; }).join('') + '</div></div>';
+    }
+    if (hl.shops && hl.shops.length) {
+      html += '<div class="poi-group"><h4>' + escapeHTML(hl.shopsTitle || '特色店家總覽') + '</h4><div class="poi-grid">' +
+        hl.shops.map(function (s) { return '<div class="poi-card">' + linkOrText(s.name, s.url) + (s.category ? '<span class="poi-sub">' + escapeHTML(s.category) + '</span>' : '') + '<span class="poi-note">' + escapeHTML(s.note || '') + '</span></div>'; }).join('') + '</div></div>';
+    }
+    document.getElementById('highlights-body').innerHTML = html;
+  })();
+
+  // ---------- Tips ----------
+  (function renderTips() {
+    document.getElementById('tips-body').innerHTML = (trip.tips || []).map(function (t, i) {
+      return '<div class="tip-row"><span class="idx">' + String(i + 1).padStart(2, '0') + '</span><span>' + escapeHTML(t) + '</span></div>';
+    }).join('');
+  })();
+
+  // ---------- Glossary ----------
+  (function renderGlossary() {
+    var g = trip.glossary;
+    if (!g) return;
+    var html = '<div class="section-head"><h2>' + escapeHTML(g.title || '名詞註解') + '</h2></div>';
+    if (g.note) html += '<p class="glossary-note">' + escapeHTML(g.note) + '</p>';
+    (g.groups || []).forEach(function (grp) {
+      html += '<div class="glossary-group"><h4>' + escapeHTML(grp.category) + '</h4><dl>' +
+        grp.items.map(function (it) { return '<dt>' + escapeHTML(it.term) + '</dt><dd>' + escapeHTML(it.note) + '</dd>'; }).join('') +
+        '</dl></div>';
+    });
+    document.getElementById('glossary-section').innerHTML = html;
+  })();
+
+  // ---------- Footer ----------
+  document.getElementById('footer-body').textContent =
+    '行程以 ' + trip.startDate + ' 為規劃基準，實際景點開放時間、票價與交通班次請於出發前以官方資訊為準。';
+})();
+</script>
