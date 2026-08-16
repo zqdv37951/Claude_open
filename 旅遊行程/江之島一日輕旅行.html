@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>江之島一日輕旅行</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root {
+  --bg: #f1f4f2;
+  --surface: #ffffff;
+  --surface-2: #e7ece9;
+  --ink: #1b2422;
+  --ink-soft: #4b5751;
+  --ink-faint: #7c8985;
+  --line: #d7ded9;
+  --teal: #146b6b;
+  --teal-ink: #0e4f4f;
+  --teal-soft: #e1f0ee;
+  --amber: #a3701f;
+  --amber-ink: #855c19;
+  --amber-soft: #f5ead2;
+  --shadow: 0 1px 2px rgba(20, 30, 28, 0.06), 0 8px 24px -12px rgba(20, 30, 28, 0.18);
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Noto Serif JP', 'Noto Serif TC', 'Hiragino Mincho ProN', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'PingFang TC', 'Microsoft JhengHei', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101614;
+    --surface: #171f1c;
+    --surface-2: #1f2925;
+    --ink: #e8ece9;
+    --ink-soft: #a9b5af;
+    --ink-faint: #74827c;
+    --line: #2a3630;
+    --teal: #5fc9c4;
+    --teal-ink: #8fdcd8;
+    --teal-soft: #16302e;
+    --amber: #e3ae5c;
+    --amber-ink: #eec078;
+    --amber-soft: #3a2e17;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #101614;
+  --surface: #171f1c;
+  --surface-2: #1f2925;
+  --ink: #e8ece9;
+  --ink-soft: #a9b5af;
+  --ink-faint: #74827c;
+  --line: #2a3630;
+  --teal: #5fc9c4;
+  --teal-ink: #8fdcd8;
+  --teal-soft: #16302e;
+  --amber: #e3ae5c;
+  --amber-ink: #eec078;
+  --amber-soft: #3a2e17;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  margin: 0;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.page { max-width: 60rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+@media (min-width: 768px) { .page { padding: 3.5rem 2rem 6rem; } }
+
+header.hero {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; margin: 0 0 0.6rem; }
+#trip-title { font-size: clamp(2rem, 5vw, 2.7rem); font-weight: 400; }
+.lede { margin: 0.9rem 0 0; color: var(--ink-soft); max-width: 36rem; }
+
+section.block { margin-top: 2.4rem; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+h2.block-title { font-size: 1.35rem; font-weight: 400; margin-bottom: 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--line); }
+
+/* checklist */
+.pretrip-todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.todo-item { display: flex; align-items: baseline; gap: 0.6rem; font-size: 0.95rem; }
+.todo-item input { accent-color: var(--teal); margin-top: 0.15rem; }
+.todo-deadline { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--teal-ink); font-weight: 600; white-space: nowrap; }
+.todo-text { color: var(--ink-soft); }
+.muted { color: var(--ink-faint); font-size: 0.92rem; margin: 0; }
+
+/* pretrip */
+#pretrip-body { display: flex; flex-direction: column; gap: 0.9rem; }
+.pretrip-row { display: grid; grid-template-columns: 6rem 1fr; gap: 1rem; }
+.pretrip-label { font-family: var(--font-mono); font-size: 0.78rem; color: var(--teal-ink); font-weight: 600; letter-spacing: 0.03em; padding-top: 0.1rem; }
+.pretrip-row p { margin: 0; color: var(--ink-soft); }
+@media (max-width: 30rem) { .pretrip-row { grid-template-columns: 1fr; gap: 0.2rem; } }
+
+/* transit */
+.transit-grid { display: grid; gap: 1.2rem; }
+@media (min-width: 768px) { .transit-grid { grid-template-columns: 1fr 1fr; } }
+.transit-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
+.transit-steps li { display: grid; grid-template-columns: 3.6rem 1fr auto; gap: 0.7rem; align-items: baseline; font-size: 0.92rem; }
+.transit-steps .t { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--teal-ink); font-weight: 600; }
+.transit-steps .dur { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.8rem; color: var(--ink-faint); white-space: nowrap; }
+.transit-subtitle { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); margin: 0 0 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; }
+#transit-note { margin: 1.1rem 0 0; padding-top: 1rem; border-top: 1px dashed var(--line); font-size: 0.85rem; color: var(--ink-faint); }
+.adapt-note { font-size: 0.82rem; color: var(--ink-faint); margin: 0.8rem 0 0; font-style: italic; }
+
+/* highlights (特色景點／美食／店家總覽) */
+.hl-grid { display: grid; gap: 0.9rem; margin-top: 1rem; }
+@media (min-width: 640px) { .hl-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1000px) { .hl-grid { grid-template-columns: 1fr 1fr 1fr; } }
+.hl-card { background: var(--surface-2); border-radius: 10px; padding: 0.9rem 1.1rem; }
+.hl-card h4 { font-family: var(--font-body); font-size: 0.98rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.hl-card h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+.hl-card h4 a:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+.hl-card p { margin: 0.4rem 0 0; font-size: 0.88rem; color: var(--ink-soft); }
+.hl-card p.hl-shop { margin: 0.3rem 0 0; font-size: 0.8rem; color: var(--ink-faint); }
+.hl-subblock + .hl-subblock { margin-top: 2rem; }
+.hl-subblock h3 { font-size: 1.1rem; font-weight: 400; }
+
+/* disclaimer */
+.disclaimer-card { border-color: var(--amber-soft); }
+.disclaimer-card p { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
+
+/* map */
+#map { height: 420px; border-radius: 10px; border: 1px solid var(--line); }
+.route-pin { background: var(--teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 35%, transparent); }
+.route-pin__num { color: #fff; font-weight: 700; font-size: 0.78rem; font-family: var(--font-mono); }
+
+/* days / timeline */
+.day-card { margin-top: 2.4rem; }
+.day-head { margin-bottom: 1.2rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }
+.day-date { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--teal-ink); }
+.day-head h2 { margin-top: 0.3rem; font-size: 1.6rem; font-weight: 400; }
+.day-tips { margin: 0.8rem 0 1.6rem; padding: 0.9rem 1.1rem; background: var(--surface-2); border-radius: 10px; list-style: none; font-size: 0.88rem; color: var(--ink-soft); }
+.period + .period { margin-top: 1.6rem; }
+.period-label { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-ink); margin-bottom: 0.9rem; }
+.stops { list-style: none; margin: 0; padding: 0; position: relative; }
+.stops::before { content: ""; position: absolute; left: 0.28rem; top: 0.6rem; bottom: 0.6rem; width: 1px; background: var(--line); }
+.stop { position: relative; display: grid; grid-template-columns: 0.7rem 1fr; column-gap: 1rem; padding: 0 0 1.5rem 0; }
+.stop-time { display: none; }
+.stop-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--teal); margin-top: 0.35rem; box-shadow: 0 0 0 3px var(--bg); }
+.stop-body h4 { font-family: var(--font-body); font-size: 1.05rem; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.stop-body h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+.stop-body h4 a:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+.stop-body .review { margin: 0.4rem 0 0; color: var(--ink-soft); font-size: 0.95rem; max-width: 34rem; }
+.pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+.pill { font-family: var(--font-mono); font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line); }
+.pill-warm { background: var(--amber-soft); color: var(--amber-ink); border-color: transparent; }
+.transport { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--ink-faint); }
+.reminder-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; background: var(--amber-soft); color: var(--amber-ink); padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 600; }
+
+/* per-stop nearby toggle panel */
+.nearby-toggle {
+  margin-top: 0.8rem;
+  padding: 0.35rem 0;
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--teal-ink);
+  cursor: pointer;
+  text-align: left;
+}
+.nearby-toggle:hover { text-decoration: underline; }
+.nearby-toggle:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.nearby-panel { margin-top: 0.6rem; padding: 1rem; background: var(--surface-2); border-radius: 10px; }
+.nearby-panel[hidden] { display: none; }
+.nearby-sub + .nearby-sub { margin-top: 1.4rem; }
+.nearby-sub h5 { font-size: 0.85rem; font-weight: 600; color: var(--ink); margin: 0 0 0.7rem; }
+.nearby-sub .hl-grid { margin-top: 0; }
+.nearby-sub .hl-card { background: var(--surface); border: 1px solid var(--line); }
+.dist-tag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* dining */
+.section-sub { font-size: 1.1rem; font-weight: 400; margin: 1.8rem 0 0.9rem; }
+.dining-card { background: var(--surface-2); border-radius: 10px; padding: 1rem 1.2rem; }
+.dining-card h4 { font-family: var(--font-body); font-size: 1rem; }
+.dining-card .hours { margin: 0.3rem 0 0.6rem; font-size: 0.82rem; color: var(--ink-faint); }
+.dishes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.92rem; }
+.dishes .price { color: var(--teal-ink); font-family: var(--font-mono); font-variant-numeric: tabular-nums; float: right; }
+
+/* tips */
+#tips-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+#tips-list li { display: flex; gap: 0.7rem; font-size: 0.95rem; color: var(--ink-soft); }
+#tips-list li::before { content: ""; flex: none; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--teal); margin-top: 0.5rem; }
+
+/* glossary */
+.glossary-group + .glossary-group { margin-top: 1.8rem; }
+.glossary-group h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+.glossary-list { margin: 0; display: grid; grid-template-columns: 1fr; gap: 0.7rem 1.5rem; }
+@media (min-width: 700px) { .glossary-list { grid-template-columns: 1fr 1fr; } }
+.glossary-list dt { font-family: var(--font-mono); font-size: 0.86rem; font-weight: 600; color: var(--teal-ink); margin: 0; }
+.glossary-list dd { margin: 0.2rem 0 0; font-size: 0.86rem; color: var(--ink-soft); }
+
+footer.foot { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: 0.78rem; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">一日行程・東京站出發</p>
+    <h1 id="trip-title"></h1>
+    <p class="lede">江之島本島與周邊，神社、燈台、海蝕洞窟與しらす丼，悠閒步調的當日往返提案。</p>
+    <div id="checklist" style="margin-top:1.4rem;"></div>
+  </header>
+
+  <section class="block">
+    <h2 class="block-title">行前須知</h2>
+    <div class="card" id="pretrip-body"></div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">交通</h2>
+    <div class="card">
+      <div class="transit-grid">
+        <div>
+          <p class="transit-subtitle">去程</p>
+          <div id="transit-outbound"></div>
+        </div>
+        <div>
+          <p class="transit-subtitle">回程</p>
+          <div id="transit-return"></div>
+        </div>
+      </div>
+      <p id="transit-note"></p>
+      <p class="adapt-note">本次為當日往返行程，不涉及機票與住宿，故以「交通」區塊取代 travel-plan-viz 契約中原為多日行程設計的航班／酒店區塊。</p>
+    </div>
+  </section>
+
+  <div id="days"></div>
+
+  <section class="block">
+    <h2 class="block-title">路線地圖</h2>
+    <div id="map"></div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">特色景點・美食・店家總覽</h2>
+    <p class="adapt-note" style="margin:0 0 1rem;">以下為調研整理的完整清單，各至少10項；並非全部排入上方固定時間軸，可依喜好與體力自由替換行程中的項目。有找到可信官方或介紹頁面連結的項目，店名可點擊查看詳情。</p>
+    <div class="card hl-subblock">
+      <h3 id="hl-spots-title">特色景點總覽</h3>
+      <div class="hl-grid" id="hl-spots-list"></div>
+    </div>
+    <div class="card hl-subblock">
+      <h3 id="hl-food-title">特色美食總覽</h3>
+      <div class="hl-grid" id="hl-food-list"></div>
+    </div>
+    <div class="card hl-subblock">
+      <h3 id="hl-shops-title">特色店家總覽</h3>
+      <div class="hl-grid" id="hl-shops-list"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">免責聲明</h2>
+    <div class="card disclaimer-card">
+      <p id="disclaimer-text"></p>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">全程實用貼士</h2>
+    <div class="card">
+      <ul id="tips-list"></ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title" id="glossary-title">日文・外文名詞註解</h2>
+    <p class="adapt-note" id="glossary-note" style="margin:0 0 1rem;"></p>
+    <div id="glossary-groups"></div>
+  </section>
+
+  <footer class="foot">
+    由 travel-plan-viz skill 產生。行程時間與價格為規劃參考值，非即時資訊；圖片欄位因產生環境無法連線圖床驗證而留空。
+  </footer>
+
+</div>
+
+<script id="trip-data" type="application/json">
+{
+  "title": "江之島一日輕旅行",
+  "startDate": "2026-08-30",
+  "colorScheme": "深夜湘南・燈塔暖光（深藍綠背景 + 琥珀色強調）",
+  "note": "本次為東京站出發的當日往返行程，不含機票與住宿，故省略 flights/hotelAreas 區塊（改以「交通」區塊呈現去回程）。應使用者要求移除新江ノ島水族館，並新增 highlights 區塊（spots/food/shops 各10項、附外部介紹連結，且每項都補上座標），此為對本 skill 契約的務實延伸。時間軸只排入合理可行的子集，其餘 highlights 項目列為總覽參考，不強制塞進單日時刻表。每個時間軸站點下方新增可 toggle 顯示／隱藏的「附近特色美食・店家・景點」面板，用該站點與 highlights 各項目的實際座標計算距離、由近到遠排序後全部列出（各10項），而非為每站各自編造不同清單——江之島本島僅約1.4公里長，同一份總覽依距離重新排序即足以反映「附近」的實際意義。連結均為本次調研時網頁搜尋工具實際回傳的真實網址；少數店家（如 Cafe パノラマ、麺屋酒場 盛盛、野菜フレンチ Suzu）調研時未能找到可信官方連結，故不附連結，以免提供錯誤網址。座標為依店家地址／描述估算的參考位置，非精確測量。startDate 為使用者未提供確切日期時的暫定佔位值（近期週日、盛夏），僅用於示範行前提醒與天氣文案，請依實際出發日期自行調整。",
+  "preTrip": {
+    "weather": {
+      "summary": "8月下旬東京・湘南地區平均氣溫約27–31°C／24–26°C，午後偶有短時雷陣雨",
+      "typhoon": "8–9月為颱風季，出發前3天起請留意氣象廳颱風預警，強颱來襲時交通與景點可能關閉"
+    },
+    "packing": "短袖＋輕薄防曬外套，備輕便雨具；島上階梯坡道多，穿好走的鞋；室內冷氣較強可帶薄外套",
+    "payment": "IC卡（Suica／PASMO）可用於JR、江ノ電及多數店家；仲見世通り部分小店僅收現金，建議備些零錢",
+    "apps": ["乘換案內（轉乘時刻）", "気象庁天氣預報（颱風／雷雨即時資訊）"],
+    "ticketTip": "本行程景點多為現場購票即可，無需提前預訂"
+  },
+  "transit": {
+    "outbound": [
+      { "time": "09:00", "leg": "東京駅 —— JR 東海道線（國府津・小田原・熱海方向）", "duration": "約55分" },
+      { "time": "09:55", "leg": "藤沢駅 轉乘 江ノ島電鉄（江ノ電，鎌倉方向）", "duration": "約10分" },
+      { "time": "10:10", "leg": "江ノ島駅 抵達，步行往弁天橋方向", "duration": "約15分" }
+    ],
+    "return": [
+      { "time": "17:40", "leg": "片瀬江ノ島駅一帶 步行回 江ノ島駅（江ノ電）", "duration": "約15分" },
+      { "time": "17:55", "leg": "江ノ島駅 搭乘 江ノ電（藤沢方向）", "duration": "約10分" },
+      { "time": "18:05", "leg": "藤沢駅 轉乘 JR 東海道線", "duration": "約55分" },
+      { "time": "19:00", "leg": "東京駅 抵達", "duration": "—" }
+    ],
+    "note": "單程約1小時20分（不含片瀬江ノ島駅一帶步行），IC卡參考票價約¥990（JR＋江ノ電）。實際票價與發車時刻請出發前以乘換案內App確認。"
+  },
+  "highlights": {
+    "spotsTitle": "特色景點總覽（10項）",
+    "spots": [
+      { "name": "江島神社（奉安殿・辺津宮・中津宮・奥津宮）", "note": "日本三大弁財天之一，島上信仰核心", "url": "http://enoshimajinja.or.jp/", "lat": 35.2985, "lng": 139.4802 },
+      { "name": "江の島シーキャンドル・サムエル・コッキング苑", "note": "海拔101.5m展望燈台＋南國風植物園", "url": "https://enoshima-seacandle.com/", "lat": 35.2971, "lng": 139.4787 },
+      { "name": "龍恋の鐘（恋人の丘）", "note": "五頭龍傳說發源地，情侶敲鐘祈求永結同心", "url": "https://www.fujisawa-kanko.jp/spot/enoshima/15.html", "lat": 35.2967, "lng": 139.4756 },
+      { "name": "山ふたつ", "note": "海蝕洞崩落形成的凹谷，將江之島分為東山、西山兩區", "url": "https://articles.mapple.net/bk/470/", "lat": 35.2967, "lng": 139.4758 },
+      { "name": "稚児ヶ淵", "note": "島最西端海蝕平台，夕陽與釣客聚集地", "url": "https://www.fujisawa-kanko.jp/spot/enoshima/17.html", "lat": 35.2965, "lng": 139.4735 },
+      { "name": "江の島岩屋", "note": "天然海蝕洞窟，傳為江之島信仰發源地", "url": "https://www.fujisawa-kanko.jp/spot/enoshima/17.html", "lat": 35.2963, "lng": 139.4732 },
+      { "name": "弁天橋", "note": "跨海步道橋，長389m，晴天可望富士山，夕陽景致著名", "url": "https://travelenoshima.jp/enoshima-bentenbashi-tourist-guide/", "lat": 35.3020, "lng": 139.4795 },
+      { "name": "湘南港ヨットハーバー", "note": "1964東京奧運帆船比賽場地，日本第一座競技用海港", "url": "https://www.fujisawa-kanko.jp/spot/enoshima/19.html", "lat": 35.2995, "lng": 139.4845 },
+      { "name": "片瀬江ノ島駅（龍宮城建築）", "note": "小田急線代表車站，竜宮造技法搭配天女・龍雕飾", "url": "https://www.fujisawa-kanko.jp/spot/katase_kugenuma/01.html", "lat": 35.3059, "lng": 139.4811 },
+      { "name": "片瀬東浜海水浴場", "note": "片瀬江ノ島駅正前方的海灘，夏季海水浴人潮聚集", "url": "https://rurubu.jp/andmore/spot/80014041", "lat": 35.3065, "lng": 139.4825 }
+    ],
+    "foodTitle": "特色美食總覽（10項）",
+    "food": [
+      { "name": "生しらす丼", "shop": "魚見亭／とびっちょ", "note": "春末至初冬產季限定，當天現撈生吻仔魚", "url": "https://enoshima-uomitei.com/", "lat": 35.2969, "lng": 139.4744 },
+      { "name": "釜揚げしらす丼", "shop": "とびっちょ 江の島本店", "note": "全年供應，禁漁期（1–3月中旬）的替代選項", "url": "http://tobiccho.com/shops/tobiccho", "lat": 35.3007, "lng": 139.4808 },
+      { "name": "とびっちょ丼", "shop": "とびっちょ 江の島本店", "note": "綜合海鮮丼，店內人氣No.1", "url": "http://tobiccho.com/shops/tobiccho", "lat": 35.3007, "lng": 139.4808 },
+      { "name": "しらすブラックコロッケ", "shop": "とびっちょ 仲見世店", "note": "竹炭染黑的吻仔魚可樂餅，食べ歩き人氣No.1", "url": "http://tobiccho.com/shops/benzaiten", "lat": 35.3006, "lng": 139.4809 },
+      { "name": "丸焼きたこせんべい", "shop": "あさひ本店", "note": "整隻章魚鐵板現壓現烤，江之島代表名物", "url": "https://murasaki-imo.com/", "lat": 35.3007, "lng": 139.4808 },
+      { "name": "元祖海苔羊羹", "shop": "中村屋羊羹店", "note": "創業明治35年（1902），江之島限定海苔口味羊羹", "url": "https://www.noriyoukan.com/", "lat": 35.3006, "lng": 139.4809 },
+      { "name": "江の島丼", "shop": "魚見亭", "note": "蠑螺與蛋液燴煮的丼飯，150年老舖招牌", "url": "https://enoshima-uomitei.com/", "lat": 35.2969, "lng": 139.4744 },
+      { "name": "さざえのつぼ焼き", "shop": "貝作", "note": "蠑螺帶殼炭烤，淋醬油現吃", "url": "https://enoshima-kaisaku.owst.jp/", "lat": 35.3050, "lng": 139.4815 },
+      { "name": "しらすピザ", "shop": "PIZZERIA & DINING PICO 江ノ島店", "note": "500°C石窯現烤，配自家江之島精釀啤酒", "url": "https://www.pico-enoshima.co.jp/", "lat": 35.3040, "lng": 139.4818 },
+      { "name": "しらすソフトクリーム", "shop": "島童子 片瀬江の島本店", "note": "吻仔魚配霜淇淋的話題組合，外帶小點", "url": "https://rtrp.jp/spots/91618123-d532-4dc8-8930-1985c61e0f53/", "lat": 35.3068, "lng": 139.4822 }
+    ],
+    "shopsTitle": "特色店家總覽（10項）",
+    "shops": [
+      { "name": "あさひ本店", "category": "仲見世通り・仙貝老店", "note": "丸焼きたこせんべい創始店家，常見排隊", "url": "https://murasaki-imo.com/", "lat": 35.3007, "lng": 139.4808 },
+      { "name": "とびっちょ 江の島本店", "category": "しらす料理", "note": "江之島最具代表性的しらす丼專門店", "url": "http://tobiccho.com/shops/tobiccho", "lat": 35.3007, "lng": 139.4808 },
+      { "name": "中村屋羊羹店", "category": "和菓子老舖", "note": "創業1902年，元祖海苔羊羹發源店", "url": "https://www.noriyoukan.com/", "lat": 35.3006, "lng": 139.4809 },
+      { "name": "魚見亭", "category": "絕景老舖食堂", "note": "創業150餘年，全店座位皆為海景", "url": "https://enoshima-uomitei.com/", "lat": 35.2969, "lng": 139.4744 },
+      { "name": "貝作", "category": "海鮮料理", "note": "現烤貝類與海鮮丼，鄰近片瀬江ノ島駅", "url": "https://enoshima-kaisaku.owst.jp/", "lat": 35.3050, "lng": 139.4815 },
+      { "name": "島童子 片瀬江の島本店", "category": "小吃外帶", "note": "しらすソフト、しらすまん等吻仔魚小點", "url": "https://rtrp.jp/spots/91618123-d532-4dc8-8930-1985c61e0f53/", "lat": 35.3068, "lng": 139.4822 },
+      { "name": "トラスパレンテ ラクア（TRASPARENTE L'acqua）", "category": "咖啡廳", "note": "奥津宮附近高台，相模灣海景露台座位", "url": "https://enokama.jp/spot/5960/", "lat": 35.2978, "lng": 139.4770 },
+      { "name": "DIEGO BY THE RIVER", "category": "咖啡廳／美式餐廳", "note": "片瀬川沿岸，美式／夏威夷風輕食", "url": "https://www.bytheriver.jp/", "lat": 35.3078, "lng": 139.4835 },
+      { "name": "PIZZERIA & DINING PICO 江ノ島店", "category": "義式料理", "note": "20年以上老店，しらすピザ與自家精釀啤酒", "url": "https://www.pico-enoshima.co.jp/", "lat": 35.3040, "lng": 139.4818 },
+      { "name": "Cafe パノラマ", "category": "咖啡廳", "note": "片瀬海岸旁，正面對海的全景視野", "url": "", "lat": 35.3070, "lng": 139.4828 }
+    ]
+  },
+  "disclaimer": "本頁全部資訊（天氣、交通、景點、店家、美食、門票、營業時間、價格等）均為 AI 基於公開資料整理的參考建議，可能不準確或已過時，不保證與實時情況一致；請務必在官方管道／地圖類 App 上核實後再做決定或前往。連結指向的外部網站內容由該店家或第三方網站自行負責，本頁不代為保證其正確性或可用性。",
+  "glossary": {
+    "title": "日文・外文名詞註解",
+    "note": "本頁地名、店名多保留日文原文（part因為是專有名詞、part因為換乘查詢與現場招牌都用日文標示，保留原文較方便對照），以下整理全篇出現過的非中文詞彙的中文說明。",
+    "groups": [
+      {
+        "category": "交通",
+        "items": [
+          { "term": "JR東海道線", "note": "JR（日本鐵路公司）行駛於東京至神戶一帶的主要幹線之一，本行程搭乘東京—藤澤區間" },
+          { "term": "江ノ島電鉄／江ノ電", "note": "江之島電鐵，連結藤澤與鎌倉之間的路面電車系統，班次約12–15分一班" },
+          { "term": "藤沢駅", "note": "藤澤車站，JR與江ノ電的轉乘站" },
+          { "term": "江ノ島駅", "note": "江之島車站，江ノ電（江之島電鐵）路線上的站名，鄰近本島入口" },
+          { "term": "片瀬江ノ島駅", "note": "片瀨江之島車站，小田急江之島線的終點站，「龍宮城」造型建築" },
+          { "term": "東京駅", "note": "東京車站，本行程的起訖點" }
+        ]
+      },
+      {
+        "category": "景點",
+        "items": [
+          { "term": "仲見世通り", "note": "仲見世通，神社參道兩側的商店街，日本各地神社門前常見的街道形式" },
+          { "term": "江島神社", "note": "供奉弁財天（財富・音樂之神）的神社，日本三大弁財天之一" },
+          { "term": "奉安殿", "note": "供奉神像的殿堂，此處指供奉弁財天像的建築，需另外購票入內參拜" },
+          { "term": "辺津宮・中津宮・奥津宮", "note": "江島神社的三個分宮，依序位於島上由低到高不同位置" },
+          { "term": "瑞心門", "note": "江島神社入口的牌樓式山門" },
+          { "term": "江の島シーキャンドル", "note": "直譯「江之島海之蠟燭」，展望燈塔的暱稱，因外型似蠟燭得名" },
+          { "term": "サムエル・コッキング苑", "note": "山繆・柯金花園，以19世紀在此建造溫室的英國商人 Samuel Cocking 命名的植物園" },
+          { "term": "江の島エスカー", "note": "江之島電扶梯，Escar 為 Escalator（電扶梯）的日式簡稱，僅供上行" },
+          { "term": "龍恋の鐘（恋人の丘）", "note": "「龍戀之鐘」，位於「戀人之丘」，情侶敲鐘祈求永結同心的景點" },
+          { "term": "山ふたつ", "note": "字面意思為「兩座山」，指海蝕洞崩落形成、將島一分為二的凹谷地形" },
+          { "term": "稚児ヶ淵", "note": "「稚兒之淵」，島最西端的海蝕平台" },
+          { "term": "江の島岩屋", "note": "江之島岩屋，天然海蝕洞窟，「岩屋」意指岩壁間的洞穴" },
+          { "term": "弁天橋", "note": "辯天橋，因通往供奉弁財天的江島神社而得名的跨海步道橋" },
+          { "term": "湘南港ヨットハーバー", "note": "湘南港遊艇碼頭，ヨットハーバー為英文 Yacht Harbour 的日式外來語" },
+          { "term": "片瀬東浜海水浴場", "note": "片瀨東濱海水浴場，片瀨江ノ島駅正前方的海灘" },
+          { "term": "聖天公園", "note": "位於湘南港遊艇碼頭附近的小型公園，是本篇提及的貓咪聚集地之一" }
+        ]
+      },
+      {
+        "category": "美食・店家",
+        "items": [
+          { "term": "しらす", "note": "吻仔魚（魩仔魚），湘南・江之島地區代表性食材" },
+          { "term": "しらす丼", "note": "吻仔魚蓋飯" },
+          { "term": "生しらす", "note": "生吻仔魚，僅產季（春末至初冬）供應，禁漁期（1月至3月中旬）僅能吃到熟食版本" },
+          { "term": "釜揚げしらす", "note": "水煮（汆燙）吻仔魚，全年供應" },
+          { "term": "丸焼きたこせんべい", "note": "「丸焼き」指整隻直接烤，「たこ」是章魚，「せんべい」是仙貝，即整隻章魚鐵板現壓現烤而成的仙貝" },
+          { "term": "あさひ本店", "note": "「朝日本店」，丸焼きたこせんべい的創始店家" },
+          { "term": "とびっちょ", "note": "店名，江之島最具代表性的しらす料理專門店，無特定漢字對應" },
+          { "term": "しらすブラックコロッケ", "note": "竹炭染黑的吻仔魚可樂餅" },
+          { "term": "中村屋羊羹店", "note": "創業於明治35年（1902）的和菓子老店" },
+          { "term": "元祖海苔羊羹", "note": "「元祖」意指創始・正宗，海苔口味的羊羹是江之島限定名物" },
+          { "term": "魚見亭", "note": "字面意思為「看魚的亭子」，創業150餘年的絕景老舖食堂" },
+          { "term": "江の島丼", "note": "江之島蓋飯，蠑螺與蛋液燴煮而成的丼飯" },
+          { "term": "貝作", "note": "店名，以現烤貝類與海鮮丼聞名" },
+          { "term": "さざえのつぼ焼き", "note": "「つぼ焼き」意指帶殼壺燒，蠑螺（さざえ）連殼炭烤淋醬油食用" },
+          { "term": "島童子", "note": "店名，片瀬江ノ島駅附近的小吃外帶店" },
+          { "term": "しらすソフトクリーム", "note": "吻仔魚配霜淇淋（ソフトクリーム＝Soft Cream／霜淇淋）的話題組合" },
+          { "term": "Cafe パノラマ", "note": "「全景咖啡廳」，パノラマ為英文 Panorama（全景）的日式外來語" },
+          { "term": "トラスパレンテ ラクア（TRASPARENTE L'acqua）", "note": "義大利文店名，Trasparente 意為「透明的」，L'acqua 意為「水」" },
+          { "term": "DIEGO BY THE RIVER", "note": "英文店名，字面意思為「河畔的迪亞哥」，片瀬川沿岸的美式餐廳" },
+          { "term": "PIZZERIA & DINING PICO 江ノ島店", "note": "義式店名，Pizzeria 為披薩店，Dining 為餐廳，PICO 為店家自訂名稱" }
+        ]
+      }
+    ]
+  },
+  "tips": [
+    "生しらす禁漁期為1月至3月中旬，若在該季節前往，店家僅供應釜揚げしらす丼",
+    "江ノ電班次約12–15分一班，不算密集，轉乘時間建議抓寬鬆一點",
+    "江の島岩屋開放時間受季節與潮汐／天候影響，出發前建議查詢當日狀況",
+    "江の島エスカー為上行專用付費電扶梯（全區間¥360），下山仍需走階梯",
+    "あさひ本店的丸焼きたこせんべい常大排長龍，若在意排隊時間可挑非用餐尖峰時段順路買",
+    "江之島是知名的貓島，數百隻貓咪在島上生活；奥津宮周邊食堂街與湘南港ヨットハーバー（聖天公園）一帶較容易遇到貓，平日傍晚人少時機率更高"
+  ],
+  "reminders": [],
+  "days": [
+    {
+      "date": "2026-08-30",
+      "weekday": "週日",
+      "theme": "江之島慢遊・神社、老舖店家與海蝕地形",
+      "tips": ["上午先逛神社與仲見世通り三大名物店，中午吃しらす丼，下午看戀人聖地、絕景老舖、海蝕地形，傍晚順路逛片瀬江ノ島駅一帶"],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "仲見世通り・あさひ本店",
+          "url": "https://murasaki-imo.com/",
+          "time": "10:30–11:00",
+          "lat": 35.3007,
+          "lng": 139.4808,
+          "review": "跨過弁天橋後的參道商店街，三家名物店都在這條路上：「あさひ本店」丸焼きたこせんべい、「とびっちょ 仲見世店」しらすブラックコロッケ、以及創業於明治35年（1902）的「中村屋羊羹店」元祖海苔羊羹",
+          "openingHours": "商店街依店家而異，約9:00–18:00；あさひ本店・中村屋羊羹店營業至傍晚",
+          "ticketPrice": "散策免費；丸焼きたこせんべい 單片¥600；しらすブラックコロッケ 單個約¥300–400；元祖海苔羊羹 一條約¥1,000起",
+          "transport": { "mode": "步行（自江ノ島駅）", "fare": "—", "duration": "約15分" },
+          "needsBooking": false
+        },
+        {
+          "period": "morning",
+          "name": "江島神社（奉安殿・辺津宮・中津宮・奥津宮）",
+          "url": "http://enoshimajinja.or.jp/",
+          "time": "11:00–12:15",
+          "lat": 35.2985,
+          "lng": 139.4802,
+          "review": "日本三大弁財天之一，瑞心門起沿石階攀升，三宮一路參拜",
+          "openingHours": "奉安殿 8:30–16:30（境內自由參拜）",
+          "ticketPrice": "奉安殿 大人¥200・中高生¥100・小學生¥50；江の島エスカー全區間券 大人¥360",
+          "transport": { "mode": "步行（仲見世通り續行）", "fare": "—", "duration": "約5分" },
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "江の島シーキャンドル・サムエル・コッキング苑",
+          "url": "https://enoshima-seacandle.com/",
+          "time": "13:15–14:15",
+          "lat": 35.2971,
+          "lng": 139.4787,
+          "review": "海拔101.5m展望燈台，晴天可遠眺富士山、伊豆半島與箱根山系",
+          "openingHours": "9:00–20:00（最終入場19:30）",
+          "ticketPrice": "展望台 大人¥800・小學生¥400；植物園白天免費（夜間活動期17時後另收¥500）",
+          "transport": { "mode": "步行（神社續行）", "fare": "—", "duration": "約10分" },
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "龍恋の鐘（恋人の丘）",
+          "url": "https://www.fujisawa-kanko.jp/spot/enoshima/15.html",
+          "time": "14:15–14:45",
+          "lat": 35.2967,
+          "lng": 139.4756,
+          "review": "五頭龍傳說發源地，情侶敲鐘祈求永結同心；地勢高、視野開闊，晴天可望伊豆大島，非情侶也值得順路一看",
+          "openingHours": "全天開放（戶外）",
+          "ticketPrice": "免費",
+          "transport": { "mode": "步行（サムエル・コッキング苑續行）", "fare": "—", "duration": "約10分" },
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "魚見亭",
+          "url": "https://enoshima-uomitei.com/",
+          "time": "14:45–15:15",
+          "lat": 35.2969,
+          "lng": 139.4744,
+          "review": "創業150餘年的絕景老舖食堂，位於奥津宮再往裡走、通往岩屋階梯旁，全店座位皆為海景，可遠眺富士山、箱根與伊豆大島；招牌「江の島丼」（蠑螺與蛋液燴煮的丼飯）與生しらす丼是必嚐，也適合單純點杯飲料坐下來欣賞海景",
+          "openingHours": "依季節調整，約9:00–17:00左右，詳見店家公告",
+          "ticketPrice": "江の島丼／生しらす丼 約¥1,500–2,000；飲品類約¥500起",
+          "seasonal": "生しらす丼受禁漁期（1–3月中旬）影響，該時段僅供應熟食",
+          "transport": { "mode": "步行（龍恋の鐘續行）", "fare": "—", "duration": "約5分" },
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "稚児ヶ淵・江の島岩屋",
+          "url": "https://www.fujisawa-kanko.jp/spot/enoshima/17.html",
+          "time": "15:15–16:15",
+          "lat": 35.2965,
+          "lng": 139.4735,
+          "review": "島最西端海蝕平台與天然海蝕洞窟，傳為江之島信仰發源地；「山ふたつ」的地形凹谷也在回程沿路可見",
+          "openingHours": "依季節調整：5–9月 9:00–18:00、2–4月及10月 9:00–17:00、11–1月 9:00–16:00",
+          "ticketPrice": "大人¥500・小學生¥200",
+          "seasonal": "颱風等惡劣天候時可能臨時休館或縮短開放時間",
+          "transport": { "mode": "步行（魚見亭續行，沿階梯下行）", "fare": "—", "duration": "約10分" },
+          "needsBooking": false
+        },
+        {
+          "period": "evening",
+          "name": "片瀬江ノ島駅・片瀬東浜海岸",
+          "url": "https://www.fujisawa-kanko.jp/spot/katase_kugenuma/01.html",
+          "time": "16:50–17:10",
+          "lat": 35.3059,
+          "lng": 139.4811,
+          "review": "小田急線代表性「龍宮城」造型車站，窗面繪有天女、屋頂裝飾金色海豚與五頭龍雕塑，站內還有與新江ノ島水族館合作的水母缸；車站正前方就是片瀬東浜海水浴場",
+          "openingHours": "車站外觀與海岸全天可看",
+          "ticketPrice": "免費",
+          "transport": { "mode": "步行（原路穿越島內、跨過弁天橋返回本島側）", "fare": "—", "duration": "約35分" },
+          "needsBooking": false
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "とびっちょ 江の島本店",
+          "hours": "11:00–20:00",
+          "dishes": [
+            { "name": "とびっちょ丼（人氣No.1）", "price": "¥2,080" },
+            { "name": "釜揚げしらす丼", "price": "¥1,320" },
+            { "name": "生しらす2種丼", "price": "¥1,760" }
+          ]
+        },
+        {
+          "meal": "傍晚小歇",
+          "place": "Cafe パノラマ（片瀬東浜海岸旁）",
+          "hours": "詳見店家公告，建議日落前入座",
+          "dishes": [
+            { "name": "招牌咖啡＋海景座位", "price": "約¥600–900" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84）可单元测试；
+// initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
+
+// HTML 转义，防止 XSS
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 生成跳转手机地图导航的链接。
+// iOS 不识别 geo: scheme，用 Apple Maps 的 https 通用链接；其余平台用 geo:。
+// ua 可选（浏览器里传 navigator.userAgent），不传则回退 geo:。
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地图 App 的点位链接（免 key 的官方 URI 规范：高德 URI API、Google Maps URLs）。
+// 这不是 page-contract 的 actionLink——不承载实时数据主张，只是"打开地图看这个点"。
+// 境内点只给高德（Google 地图境内不可用、底图坐标系还会偏移）；境外点给 Google + 高德。
+// 输入坐标一律 WGS-84：高德 URI 用 coordinate=wgs84 声明由其换算，Google 本身即 WGS-84。
+// isInChinaBBox 声明在下方 GCJ 区块（函数声明有提升，此处可用）。
+function buildMapAppLinks(lat, lng, label) {
+  var amap = {
+    label: '高德地图',
+    url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+      + '&name=' + encodeURIComponent(label)
+      + '&coordinate=wgs84&callnative=1&src=travel-plan-viz',
+  };
+  var google = {
+    label: 'Google 地图',
+    url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
+  };
+  return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
+}
+
+// —— GCJ-02 → WGS-84 坐标转换 ——
+// 高德/腾讯地图返回的坐标是 GCJ-02（国测局加密），直接画在 OSM（WGS-84）瓦片上
+// 会偏移一百到几百米。凡坐标来自高德/腾讯类 skill，必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+
+function isInChinaBBox(lat, lng) {
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+}
+
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+
+// 从有序点位提取 [lat,lng] 数组，用于连线
+function routeCoordinates(points) {
+  return points.map(function (p) { return [p.lat, p.lng]; });
+}
+
+// 初始化地图：编号 divIcon 标记、按序虚线路线、点击弹出 名称+时间+导航链接。
+// elementId: 容器 id；points: [{lat, lng, name, time}]（按行程顺序，坐标须为 WGS-84）
+// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）。
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: opts.attribution || '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({
+      className: 'route-pin',
+      html: '<span class="route-pin__num">' + (i + 1) + '</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
+      + (p.time ? escapeHTML(p.time) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) {
+    L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
+  }
+  map.fitBounds(coords.length ? coords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
+    routeCoordinates: routeCoordinates,
+    gcj02ToWgs84: gcj02ToWgs84,
+    initTravelMap: initTravelMap,
+  };
+}
+
+</script>
+
+<script>
+// 出发前提醒：截止日期计算 + 渲染。浏览器与 Node 双用。
+
+// startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 为 'YYYY-MM-DD'
+// 用 UTC 做日期运算，避免本地时区导致的偏移。
+function computeReminders(startDateISO, items) {
+  return items
+    .map(function (it) {
+      var d = new Date(startDateISO + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - it.leadDays);
+      return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+    })
+    .sort(function (a, b) {
+      return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+    });
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item">'
+      + '<input type="checkbox"> '
+      + '<span class="todo-deadline">' + r.deadline + '前</span> '
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建议提前' + r.leadDays + '天）</span>'
+      + '</li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+
+function reminderBadgeHTML(leadDays) {
+  return '<span class="reminder-badge">⚠️ 建议提前' + leadDays + '天订</span>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    computeReminders: computeReminders,
+    renderChecklistHTML: renderChecklistHTML,
+    reminderBadgeHTML: reminderBadgeHTML,
+  };
+}
+
+</script>
+
+<script>
+
+(function () {
+  const trip = JSON.parse(document.getElementById('trip-data').textContent);
+
+  // ---- 页顶：标题 + 出发前待办清单 ----
+  document.getElementById('trip-title').textContent = trip.title;
+  const reminders = computeReminders(trip.startDate, trip.reminders || []);
+  document.getElementById('checklist').innerHTML = reminders.length
+    ? renderChecklistHTML(reminders)
+    : '<p class="muted">目前沒有需要提前預訂的項目。</p>';
+
+  // ---- 行前须知 ----
+  const pt = trip.preTrip || {};
+  const preTripEl = document.getElementById('pretrip-body');
+  preTripEl.innerHTML = [
+    pt.weather ? '<div class="pretrip-row"><span class="pretrip-label">天氣</span><p>' + escapeHTML(pt.weather.summary || '') + '</p></div>' : '',
+    pt.weather && pt.weather.typhoon ? '<div class="pretrip-row"><span class="pretrip-label">颱風</span><p>' + escapeHTML(pt.weather.typhoon) + '</p></div>' : '',
+    pt.packing ? '<div class="pretrip-row"><span class="pretrip-label">穿搭</span><p>' + escapeHTML(pt.packing) + '</p></div>' : '',
+    pt.payment ? '<div class="pretrip-row"><span class="pretrip-label">支付</span><p>' + escapeHTML(pt.payment) + '</p></div>' : '',
+    pt.apps && pt.apps.length ? '<div class="pretrip-row"><span class="pretrip-label">必備 App</span><p>' + pt.apps.map(escapeHTML).join('・') + '</p></div>' : '',
+    pt.ticketTip ? '<div class="pretrip-row"><span class="pretrip-label">購票時機</span><p>' + escapeHTML(pt.ticketTip) + '</p></div>' : '',
+  ].join('');
+
+  // ---- 交通（本次为当日往返，替代 flights/hotelAreas 区块） ----
+  function renderLegs(legs) {
+    return '<ol class="transit-steps">' + legs.map(function (l) {
+      return '<li><span class="t">' + escapeHTML(l.time) + '</span><span class="leg">' + escapeHTML(l.leg) + '</span><span class="dur">' + escapeHTML(l.duration) + '</span></li>';
+    }).join('') + '</ol>';
+  }
+  if (trip.transit) {
+    document.getElementById('transit-outbound').innerHTML = renderLegs(trip.transit.outbound || []);
+    document.getElementById('transit-return').innerHTML = renderLegs(trip.transit.return || []);
+    document.getElementById('transit-note').textContent = trip.transit.note || '';
+  }
+
+  // ---- 特色景點／美食／店家總覽（highlights，未必都排入正式时间轴） ----
+  function linkOrText(label, url) {
+    return url
+      ? '<a href="' + escapeHTML(url) + '" target="_blank" rel="noopener">' + escapeHTML(label) + ' ↗</a>'
+      : escapeHTML(label);
+  }
+  const hl = trip.highlights;
+  if (hl) {
+    if (hl.spots && hl.spots.length) {
+      document.getElementById('hl-spots-title').textContent = hl.spotsTitle || '特色景點總覽';
+      document.getElementById('hl-spots-list').innerHTML = hl.spots.map(function (it) {
+        return '<div class="hl-card"><h4>' + linkOrText(it.name, it.url) + '</h4><p>' + escapeHTML(it.note || '') + '</p></div>';
+      }).join('');
+    }
+    if (hl.food && hl.food.length) {
+      document.getElementById('hl-food-title').textContent = hl.foodTitle || '特色美食總覽';
+      document.getElementById('hl-food-list').innerHTML = hl.food.map(function (it) {
+        return '<div class="hl-card"><h4>' + linkOrText(it.name, it.url) + '</h4>' +
+          (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
+          '<p>' + escapeHTML(it.note || '') + '</p></div>';
+      }).join('');
+    }
+    if (hl.shops && hl.shops.length) {
+      document.getElementById('hl-shops-title').textContent = hl.shopsTitle || '特色店家總覽';
+      document.getElementById('hl-shops-list').innerHTML = hl.shops.map(function (it) {
+        return '<div class="hl-card"><h4>' + linkOrText(it.name, it.url) +
+          (it.category ? ' <span class="pill">' + escapeHTML(it.category) + '</span>' : '') + '</h4>' +
+          '<p>' + escapeHTML(it.note || '') + '</p></div>';
+      }).join('');
+    }
+  }
+
+  // ---- 免责声明 ----
+  document.getElementById('disclaimer-text').textContent = trip.disclaimer;
+
+  // ---- 互动地图 ----
+  const allPoints = [];
+  (trip.days || []).forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      allPoints.push({ lat: s.lat, lng: s.lng, name: s.name, time: s.time });
+    });
+  });
+  if (allPoints.length && typeof L !== 'undefined') {
+    initTravelMap('map', allPoints);
+  }
+
+  // ---- 距离计算（供每站的「附近推荐」面板排序用） ----
+  function haversineMeters(lat1, lng1, lat2, lng2) {
+    var R = 6371000;
+    var toRad = function (d) { return d * Math.PI / 180; };
+    var dLat = toRad(lat2 - lat1);
+    var dLng = toRad(lng2 - lng1);
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  function formatDist(m) {
+    return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km';
+  }
+  // ---- 判斷 highlights 項目是否跟某個站點「同一家」，展開面板時要排除避免重複 ----
+  function normalizeName(s) {
+    return String(s || '').replace(/[（）()／/・s]/g, '');
+  }
+  function sameCore(a, b) {
+    if (!a || !b) return false;
+    var na = normalizeName(a), nb = normalizeName(b);
+    if (!na || !nb) return false;
+    if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
+    var n = Math.min(4, na.length, nb.length);
+    return n >= 3 && na.slice(0, n) === nb.slice(0, n);
+  }
+  function titleTokens(title) {
+    return String(title || '').replace(/[（）()]/g, '・').split(/[・／/]/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+  function matchesStopTitle(name, tokens, fullTitle) {
+    if (!name) return false;
+    if (sameCore(name, fullTitle)) return true;
+    return tokens.some(function (tok) { return sameCore(name, tok); });
+  }
+
+  function nearbyGridHTML(items, fromLat, fromLng, stopTitle) {
+    var tokens = titleTokens(stopTitle);
+    var withDist = (items || [])
+      .filter(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; })
+      .filter(function (it) {
+        return !matchesStopTitle(it.name, tokens, stopTitle) && !matchesStopTitle(it.shop, tokens, stopTitle);
+      })
+      .map(function (it) { return { it: it, dist: haversineMeters(fromLat, fromLng, it.lat, it.lng) }; })
+      .sort(function (a, b) { return a.dist - b.dist; });
+    if (!withDist.length) return '<p class="muted">暫無座標資料。</p>';
+    return '<div class="hl-grid">' + withDist.map(function (row) {
+      var it = row.it;
+      var titleHTML = it.url
+        ? '<a href="' + escapeHTML(it.url) + '" target="_blank" rel="noopener">' + escapeHTML(it.name) + ' ↗</a>'
+        : escapeHTML(it.name);
+      return '<div class="hl-card"><h4>' + titleHTML + '<span class="dist-tag">' + formatDist(row.dist) + '</span></h4>' +
+        (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
+        (it.category ? '<p class="hl-shop">' + escapeHTML(it.category) + '</p>' : '') +
+        '<p>' + escapeHTML(it.note || '') + '</p></div>';
+    }).join('') + '</div>';
+  }
+  var nearbyCounter = 0;
+  function nearbyPanelHTML(s) {
+    if (typeof s.lat !== 'number' || typeof s.lng !== 'number' || !hl) return '';
+    nearbyCounter += 1;
+    var panelId = 'nearby-panel-' + nearbyCounter;
+    return '<button type="button" class="nearby-toggle" data-target="' + panelId + '" aria-expanded="false">' +
+      '▸ 顯示附近特色美食・店家・景點</button>' +
+      '<div class="nearby-panel" id="' + panelId + '" hidden>' +
+      '<div class="nearby-sub"><h5>附近特色景點</h5>' + nearbyGridHTML(hl.spots, s.lat, s.lng, s.name) + '</div>' +
+      '<div class="nearby-sub"><h5>附近特色美食</h5>' + nearbyGridHTML(hl.food, s.lat, s.lng, s.name) + '</div>' +
+      '<div class="nearby-sub"><h5>附近特色店家</h5>' + nearbyGridHTML(hl.shops, s.lat, s.lng, s.name) + '</div>' +
+      '</div>';
+  }
+
+  // ---- 每日时间轴 + 餐饮 ----
+  const periodLabel = { morning: '上午', noon: '中午・午後', evening: '傍晚・晚間' };
+  const daysEl = document.getElementById('days');
+  daysEl.innerHTML = (trip.days || []).map(function (day) {
+    const bySlots = (day.slots || []).reduce(function (acc, s) {
+      (acc[s.period] = acc[s.period] || []).push(s);
+      return acc;
+    }, {});
+    const periodsHTML = Object.keys(periodLabel).filter(function (p) { return bySlots[p]; }).map(function (p) {
+      return '<div class="period"><h3 class="period-label">' + periodLabel[p] + '</h3><ol class="stops">' +
+        bySlots[p].map(function (s) {
+          const optional = [];
+          if (s.openingHours) optional.push('<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>');
+          if (s.closedDays) optional.push('<span class="pill">休 ' + escapeHTML(s.closedDays) + '</span>');
+          if (s.ticketPrice) optional.push('<span class="pill">💴 ' + escapeHTML(s.ticketPrice) + '</span>');
+          if (s.seasonal) optional.push('<span class="pill pill-warm">📅 ' + escapeHTML(s.seasonal) + '</span>');
+          const transportHTML = s.transport
+            ? '<p class="transport">🚶 ' + escapeHTML(s.transport.mode) + (s.transport.duration ? '・' + escapeHTML(s.transport.duration) : '') + (s.transport.fare && s.transport.fare !== '—' ? '・' + escapeHTML(s.transport.fare) : '') + '</p>'
+            : '';
+          const badge = s.needsBooking ? reminderBadgeHTML(s.leadDays || 0) : '';
+          const titleHTML = s.url
+            ? '<a href="' + escapeHTML(s.url) + '" target="_blank" rel="noopener">' + escapeHTML(s.name) + ' ↗</a>'
+            : escapeHTML(s.name);
+          return '<li class="stop">' +
+            '<span class="stop-time">' + escapeHTML(s.time || '') + '</span>' +
+            '<span class="stop-dot"></span>' +
+            '<span class="stop-body">' +
+            '<h4>' + titleHTML + ' ' + badge + '</h4>' +
+            (s.review ? '<p class="review">' + escapeHTML(s.review) + '</p>' : '') +
+            '<div class="pills">' + optional.join('') + '</div>' +
+            transportHTML +
+            nearbyPanelHTML(s) +
+            '</span></li>';
+        }).join('') + '</ol></div>';
+    }).join('');
+
+    const diningHTML = (day.dining || []).map(function (d) {
+      return '<div class="dining-card"><h4>' + escapeHTML(d.meal) + '　' + escapeHTML(d.place) + '</h4>' +
+        '<p class="hours">營業時間：' + escapeHTML(d.hours) + '</p>' +
+        '<ul class="dishes">' + (d.dishes || []).map(function (dd) {
+          return '<li>' + escapeHTML(dd.name) + ' <span class="price">' + escapeHTML(dd.price) + '</span></li>';
+        }).join('') + '</ul></div>';
+    }).join('');
+
+    const dayTipsHTML = (day.tips || []).length
+      ? '<ul class="day-tips">' + day.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('') + '</ul>'
+      : '';
+
+    return '<section class="day-card">' +
+      '<div class="day-head"><span class="day-date">' + escapeHTML(day.date) + '（' + escapeHTML(day.weekday || '') + '）</span>' +
+      (day.theme ? '<h2>' + escapeHTML(day.theme) + '</h2>' : '') + '</div>' +
+      dayTipsHTML +
+      periodsHTML +
+      (diningHTML ? '<h3 class="section-sub">當日餐飲</h3>' + diningHTML : '') +
+      '</section>';
+  }).join('');
+
+  // ---- 全程贴士 ----
+  document.getElementById('tips-list').innerHTML = (trip.tips || []).map(function (t) {
+    return '<li>' + escapeHTML(t) + '</li>';
+  }).join('');
+
+  // ---- 日文・外文名詞註解（頁面最底下） ----
+  if (trip.glossary && trip.glossary.groups && trip.glossary.groups.length) {
+    document.getElementById('glossary-title').textContent = trip.glossary.title || '日文・外文名詞註解';
+    document.getElementById('glossary-note').textContent = trip.glossary.note || '';
+    document.getElementById('glossary-groups').innerHTML = trip.glossary.groups.map(function (g) {
+      return '<div class="glossary-group">' +
+        '<h3>' + escapeHTML(g.category) + '</h3>' +
+        '<dl class="glossary-list">' + (g.items || []).map(function (it) {
+          return '<dt>' + escapeHTML(it.term) + '</dt><dd>' + escapeHTML(it.note) + '</dd>';
+        }).join('') + '</dl></div>';
+    }).join('');
+  }
+
+  // ---- 每站「附近特色美食・店家・景點」顯示／隱藏切換 ----
+  daysEl.addEventListener('click', function (e) {
+    const btn = e.target.closest && e.target.closest('.nearby-toggle');
+    if (!btn) return;
+    const panel = document.getElementById(btn.getAttribute('data-target'));
+    if (!panel) return;
+    const willShow = panel.hasAttribute('hidden');
+    if (willShow) {
+      panel.removeAttribute('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+      btn.textContent = '▾ 隱藏附近特色美食・店家・景點';
+    } else {
+      panel.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.textContent = '▸ 顯示附近特色美食・店家・景點';
+    }
+  });
+})();
+
+</script>
+
+</body>
+</html>
