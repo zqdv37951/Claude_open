@@ -76,13 +76,12 @@ h2.block-title { font-size: 1.35rem; font-weight: 400; margin-bottom: 1rem; padd
 .flight-code { font-family: var(--font-mono); color: var(--teal-ink); font-size: 0.9rem; margin: 0.4rem 0 0; }
 .flight-time { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.88rem; color: var(--ink-soft); margin: 0.3rem 0 0; }
 .flight-note { font-size: 0.82rem; color: var(--ink-faint); margin: 0.4rem 0 0; }
+.action-link { display: inline-block; margin-top: 0.6rem; font-size: 0.82rem; font-weight: 600; color: var(--teal-ink); text-decoration: none; border-bottom: 1px solid var(--teal); }
+.action-link:hover { color: var(--teal); }
 
 .adapt-note { font-size: 0.82rem; color: var(--ink-faint); margin: 0.8rem 0 0; font-style: italic; }
 
 /* highlights */
-.hl-grid { display: grid; gap: 0.9rem; margin-top: 1rem; }
-@media (min-width: 640px) { .hl-grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1000px) { .hl-grid { grid-template-columns: 1fr 1fr 1fr; } }
 .hl-card { background: var(--surface-2); border-radius: 10px; padding: 0.9rem 1.1rem; }
 .hl-card h4 { font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .hl-card h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
@@ -132,8 +131,9 @@ h2.block-title { font-size: 1.35rem; font-weight: 400; margin-bottom: 1rem; padd
 .dist-tag { margin-left: auto; font-family: var(--font-mono); font-size: 0.68rem; font-variant-numeric: tabular-nums; color: var(--ink-faint); white-space: nowrap; }
 
 /* 延伸推荐总览 + 附近推荐面板：3 列 × 横向卷动卡片墙（trip-extras.md 第2、3节「卡片渲染规则」，两处统一版面与标签） */
-.poi-grid { display: grid; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 10px 16px; overflow-x: auto; padding-bottom: 8px; margin-top: 1rem; }
-.poi-card { display: flex; flex-direction: column; }
+.poi-grid { display: grid; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 10px 16px; overflow-x: auto; padding-bottom: 8px; margin-top: 1rem; scroll-snap-type: x proximity; }
+.poi-card { display: flex; flex-direction: column; scroll-snap-align: start; }
+.poi-scroll-hint { margin: 0 0 0.4rem; font-size: 0.72rem; color: var(--ink-faint); font-family: var(--font-mono); }
 .source-tag { align-self: flex-start; font-family: var(--font-mono); font-size: 0.66rem; padding: 0.1rem 0.5rem; border-radius: 999px; white-space: nowrap; margin-bottom: 0.4rem; }
 .source-tag.highlight { background: var(--teal-soft); color: var(--teal-ink); }
 .source-tag.transit { background: var(--amber-soft); color: var(--amber-ink); }
@@ -242,7 +242,7 @@ footer.foot { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(-
   "title": "卡爾加里 × 洛磯山脈 12 日行程",
   "startDate": "2026-10-01",
   "colorScheme": "teal-amber-fixed（trip-extras.md 第7節固定色票）",
-  "note": "本頁內容轉換自使用者提供的既有行程 HTML（非本 skill 產生的舊版頁面，故走 Mode B「已提供行程」的解析路徑，直接讀取原頁面文字/連結，非解析內嵌 trip-data）。原文件已相當完整（航班、每日行程、15 家餐廳、6 大區域約 32 個景點、8 條實用提醒），本次轉換保留原文全部資訊與判斷（含 Grassi Lakes 步道因落石無限期封閉、The Trough 疑似歇業等即時狀態警示），並套入 skill 的資料結構與待辦提醒引擎。座標為依地標名稱估算（非官方地圖 skill 測量），供地圖示意use；原文件沒有酒店/住宿資訊，故省略 hotelAreas 區塊，未另行杜撰住宿建議。已完整套用 trip-extras.md 第 2–7 節規則：highlights 總覽、每站附近推薦 toggle、時間軸站點標題連結、外文名詞注解、區塊順序、固定配色。2026-08-17 二次更新：延伸推薦總覽改用「精選 highlights／行程途經」兩組標記＋5 列橫向捲動版面＋每卡地圖連結；附近推薦面板候選池擴大為 highlights∪全程 day.slots；行程本身、景點、餐廳等原始資料未變動。",
+  "note": "本頁內容轉換自使用者提供的既有行程 HTML（非本 skill 產生的舊版頁面，故走 Mode B「已提供行程」的解析路徑，直接讀取原頁面文字/連結，非解析內嵌 trip-data）。原文件已相當完整（航班、每日行程、15 家餐廳、6 大區域約 32 個景點、8 條實用提醒），本次轉換保留原文全部資訊與判斷（含 Grassi Lakes 步道因落石無限期封閉、The Trough 疑似歇業等即時狀態警示），並套入 skill 的資料結構與待辦提醒引擎。座標為依地標名稱估算（非官方地圖 skill 測量），供地圖示意use；原文件沒有酒店/住宿資訊，故省略 hotelAreas 區塊，未另行杜撰住宿建議。已完整套用 trip-extras.md 第 2–7 節規則：highlights 總覽、每站附近推薦 toggle、時間軸站點標題連結、外文名詞注解、區塊順序、固定配色。2026-08-17 二次更新：延伸推薦總覽改用「精選 highlights／行程途經」兩組標記＋橫向捲動版面＋每卡地圖連結；附近推薦面板候選池擴大為 highlights∪全程 day.slots。三次更新：版面由5列改3列、附近推薦面板套用同一套卡片與標籤、時間軸站點補地圖連結兜底。四次更新：延伸推薦/附近推薦渲染邏輯抽成共用引擎 assets/poi.js 並整份內聯，取代頁面自己重刻的同名函式；卡片牆加 scroll-snap 與捲動提示。行程本身、景點、餐廳等原始資料全程未變動。",
   "preTrip": {
     "weather": {
       "summary": "10 月洛磯山區日間均溫約 5–10°C，夜間常低於 0°C，冰原公路沿線更冷、可能降雪；卡爾加里市區相對溫和但早晚溫差大。",
@@ -1432,6 +1432,146 @@ if (typeof module !== 'undefined' && module.exports) {
 </script>
 
 <script>
+// POI 卡片墙引擎：延伸推荐总览（trip-extras.md 第2节）与每站附近推荐面板（第3节）共用的纯函数。
+// 浏览器与 Node 双用。刻意不 require map.js/reminders.js（引擎文件互相独立，故意不合并去重，
+// 维护时保持这个边界）——需要 map.js 的 buildMapAppLinks 时由调用方显式传入。
+
+// HTML 转义，防止 XSS（与 map.js/reminders.js 各自一份，属故意重复，见 page-contract.md）
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  var R = 6371000;
+  var toRad = function (d) { return d * Math.PI / 180; };
+  var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDist(m) {
+  return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km';
+}
+
+// 同一地点常有不同写法（如「片瀬東浜海岸」vs「片瀬東浜海水浴場」），用宽松比对而非精确相等
+function normalizeName(s) {
+  return String(s || '').replace(/[（）()／/・\s]/g, '');
+}
+function sameCore(a, b) {
+  if (!a || !b) return false;
+  var na = normalizeName(a), nb = normalizeName(b);
+  if (!na || !nb) return false;
+  if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
+  var n = Math.min(4, na.length, nb.length);
+  return n >= 3 && na.slice(0, n) === nb.slice(0, n); // 前缀比对，兜住同地不同命名尾词的情况
+}
+function titleTokens(title) {
+  return String(title || '').replace(/[（）()]/g, '・').split(/[・／/]/).map(function (s) { return s.trim(); }).filter(Boolean);
+}
+function matchesStopTitle(name, tokens, fullTitle) {
+  if (!name) return false;
+  if (sameCore(name, fullTitle)) return true;
+  return tokens.some(function (tok) { return sameCore(name, tok); });
+}
+
+function linkOrText(label, url) {
+  return url
+    ? '<a href="' + escapeHTML(url) + '" target="_blank" rel="noopener">' + escapeHTML(label) + ' ↗</a>'
+    : escapeHTML(label);
+}
+
+// mapAppLinksFn：调用方传入 map.js 的 buildMapAppLinks（不在这里 require，保持引擎文件互相独立）。
+// 没有坐标或没传函式就不渲染这一行，不手拼地图连结。
+function mapLinkHTML(lat, lng, name, mapAppLinksFn) {
+  if (typeof lat !== 'number' || typeof lng !== 'number' || typeof mapAppLinksFn !== 'function') return '';
+  var links = mapAppLinksFn(lat, lng, name) || [];
+  if (!links.length) return '';
+  return '<p class="poi-maplink">' + links.map(function (l) {
+    return '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHTML(l.label) + '</a>';
+  }).join('') + '</p>';
+}
+
+// it: { name, url, note, shop, category, lat, lng }
+// sourceClass/sourceLabel：来源标签（'highlight'+'精選' 或 'transit'+'行程途經'，见 trip-extras.md 第2节「分组标记」）
+// distLabel：可选，附近推荐面板用（如 "190 m"），延伸推荐总览不传
+function poiCardHTML(it, sourceClass, sourceLabel, distLabel, mapAppLinksFn) {
+  return '<div class="hl-card poi-card"><span class="source-tag ' + escapeHTML(sourceClass) + '">' + escapeHTML(sourceLabel) + '</span>' +
+    '<h4>' + linkOrText(it.name, it.url) +
+    (it.category ? ' <span class="pill">' + escapeHTML(it.category) + '</span>' : '') +
+    (distLabel ? '<span class="dist-tag">' + escapeHTML(distLabel) + '</span>' : '') +
+    '</h4>' +
+    (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
+    (it.note ? '<p>' + escapeHTML(it.note) + '</p>' : '') +
+    mapLinkHTML(it.lat, it.lng, it.name, mapAppLinksFn) +
+    '</div>';
+}
+
+// 版面行数固定 3（trip-extras.md 第2节「版面」），超过 3 项才需要滑动提示
+var POI_GRID_ROWS = 3;
+function scrollHintHTML(itemCount) {
+  return itemCount > POI_GRID_ROWS ? '<p class="poi-scroll-hint">◂ 左右滑動查看更多 ▸</p>' : '';
+}
+
+// 延伸推荐总览／「行程途经」分组用：单纯把 items 渲染成卡片墙，不做距离排序或排除
+function poiWallHTML(items, sourceClass, sourceLabel, mapAppLinksFn) {
+  var list = items || [];
+  if (!list.length) return '';
+  var cards = list.map(function (it) {
+    return poiCardHTML(it, sourceClass, sourceLabel, null, mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(list.length) + '<div class="poi-grid">' + cards + '</div>';
+}
+
+// 每站附近推荐面板用：按距离排序、排除跟该站同名的项目，可选记录命中（供「行程途经」分组用）
+// opts: { sourceClass, sourceLabel, hitStore, mapAppLinksFn }
+function nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts) {
+  opts = opts || {};
+  var tokens = titleTokens(stopTitle);
+  var withDist = (items || [])
+    .filter(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; })
+    .filter(function (it) { return !matchesStopTitle(it.name, tokens, stopTitle) && !matchesStopTitle(it.shop, tokens, stopTitle); })
+    .map(function (it) { return { it: it, dist: haversineMeters(fromLat, fromLng, it.lat, it.lng) }; })
+    .sort(function (a, b) { return a.dist - b.dist; });
+  if (opts.hitStore) {
+    // 记录命中过的 day.slots 项目，跨全部站点去重（一个地点只记一次），供延伸推荐「行程途经」分组使用
+    withDist.forEach(function (row) {
+      var key = normalizeName(row.it.name);
+      if (key) opts.hitStore[key] = row.it;
+    });
+  }
+  if (!withDist.length) return '<p class="muted">暫無座標資料。</p>';
+  var cards = withDist.map(function (row) {
+    return poiCardHTML(row.it, opts.sourceClass || 'highlight', opts.sourceLabel || '精選', formatDist(row.dist), opts.mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(withDist.length) + '<div class="poi-grid">' + cards + '</div>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    escapeHTML: escapeHTML,
+    haversineMeters: haversineMeters,
+    formatDist: formatDist,
+    normalizeName: normalizeName,
+    sameCore: sameCore,
+    titleTokens: titleTokens,
+    matchesStopTitle: matchesStopTitle,
+    linkOrText: linkOrText,
+    mapLinkHTML: mapLinkHTML,
+    poiCardHTML: poiCardHTML,
+    poiWallHTML: poiWallHTML,
+    nearbyGridHTML: nearbyGridHTML,
+  };
+}
+
+</script>
+
+<script>
 // 出发前提醒：截止日期计算 + 渲染。浏览器与 Node 双用。
 
 // startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
@@ -1507,12 +1647,20 @@ if (typeof module !== 'undefined' && module.exports) {
 
   // ---- 航班 ----
   const fl = trip.flights || {};
+  // 可选适配元素（page-contract.md）：candidates/booked 若带 actionLink={label,url}（来自用户已装的
+  // 官方旅行 skill，如飞猪返回的预订链接），渲染成明确的按钮；没有就不渲染，绝不为此手拼链接。
+  function actionLinkHTML(actionLink, label) {
+    if (!actionLink || !actionLink.url) return '';
+    return '<a class="action-link" href="' + escapeHTML(actionLink.url) + '" target="_blank" rel="noopener">'
+      + escapeHTML(label || actionLink.label || '前往') + ' →</a>';
+  }
   function flightCard(f, booked) {
     return '<div class="ticket"><div class="ticket-top"><span class="flight-label">' + escapeHTML(f.label) + '</span>' +
       (booked ? '<span class="pill pill-warm">已預訂</span>' : '<span class="pill">待選・請自行核實</span>') + '</div>' +
       '<p class="flight-code">' + escapeHTML(f.code) + '</p>' +
       '<p class="flight-time">' + escapeHTML(f.time) + '</p>' +
       (f.note ? '<p class="flight-note">' + escapeHTML(f.note) + '</p>' : '') +
+      actionLinkHTML(f.actionLink, '去預訂') +
       '</div>';
   }
   const flightsHTML = (fl.booked || []).map(function (f) { return flightCard(f, true); }).join('') +
@@ -1523,58 +1671,8 @@ if (typeof module !== 'undefined' && module.exports) {
   document.getElementById('disclaimer-text').textContent = trip.disclaimer;
 
   // ---- 距离计算 + 每站「附近推荐」toggle 面板（trip-extras.md 第3节，不限行程类型） ----
-  function haversineMeters(lat1, lng1, lat2, lng2) {
-    var R = 6371000;
-    var toRad = function (d) { return d * Math.PI / 180; };
-    var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }
-  function formatDist(m) {
-    return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km';
-  }
-  function normalizeName(s) {
-    return String(s || '').replace(/[（）()／/・s]/g, '');
-  }
-  function sameCore(a, b) {
-    if (!a || !b) return false;
-    var na = normalizeName(a), nb = normalizeName(b);
-    if (!na || !nb) return false;
-    if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
-    var n = Math.min(4, na.length, nb.length);
-    return n >= 3 && na.slice(0, n) === nb.slice(0, n);
-  }
-  function titleTokens(title) {
-    return String(title || '').replace(/[（）()]/g, '・').split(/[・／/]/).map(function (s) { return s.trim(); }).filter(Boolean);
-  }
-  function matchesStopTitle(name, tokens, fullTitle) {
-    if (!name) return false;
-    if (sameCore(name, fullTitle)) return true;
-    return tokens.some(function (tok) { return sameCore(name, tok); });
-  }
-  // opts: { sourceClass, sourceLabel, hitStore } —— 卡片沿用下方 poiCardHTML（第2节的分组标签/地图连结），
-  // 附近推荐面板与「必去景點・必吃餐廳總覽」共用同一套卡片外观与「精選／行程途經」标签（poiCardHTML 为函数声明，作用域内提升，此处可先用）。
-  function nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts) {
-    opts = opts || {};
-    var tokens = titleTokens(stopTitle);
-    var withDist = (items || [])
-      .filter(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; })
-      .filter(function (it) { return !matchesStopTitle(it.name, tokens, stopTitle) && !matchesStopTitle(it.shop, tokens, stopTitle); })
-      .map(function (it) { return { it: it, dist: haversineMeters(fromLat, fromLng, it.lat, it.lng) }; })
-      .sort(function (a, b) { return a.dist - b.dist; });
-    if (opts.hitStore) {
-      // 记录命中过的 day.slots 项目，跨全部站点去重（一个地点只记一次），供延伸推荐「行程途经」分组使用
-      withDist.forEach(function (row) {
-        var key = normalizeName(row.it.name);
-        if (key) opts.hitStore[key] = row.it;
-      });
-    }
-    if (!withDist.length) return '<p class="muted">暫無座標資料。</p>';
-    return '<div class="poi-grid">' + withDist.map(function (row) {
-      return poiCardHTML(row.it, opts.sourceClass || 'highlight', opts.sourceLabel || '精選', formatDist(row.dist));
-    }).join('') + '</div>';
-  }
+  // haversineMeters/formatDist/normalizeName/sameCore/titleTokens/matchesStopTitle/nearbyGridHTML
+  // 全部来自上面已内联的 assets/poi.js 引擎，这里不重刻。
   var nearbyCounter = 0;
   var hlForNearby = trip.highlights;
 
@@ -1597,9 +1695,9 @@ if (typeof module !== 'undefined' && module.exports) {
     var otherSlots = allSlotsPool.filter(function (it) { return !sameCore(it.name, s.name); });
     return '<button type="button" class="nearby-toggle" data-target="' + panelId + '" aria-expanded="false">▸ 顯示附近特色景點・餐廳</button>' +
       '<div class="nearby-panel" id="' + panelId + '" hidden>' +
-      '<div class="nearby-sub"><h5>附近必去景點</h5>' + nearbyGridHTML(hlForNearby.spots, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選' }) + '</div>' +
-      '<div class="nearby-sub"><h5>附近必吃餐廳</h5>' + nearbyGridHTML(hlForNearby.shops, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選' }) + '</div>' +
-      '<div class="nearby-sub"><h5>附近行程其他站點</h5>' + nearbyGridHTML(otherSlots, s.lat, s.lng, s.name, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHitNames }) + '</div>' +
+      '<div class="nearby-sub"><h5>附近必去景點</h5>' + nearbyGridHTML(hlForNearby.spots, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選', mapAppLinksFn: buildMapAppLinks }) + '</div>' +
+      '<div class="nearby-sub"><h5>附近必吃餐廳</h5>' + nearbyGridHTML(hlForNearby.shops, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選', mapAppLinksFn: buildMapAppLinks }) + '</div>' +
+      '<div class="nearby-sub"><h5>附近行程其他站點</h5>' + nearbyGridHTML(otherSlots, s.lat, s.lng, s.name, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHitNames, mapAppLinksFn: buildMapAppLinks }) + '</div>' +
       '</div>';
   }
 
@@ -1632,7 +1730,7 @@ if (typeof module !== 'undefined' && module.exports) {
             (s.review ? '<p class="review">' + escapeHTML(s.review) + '</p>' : '') +
             '<div class="pills">' + optional.join('') + '</div>' +
             transportHTML +
-            mapLinkHTML(s.lat, s.lng, s.name) +
+            mapLinkHTML(s.lat, s.lng, s.name, buildMapAppLinks) +
             nearbyPanelHTML(s) +
             '</span></li>';
         }).join('') + '</ol></div>';
@@ -1670,43 +1768,16 @@ if (typeof module !== 'undefined' && module.exports) {
     initTravelMap('map', allPoints);
   }
 
-  // ---- 特色景點／餐廳總覽（trip-extras.md 第2節「卡片渲染規則」：分組標記＋5列橫向捲動＋地圖連結） ----
+  // ---- 特色景點／餐廳總覽（trip-extras.md 第2節「卡片渲染規則」：分組標記＋3列橫向捲動＋地圖連結，皆由 poi.js 提供） ----
   const hl = trip.highlights;
-  function linkOrText(label, url) {
-    return url
-      ? '<a href="' + escapeHTML(url) + '" target="_blank" rel="noopener">' + escapeHTML(label) + ' ↗</a>'
-      : escapeHTML(label);
-  }
-  function mapLinkHTML(lat, lng, name) {
-    if (typeof lat !== 'number' || typeof lng !== 'number') return '';
-    var links = buildMapAppLinks(lat, lng, name);
-    return '<p class="poi-maplink">' + links.map(function (l) {
-      return '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHTML(l.label) + '</a>';
-    }).join('') + '</p>';
-  }
-  function poiCardHTML(it, sourceClass, sourceLabel, distLabel) {
-    return '<div class="hl-card poi-card"><span class="source-tag ' + sourceClass + '">' + sourceLabel + '</span>' +
-      '<h4>' + linkOrText(it.name, it.url) +
-      (it.category ? ' <span class="pill">' + escapeHTML(it.category) + '</span>' : '') +
-      (distLabel ? '<span class="dist-tag">' + distLabel + '</span>' : '') +
-      '</h4>' +
-      (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
-      (it.note ? '<p>' + escapeHTML(it.note) + '</p>' : '') +
-      mapLinkHTML(it.lat, it.lng, it.name) +
-      '</div>';
-  }
   if (hl) {
     if (hl.spots && hl.spots.length) {
       document.getElementById('hl-spots-title').textContent = hl.spotsTitle || '必去景點總覽';
-      document.getElementById('hl-spots-list').innerHTML = hl.spots.map(function (it) {
-        return poiCardHTML(it, 'highlight', '精選');
-      }).join('');
+      document.getElementById('hl-spots-list').innerHTML = poiWallHTML(hl.spots, 'highlight', '精選', buildMapAppLinks);
     }
     if (hl.shops && hl.shops.length) {
       document.getElementById('hl-shops-title').textContent = hl.shopsTitle || '必吃餐廳總覽';
-      document.getElementById('hl-shops-list').innerHTML = hl.shops.map(function (it) {
-        return poiCardHTML(it, 'highlight', '精選');
-      }).join('');
+      document.getElementById('hl-shops-list').innerHTML = poiWallHTML(hl.shops, 'highlight', '精選', buildMapAppLinks);
     }
   }
 
@@ -1717,9 +1788,7 @@ if (typeof module !== 'undefined' && module.exports) {
     .filter(function (it) { return !hlAllNames.some(function (hn) { return sameCore(hn, it.name); }); });
   if (transitItems.length) {
     document.getElementById('hl-transit-block').removeAttribute('hidden');
-    document.getElementById('hl-transit-list').innerHTML = transitItems.map(function (it) {
-      return poiCardHTML(it, 'transit', '行程途經');
-    }).join('');
+    document.getElementById('hl-transit-list').innerHTML = poiWallHTML(transitItems, 'transit', '行程途經', buildMapAppLinks);
   }
 
   // ---- 全程贴士 ----

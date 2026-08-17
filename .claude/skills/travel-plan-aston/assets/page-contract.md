@@ -1,6 +1,6 @@
 # 页面内容契约（给设计步骤）
 
-生成 HTML 时，**设计步骤**（frontend-design / huashu-design / 内置美学准则，见 SKILL.md）负责布局与美学，但必须包含以下区块与数据结构，并接入 `map.js` / `reminders.js` 两个引擎脚本（用 `<script>` 内联到单文件 HTML）。生成后用 `assets/validate.js` 机械校验（见 SKILL.md）。
+生成 HTML 时，**设计步骤**（frontend-design / huashu-design / 内置美学准则，见 SKILL.md）负责布局与美学，但必须包含以下区块与数据结构，并接入 `map.js` / `reminders.js` / `poi.js` 三个引擎脚本（用 `<script>` 内联到单文件 HTML）。`poi.js` 承载延伸推荐卡片墙与每站附近推荐面板的渲染逻辑（详见 `references/trip-extras.md` 第 2、3 节），不要绕开它自己重新手刻一遍——改动 `poi.js` 本身时先跑 `node assets/poi.test.js`（纯 Node 回归测试）确认没破坏既有行为。生成后用 `assets/validate.js` 机械校验（见 SKILL.md）。
 
 ## 输入数据结构
 
@@ -118,7 +118,15 @@ const trip = {
 
 ## 可选适配元素（仅当数据来自用户已装的官方旅行 skill 时才出现，详见 research-guide「第三方 skill 适配」）
 
-- **行动链接 `actionLink`**：航班 `candidates`、酒店 `options`、`slot.transport` 等若带 `actionLink={label,url}`，渲染成一个明确的「去预订 / 导航 / 叫车」按钮或链接（新标签打开）。**没有就不渲染**，绝不为此手拼链接。
+- **行动链接 `actionLink`**：航班 `candidates`、酒店 `options`、`slot.transport` 等若带 `actionLink={label,url}`，渲染成一个明确的「去预订 / 导航 / 叫车」按钮或链接（新标签打开）。**没有就不渲染**，绝不为此手拼链接。各处按钮文案不同（"去预订"/"去导航"/"叫车"），不必强求统一措辞，但渲染逻辑一致，可复用这个小函数（不属于 `poi.js`，各场景自行内联）：
+
+  ```js
+  function actionLinkHTML(actionLink, label) {
+    if (!actionLink || !actionLink.url) return '';
+    return '<a class="action-link" href="' + escapeHTML(actionLink.url) + '" target="_blank" rel="noopener">'
+      + escapeHTML(label || actionLink.label || '前往') + ' →</a>';
+  }
+  ```
 - **与引擎自带地图链接的边界**：`map.js` 在地图弹窗生成的「导航 / 高德地图 / Google 地图」点位链接**不属于 actionLink**——它们按官方公开的免 key URI 规范（Apple Maps、`geo:`、高德 URI API `coordinate=wgs84`、Google Maps URLs）由引擎生成，只做「打开地图看这个点」、不承载实时数据主张；「绝不手拼」约束针对的是预订/路线类 actionLink，两者并存不冲突。
 - **数据来源 `dataSources`**：若 `trip.dataSources` 非空，在相关区块或免责声明附近用一行小字中性注明（如「实时航班/酒店来源：飞猪 skill；路线规划与天气来源：高德 skill，时效性由其官方保证」）。措辞**中性、不夸、不推荐某一家**；与 AI 静态整理的内容（标"参考·可能过时"）做视觉区分即可。
 - 这些是**渐进增强**：缺这些字段时页面与现在完全一致，不留空块、不报错。
@@ -129,11 +137,11 @@ const trip = {
 - **数据与呈现分离（迭代修改的基础）**：完整 `trip` 对象必须以 `<script id="trip-data" type="application/json">…</script>` 原样内嵌进页面（包括 `actionLink`、`dataSources`、`leadDays` 等不直接可见的字段）。后续用户把 HTML 丢回来改行程时，**直接解析这块 JSON 修改后重渲染**，不要反向解析渲染后的 DOM（必丢字段）。
 - **坐标一律 WGS-84**：OSM 瓦片是 WGS-84；来自高德/腾讯（GCJ-02）的坐标必须先用 `map.js` 的 `gcj02ToWgs84` 转换，否则境内点位会偏移一百到几百米。
 - **响应式（手机和桌面都要好看，不能只做窄列）**：手机端单列；桌面端（约 ≥768px）主容器加宽到 **约 880–960px 居中**，卡片列表（航班 / 酒店 / 行前须知 / 餐饮 / 景点）改用**多列网格**、地图区更宽，别在大屏上留成一条窄列两边大片空白。必须包含相应的 `@media` 断点。
-- `map.js` 与 `reminders.js` 的内容必须内联进 HTML（不外链本地文件），保证单文件自包含。
+- `map.js`、`reminders.js`、`poi.js` 三个引擎脚本的内容必须内联进 HTML（不外链本地文件），保证单文件自包含。
 - 每趟行程用不同配色以便区分。
 - 图片**严禁变形**：图片容器固定尺寸/比例，`<img>` 用 `object-fit: cover` + `display:block`（推荐绝对定位 `inset:0` 填满容器），只裁切不拉伸。
 - 图片**统一降级**：每个 `<img>` 加 `onerror="this.style.display='none'"`，容器自带与主题配色一致的中性底（纯色/渐变均可，可叠景点名文字）——加载失败或离线时呈现为体面的色块，绝不露浏览器破图图标。
 - 地图瓦片源可按需替换：`initTravelMap(id, points, { tileUrl, attribution })` 支持传入替代瓦片源（默认 OSM；若目标读者所在网络访问 OSM 不稳，可换镜像源，注明 attribution）。
 - 所有联网信息（**含天气、餐厅、景点、评分**，不止航班/酒店）尽量基于公开资料给真实可信信息，但全部为**参考**、可能不准或过时，**必须**展示覆盖全部信息的免责声明（第 5 区块）引导用户核实。
 - 排程应体现**天气/季节逻辑**：把户外项目放在凉爽时段（上午、傍晚），午后高温/雷暴时段安排室内（仅在该目的地确有此类天气特征时）。
-- `escapeHTML` 函数在 `map.js` 与 `reminders.js` 中各自定义一份，属故意重复——两个文件须各自独立（Node require 与浏览器内联均不依赖另一方），维护时请勿合并去重。
+- `escapeHTML` 函数在 `map.js`、`reminders.js`、`poi.js` 三个文件中各自定义一份，属故意重复——三个文件须各自独立（Node require 与浏览器内联均不依赖另一方；`poi.js` 需要 `map.js` 的 `buildMapAppLinks` 时也是由调用方把函数当参数传入，不是互相 require），维护时请勿合并去重。

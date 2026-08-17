@@ -110,6 +110,10 @@ function validateHTML(html) {
     ['computeReminders', '未调用 computeReminders（提醒计算）'],
     ['renderChecklistHTML', '未调用 renderChecklistHTML（页顶待办清单）'],
     ['gcj02ToWgs84', 'map.js 引擎未完整内联（缺 gcj02ToWgs84）'],
+    // 用 POI_GRID_ROWS 这个内部实现细节当标记，不用 nearbyGridHTML/poiWallHTML 这类公开函数名——
+    // 后者是 trip-extras.md 文档里写出来的调用约定，页面自己重刻一份同名函数也会命中、验不出「真的
+    // 内联了 poi.js」；POI_GRID_ROWS 只存在于 poi.js 源码内部，没人会凭空重刻出一模一样的变量名。
+    ['POI_GRID_ROWS', 'poi.js 引擎未完整内联（缺 POI_GRID_ROWS），延伸推荐/附近推荐可能是页面自己重刻的、不是真的内联 assets/poi.js（见 trip-extras.md 第2、3节）'],
   ];
   checks.forEach(function (c) {
     if (s.indexOf(c[0]) === -1) errors.push(c[1]);
@@ -145,9 +149,12 @@ function validateHTML(html) {
     var hasCoordHighlight = ['spots', 'food', 'shops'].some(function (key) {
       return (trip.highlights[key] || []).some(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; });
     });
-    if ((hasCoordSlot || hasCoordHighlight) && s.split('buildMapAppLinks(').length - 1 < 3) {
-      // 至少 3 次：map.js 里的函数定义 1 次 + initTravelMap 内部调用 1 次 + 延伸推荐卡片至少调用 1 次
-      warnings.push('延伸推荐卡片疑似未逐一调用 buildMapAppLinks 生成地图连结（trip-extras.md 第2节「标题连结＋地图连结」），请确认');
+    if ((hasCoordSlot || hasCoordHighlight) && s.split('buildMapAppLinks').length - 1 < 3) {
+      // 不用带括号的 'buildMapAppLinks(' 匹配：poi.js 的 mapLinkHTML/poiCardHTML 是把 buildMapAppLinks
+      // 当函数引用传进去（如 poiWallHTML(items, 'highlight', '精選', buildMapAppLinks)），源码里不会紧跟
+      // 左括号，带括号匹配会在改用 poi.js 后把正确实现误判成漏做。至少 3 次：map.js 定义 1 次 +
+      // initTravelMap 内部调用 1 次 + 延伸推荐/附近推荐至少一处把它传给 poi.js。
+      warnings.push('延伸推荐卡片疑似未把 buildMapAppLinks 接上地图连结（trip-extras.md 第2节「标题连结＋地图连结」），请确认');
     }
     // 版面改版史：曾经从「5列横向卷动」改成「3列横向卷动」，这里只认目前生效的 3 列写法；
     // 若之后再调整行数，记得同步这条字符串，不要留着旧数字继续通过校验。
@@ -165,6 +172,14 @@ function validateHTML(html) {
     });
     if (hasSlotWithoutUrl && s.indexOf('poi-maplink') === -1) {
       warnings.push('存在没有 url 的带坐标时间轴站点，但 HTML 里没见到 "poi-maplink"，这类站点标题疑似没有地图连结兜底可点（trip-extras.md 第5节），请确认');
+    }
+    // 卡片墙超过 3 项（会溢出到第二栏、需要横向卷动）时，poi.js 的 poiWallHTML/nearbyGridHTML
+    // 会自动带 poi-scroll-hint 提示；HTML 里没见到就代表滚动提示疑似被手动删掉或没用 poi.js。
+    var hasWideCategory = ['spots', 'food', 'shops'].some(function (key) {
+      return (trip.highlights[key] || []).length > 3;
+    });
+    if (hasWideCategory && s.indexOf('poi-scroll-hint') === -1) {
+      warnings.push('highlights 有分类项目数 >3（会超出3列版面、需要横向卷动），但 HTML 里没见到 "poi-scroll-hint" 滚动提示，请确认（trip-extras.md 第2节「版面」）');
     }
   }
   return { errors: errors, warnings: warnings };
