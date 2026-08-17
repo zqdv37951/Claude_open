@@ -1,5 +1,5 @@
 ---
-name: travel-plan-viz
+name: travel-plan-aston
 description: 把旅行行程做成美观、离线可读、手机优先的单文件 HTML（交互地图+每日时间轴+出发前订票提醒）。两种用法——只给目的地和天数让它帮你规划，或丢一份现成计划让它直接出页面。触发：旅行计划可视化、做旅行攻略网页、行程 HTML、travel plan visualization。
 ---
 
@@ -41,6 +41,7 @@ description: 把旅行行程做成美观、离线可读、手机优先的单文�
    - 时间轴卡片展示营业时间/门票参考价/交通/时令活动等可选字段；展示每日餐饮（必点菜+价）、当日与全程贴士、单日二选一方案（若有）。
    - 地图用 `initTravelMap`，引入 Leaflet CDN 的 CSS/JS。
    - 时间轴上 `needsBooking` 项插入 `reminderBadgeHTML(leadDays)`。
+   - **延伸推荐区块**（详见 `trip-extras.md` 第 2、3 节）：分「精选 highlights」与「行程途经」（附近面板算出来、命中 `day.slots` 但不在 highlights 里的项目）两组标记显示，去重；三个分类都用「5 列 × 横向卷动」版面；每张卡片有坐标就额外加一行调用 `buildMapAppLinks` 生成的地图连结。
    - **可选适配元素**：节点带 `actionLink` 时渲染「去预订/导航/叫车」按钮（缺则不渲染、不手拼）；`dataSources` 非空时中性注明数据来源。
    - 每趟行程用不同配色。
 5. 保存为 `<行程名>-旅行计划.html` 到工作目录。

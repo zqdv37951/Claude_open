@@ -17,12 +17,12 @@
 
 **1. Claude Code** —— 放进 skills 目录：
 ```bash
-ln -sfn "<repo>/travel-plan-viz" ~/.claude/skills/travel-plan-viz
+ln -sfn "<repo>/travel-plan-aston" ~/.claude/skills/travel-plan-aston
 ```
 
 **2. OpenAI Codex** —— 同样有 skills 目录：
 ```bash
-ln -sfn "<repo>/travel-plan-viz" ~/.codex/skills/travel-plan-viz
+ln -sfn "<repo>/travel-plan-aston" ~/.codex/skills/travel-plan-aston
 ```
 （若两端共用一份源，可只放一处真目录、另一处软链过去。）
 
