@@ -127,12 +127,12 @@ h2.block-title { font-size: 1.35rem; font-weight: 400; margin-bottom: 1rem; padd
 .nearby-panel[hidden] { display: none; }
 .nearby-sub + .nearby-sub { margin-top: 1.4rem; }
 .nearby-sub h5 { font-size: 0.85rem; font-weight: 600; color: var(--ink); margin: 0 0 0.7rem; }
-.nearby-sub .hl-grid { margin-top: 0; }
+.nearby-sub .poi-grid { margin-top: 0; }
 .nearby-sub .hl-card { background: var(--surface); border: 1px solid var(--line); }
 .dist-tag { margin-left: auto; font-family: var(--font-mono); font-size: 0.68rem; font-variant-numeric: tabular-nums; color: var(--ink-faint); white-space: nowrap; }
 
-/* 延伸推荐总览：5 列 × 横向卷动版面（trip-extras.md 第2节「卡片渲染规则」） */
-.poi-grid { display: grid; grid-template-rows: repeat(5, auto); grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 10px 16px; overflow-x: auto; padding-bottom: 8px; margin-top: 1rem; }
+/* 延伸推荐总览 + 附近推荐面板：3 列 × 横向卷动卡片墙（trip-extras.md 第2、3节「卡片渲染规则」，两处统一版面与标签） */
+.poi-grid { display: grid; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 10px 16px; overflow-x: auto; padding-bottom: 8px; margin-top: 1rem; }
 .poi-card { display: flex; flex-direction: column; }
 .source-tag { align-self: flex-start; font-family: var(--font-mono); font-size: 0.66rem; padding: 0.1rem 0.5rem; border-radius: 999px; white-space: nowrap; margin-bottom: 0.4rem; }
 .source-tag.highlight { background: var(--teal-soft); color: var(--teal-ink); }
@@ -1553,30 +1553,26 @@ if (typeof module !== 'undefined' && module.exports) {
     if (sameCore(name, fullTitle)) return true;
     return tokens.some(function (tok) { return sameCore(name, tok); });
   }
-  function nearbyGridHTML(items, fromLat, fromLng, stopTitle, hitStore) {
+  // opts: { sourceClass, sourceLabel, hitStore } —— 卡片沿用下方 poiCardHTML（第2节的分组标签/地图连结），
+  // 附近推荐面板与「必去景點・必吃餐廳總覽」共用同一套卡片外观与「精選／行程途經」标签（poiCardHTML 为函数声明，作用域内提升，此处可先用）。
+  function nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts) {
+    opts = opts || {};
     var tokens = titleTokens(stopTitle);
     var withDist = (items || [])
       .filter(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; })
       .filter(function (it) { return !matchesStopTitle(it.name, tokens, stopTitle) && !matchesStopTitle(it.shop, tokens, stopTitle); })
       .map(function (it) { return { it: it, dist: haversineMeters(fromLat, fromLng, it.lat, it.lng) }; })
       .sort(function (a, b) { return a.dist - b.dist; });
-    if (hitStore) {
+    if (opts.hitStore) {
       // 记录命中过的 day.slots 项目，跨全部站点去重（一个地点只记一次），供延伸推荐「行程途经」分组使用
       withDist.forEach(function (row) {
         var key = normalizeName(row.it.name);
-        if (key) hitStore[key] = row.it;
+        if (key) opts.hitStore[key] = row.it;
       });
     }
     if (!withDist.length) return '<p class="muted">暫無座標資料。</p>';
-    return '<div class="hl-grid">' + withDist.map(function (row) {
-      var it = row.it;
-      var titleHTML = it.url
-        ? '<a href="' + escapeHTML(it.url) + '" target="_blank" rel="noopener">' + escapeHTML(it.name) + ' ↗</a>'
-        : escapeHTML(it.name);
-      return '<div class="hl-card"><h4>' + titleHTML + '<span class="dist-tag">' + formatDist(row.dist) + '</span></h4>' +
-        (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
-        (it.category ? '<p class="hl-shop">' + escapeHTML(it.category) + '</p>' : '') +
-        '<p>' + escapeHTML(it.note || '') + '</p></div>';
+    return '<div class="poi-grid">' + withDist.map(function (row) {
+      return poiCardHTML(row.it, opts.sourceClass || 'highlight', opts.sourceLabel || '精選', formatDist(row.dist));
     }).join('') + '</div>';
   }
   var nearbyCounter = 0;
@@ -1601,9 +1597,9 @@ if (typeof module !== 'undefined' && module.exports) {
     var otherSlots = allSlotsPool.filter(function (it) { return !sameCore(it.name, s.name); });
     return '<button type="button" class="nearby-toggle" data-target="' + panelId + '" aria-expanded="false">▸ 顯示附近特色景點・餐廳</button>' +
       '<div class="nearby-panel" id="' + panelId + '" hidden>' +
-      '<div class="nearby-sub"><h5>附近必去景點</h5>' + nearbyGridHTML(hlForNearby.spots, s.lat, s.lng, s.name) + '</div>' +
-      '<div class="nearby-sub"><h5>附近必吃餐廳</h5>' + nearbyGridHTML(hlForNearby.shops, s.lat, s.lng, s.name) + '</div>' +
-      '<div class="nearby-sub"><h5>附近行程其他站點</h5>' + nearbyGridHTML(otherSlots, s.lat, s.lng, s.name, transitHitNames) + '</div>' +
+      '<div class="nearby-sub"><h5>附近必去景點</h5>' + nearbyGridHTML(hlForNearby.spots, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選' }) + '</div>' +
+      '<div class="nearby-sub"><h5>附近必吃餐廳</h5>' + nearbyGridHTML(hlForNearby.shops, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選' }) + '</div>' +
+      '<div class="nearby-sub"><h5>附近行程其他站點</h5>' + nearbyGridHTML(otherSlots, s.lat, s.lng, s.name, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHitNames }) + '</div>' +
       '</div>';
   }
 
@@ -1636,6 +1632,7 @@ if (typeof module !== 'undefined' && module.exports) {
             (s.review ? '<p class="review">' + escapeHTML(s.review) + '</p>' : '') +
             '<div class="pills">' + optional.join('') + '</div>' +
             transportHTML +
+            mapLinkHTML(s.lat, s.lng, s.name) +
             nearbyPanelHTML(s) +
             '</span></li>';
         }).join('') + '</ol></div>';
@@ -1687,10 +1684,12 @@ if (typeof module !== 'undefined' && module.exports) {
       return '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHTML(l.label) + '</a>';
     }).join('') + '</p>';
   }
-  function poiCardHTML(it, sourceClass, sourceLabel) {
+  function poiCardHTML(it, sourceClass, sourceLabel, distLabel) {
     return '<div class="hl-card poi-card"><span class="source-tag ' + sourceClass + '">' + sourceLabel + '</span>' +
       '<h4>' + linkOrText(it.name, it.url) +
-      (it.category ? ' <span class="pill">' + escapeHTML(it.category) + '</span>' : '') + '</h4>' +
+      (it.category ? ' <span class="pill">' + escapeHTML(it.category) + '</span>' : '') +
+      (distLabel ? '<span class="dist-tag">' + distLabel + '</span>' : '') +
+      '</h4>' +
       (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
       (it.note ? '<p>' + escapeHTML(it.note) + '</p>' : '') +
       mapLinkHTML(it.lat, it.lng, it.name) +
