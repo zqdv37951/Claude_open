@@ -149,6 +149,23 @@ function validateHTML(html) {
       // 至少 3 次：map.js 里的函数定义 1 次 + initTravelMap 内部调用 1 次 + 延伸推荐卡片至少调用 1 次
       warnings.push('延伸推荐卡片疑似未逐一调用 buildMapAppLinks 生成地图连结（trip-extras.md 第2节「标题连结＋地图连结」），请确认');
     }
+    // 版面改版史：曾经从「5列横向卷动」改成「3列横向卷动」，这里只认目前生效的 3 列写法；
+    // 若之后再调整行数，记得同步这条字符串，不要留着旧数字继续通过校验。
+    if (s.indexOf('.poi-grid') !== -1 && s.indexOf('repeat(3, auto)') === -1) {
+      warnings.push('未见 "repeat(3, auto)"，延伸推荐/附近推荐卡片墙疑似不是 trip-extras.md 第2节规定的「3列横向卷动」版面，请确认');
+    }
+    if (hasCoordSlot && s.indexOf('nearby-toggle') !== -1 && s.indexOf('source-tag') === -1) {
+      warnings.push('附近推荐面板存在，但 HTML 里没见到 "source-tag"，面板卡片疑似没标「精选／行程途经」来源标签（trip-extras.md 第2节「分组标记」第4点），请确认');
+    }
+    // 时间轴站点标题保底规则（trip-extras.md 第5节）：没有 url 的带坐标 slot 也要有地图连结兜底。
+    var hasSlotWithoutUrl = (trip.days || []).some(function (d) {
+      return (d.slots || []).some(function (sl) {
+        return typeof sl.lat === 'number' && typeof sl.lng === 'number' && !sl.url;
+      });
+    });
+    if (hasSlotWithoutUrl && s.indexOf('poi-maplink') === -1) {
+      warnings.push('存在没有 url 的带坐标时间轴站点，但 HTML 里没见到 "poi-maplink"，这类站点标题疑似没有地图连结兜底可点（trip-extras.md 第5节），请确认');
+    }
   }
   return { errors: errors, warnings: warnings };
 }
