@@ -5,7 +5,7 @@ description: 把旅行行程做成美观、离线可读、手机优先的单文�
 
 # 旅行计划可视化
 
-把一趟旅行变成单文件 HTML 页面：交互地图、每日时间轴、出发前订票提醒。机械逻辑用自带引擎（`assets/map.js`、`assets/reminders.js`），美学交给设计步骤（`frontend-design` / `huashu-design`，或内置准则兜底）。
+把一趟旅行变成单文件 HTML 页面：交互地图、每日时间轴、出发前订票提醒。机械逻辑用自带引擎（`assets/map.js`、`assets/reminders.js`、`assets/poi.js`），美学交给设计步骤（`frontend-design` / `huashu-design`，或内置准则兜底）。
 
 ## 第一步：判断模式
 
@@ -34,19 +34,20 @@ description: 把旅行行程做成美观、离线可读、手机优先的单文�
 2. 按 `references/research-guide.md` 联网补全（官方 skill 未覆盖的部分）：坐标、真实图片 URL、评分、点评、营业时间/休息日、门票参考价、需提前订项及 `leadDays`；**行前须知**（天气/台风/穿搭/支付/App/购票时机）、**点到点交通**（方式/票价/耗时）、**时令限定活动**、每餐**必点菜+参考价**；航班给 3-5 个**待选班次**、酒店按**片区+价位**推荐、并准备**免责声明**与全程**贴士**。排程体现**天气/季节逻辑**（户外排凉爽时段）。**本 skill 自身不查实时票价**（实时数据只来自上面用户已装的官方 skill）。
 3. 组织成 `assets/page-contract.md` 里定义的 `trip` 数据结构（含可选的 `dataSources` 与节点 `actionLink`）。**同时无条件读 `references/trip-extras.md`**（不限行程类型、不限单日或多日、国内或跨国）：加入 `trip.highlights`（特色景点/美食/店家总览，各至少10项）、每站「附近推荐」toggle 面板、时间轴站点标题连结、页面区块顺序规范、`trip.glossary`（外文名词注解，视语言环境触发）、预设配色。**只有「不涉及航班/住宿的单日往返或国内短程行程」这个子情况**才额外改用 `trip.transit` 取代 `flights`/`hotelAreas`（trip-extras.md 第1节）。
 4. 用**设计步骤**生成风格化 HTML：**优先**调用专业设计 skill——`frontend-design` 或 `huashu-design`（花叔Design），任一已安装即用；**两者都没有**时，按 `references/design-guidelines.md` 的内置美学准则自己出。无论哪种方式都要严格遵守 `assets/page-contract.md` 的区块与约束：
-   - 内联 `assets/map.js`、`assets/reminders.js` 内容到 HTML（保证单文件）。
+   - 内联 `assets/map.js`、`assets/reminders.js`、`assets/poi.js` 内容到 HTML（保证单文件）。
    - 完整 `trip` 对象以 `<script id="trip-data" type="application/json">` 内嵌进页面（后续迭代修改的数据源）。
    - 页顶清单用 `computeReminders` + `renderChecklistHTML`。
    - 展示行前须知区块；航班区展示待选班次（已预订的高亮），酒店区按片区+价位展示，附近显著展示免责声明。
    - 时间轴卡片展示营业时间/门票参考价/交通/时令活动等可选字段；展示每日餐饮（必点菜+价）、当日与全程贴士、单日二选一方案（若有）。
    - 地图用 `initTravelMap`，引入 Leaflet CDN 的 CSS/JS。
    - 时间轴上 `needsBooking` 项插入 `reminderBadgeHTML(leadDays)`。
-   - **延伸推荐区块**（详见 `trip-extras.md` 第 2、3 节）：分「精选 highlights」与「行程途经」（附近面板算出来、命中 `day.slots` 但不在 highlights 里的项目）两组标记显示，去重；三个分类都用「5 列 × 横向卷动」版面；每张卡片有坐标就额外加一行调用 `buildMapAppLinks` 生成的地图连结。
+   - **延伸推荐区块**（详见 `trip-extras.md` 第 2、3 节）：调用 `poi.js` 的 `poiWallHTML`/`nearbyGridHTML`，不要重新手刻——分「精选 highlights」与「行程途经」（附近面板算出来、命中 `day.slots` 但不在 highlights 里的项目）两组标记显示，去重；三个分类都用「3 列 × 横向卷动」版面（超过 3 项自动带滚动提示）；每张卡片有坐标就额外加一行调用 `buildMapAppLinks` 生成的地图连结；每站附近推荐面板也用同一套卡片与标签。
    - **可选适配元素**：节点带 `actionLink` 时渲染「去预订/导航/叫车」按钮（缺则不渲染、不手拼）；`dataSources` 非空时中性注明数据来源。
    - 每趟行程用不同配色。
 5. 保存为 `<行程名>-旅行计划.html` 到工作目录。
 6. **机械校验（必做）**：跑 `node <skill目录>/assets/validate.js <生成的.html>`——校验 trip 必填字段、坐标越界/离群、必需区块标记、trip-data 内嵌。有 ERROR 必须修复后重跑至通过；WARNING 逐条人工判断。
-7. 告诉用户：之后可把该 HTML 文件丢回来，说"把第三天的 X 挪到第四天"，会在原结构上修改（直接改内嵌的 trip-data JSON 再重渲染）。
+7. **浏览器实测（必做，不能只靠上一步或读代码）**：用 Playwright（当前环境已预装 Chromium，见环境说明；没有时至少提醒用户自行打开确认）实际打开生成的 HTML，检查：① 附近推荐面板默认是**收合**的（`hidden` 真的生效——曾经出现过 CSS 另外写了 `.nearby-panel{display:flex}` 盖掉浏览器对 `[hidden]` 的默认样式，面板一开始就是展开的，但按钮文字还写着「显示」，纯读代码看不出来）；② 点开面板后卡片牆是「横向卷动」而不是纯直向堆叠（曾经出现过 CSS 版面行数没套用、退化成普通网格）；③ 地图连结、来源标签（精选/行程途经）确实渲染出来，不是空字串；④ 手机宽度（如 390px）下没有破版。这一步不能省略——上面两个真 bug 都是纯读代码判断不出来、只有实际打开页面才抓到的。
+8. 告诉用户：之后可把该 HTML 文件丢回来，说"把第三天的 X 挪到第四天"，会在原结构上修改（直接改内嵌的 trip-data JSON 再重渲染）。
 
 ## 不做
 

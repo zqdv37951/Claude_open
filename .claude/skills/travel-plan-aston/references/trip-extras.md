@@ -61,7 +61,9 @@ trip.highlights = {
 
 ### 卡片渲染規則（版面、分組、地圖連結）
 
-- **版面**：`spots`／`food`／`shops` 三個清單都用「3 列 × 橫向捲動」排版，不要用直向多列網格：
+**這一節的邏輯已經抽成共用引擎 `assets/poi.js`**（跟 `map.js`/`reminders.js` 同一套模式：純函數、瀏覽器與 Node 雙用），生成頁面時把它整份內聯進 `<script>`（見 SKILL.md 步驟 4），呼叫 `poiWallHTML(items, sourceClass, sourceLabel, buildMapAppLinks)` 產生延伸推薦卡片牆——**不要每次重新手刻一遍**，這是本節多次因為各頁面各寫一套、規則改了舊頁面沒跟著改而補救的教訓。`poi.js` 刻意不 `require` `map.js`，`buildMapAppLinks` 由呼叫方（頁面自己的渲染腳本）當參數傳入，兩個引擎檔保持互相獨立。
+
+- **版面**：`spots`／`food`／`shops` 三個清單都用「3 列 × 橫向捲動」排版（`poiWallHTML` 固定輸出 `<div class="poi-grid">`），不要用直向多列網格。對應 CSS（`poi.js` 只產生 HTML、不含 CSS，這段仍要手動寫進頁面的 `<style>`）：
 
   ```css
   .poi-grid {
@@ -72,19 +74,22 @@ trip.highlights = {
     gap: 10px 16px;
     overflow-x: auto;
     padding-bottom: 8px; /* 留白避免捲動軸貼齊卡片內容 */
+    scroll-snap-type: x proximity;
   }
+  .poi-card { scroll-snap-align: start; }
+  .poi-scroll-hint { margin: 0 0 0.4rem; font-size: 0.72rem; color: var(--ink-faint); font-family: var(--font-mono); }
   ```
 
-  超過 3 項會自動往右新增一欄、容器橫向捲動；手機與桌面共用同一套 CSS，不用另外寫 `@media` 改成直向單欄。**這套 `.poi-grid` 版面也是第 3 節「附近推薦」面板卡片牆的標準版面**——同一份 CSS、同一個卡片元件，兩處視覺要一致，不要各寫一套。
+  超過 3 項會自動往右新增一欄、容器橫向捲動；`poiWallHTML`/`nearbyGridHTML` 這時會自動在卡片牆前面加一行 `<p class="poi-scroll-hint">◂ 左右滑動查看更多 ▸</p>` 提示（項目 ≤3、不需要捲動時不會出現這行）——橫向捲動在桌面版不容易被發現，這行提示必須留著，不要手動刪掉。手機與桌面共用同一套 CSS，不用另外寫 `@media` 改成直向單欄。**這套 `.poi-grid` 版面也是第 3 節「附近推薦」面板卡片牆的標準版面**——同一份 CSS、同一個卡片元件（`poi.js` 的 `nearbyGridHTML` 內部就是呼叫 `poiCardHTML`），兩處視覺要一致，不要各寫一套。
 
 - **分組標記**：延伸推薦不只是 `trip.highlights` 原始內容，還要併入第 3 節「附近推薦」面板在計算時、曾經出現在任一站附近清單裡的其他行程站點（`day.slots`）。兩個來源分開列、各自標記清楚：
-  1. **精選 highlights**——`trip.highlights.spots`／`food`／`shops` 原始三個分類，維持不變。
-  2. **行程途經**——生成每站「附近推薦」面板時，把候選池裡命中、但來源是 `day.slots`（不是 `trip.highlights`）的項目另外收進一個全域集合（見第 3 節「候選池命中記錄」）；生成延伸推薦區塊時，把這個集合裡「不在 highlights 內」的項目（用 `sameCore()` 判斷）去重後列成新的一組，卡片上加小標籤（如「行程途經」）跟精選區分開，避免同一地點兩邊都出現。
-  3. 這一組同樣套用上面的「3 列橫向捲動」版面；`day.slots` 項目未必有 `photo`/`rating`，只顯示 `name` + 一句話（可用該站 `review` 或留空）即可，不用為了湊欄位硬編內容。
-  4. **第 3 節「附近推薦」面板本身的卡片也要套用同一套標籤**：面板裡來自 `trip.highlights` 的子清單（如「附近必去景點」「附近必吃餐廳」）標「精選」，來自 `day.slots` 候選池的子清單（「附近行程其他站點」）標「行程途經」——跟延伸推薦區塊用同一個渲染函式（同一份 `sourceClass`/`sourceLabel` 邏輯），不要在兩處各寫一套判斷。
-  5. 標籤固定用 `.source-tag` 這個 class（精選再疊一個 `.highlight` 修飾 class、行程途經疊 `.transit`），不要每次改名——`assets/validate.js` 會機械抽查 HTML 裡有沒有 `source-tag` 字串，class 名稱對不上會被誤判成漏做。
+  1. **精選 highlights**——`trip.highlights.spots`／`food`／`shops` 原始三個分類，維持不變，呼叫 `poiWallHTML(hl.spots, 'highlight', '精選', buildMapAppLinks)`。
+  2. **行程途經**——生成每站「附近推薦」面板時，把候選池裡命中、但來源是 `day.slots`（不是 `trip.highlights`）的項目另外收進一個全域集合（見第 3 節「候選池命中記錄」，即 `nearbyGridHTML` 的 `opts.hitStore` 參數）；生成延伸推薦區塊時，把這個集合裡「不在 highlights 內」的項目（用 `poi.js` 的 `sameCore()` 判斷）去重後，呼叫 `poiWallHTML(transitItems, 'transit', '行程途經', buildMapAppLinks)` 列成新的一組，跟精選區分開，避免同一地點兩邊都出現。
+  3. `day.slots` 項目未必有 `photo`/`rating`，只顯示 `name` + 一句話（可用該站 `review` 或留空）即可，不用為了湊欄位硬編內容。
+  4. **第 3 節「附近推薦」面板本身的卡片也要套用同一套標籤**：面板裡來自 `trip.highlights` 的子清單（如「附近必去景點」「附近必吃餐廳」）呼叫 `nearbyGridHTML(..., { sourceClass: 'highlight', sourceLabel: '精選' })`，來自 `day.slots` 候選池的子清單（「附近行程其他站點」）呼叫 `nearbyGridHTML(..., { sourceClass: 'transit', sourceLabel: '行程途經', hitStore })`——延伸推薦區塊跟附近推薦面板用的是同一個 `poi.js`，不要在兩處各寫一套判斷。
+  5. 標籤固定用 `poiCardHTML` 內建輸出的 `.source-tag` 這個 class（精選是 `.highlight` 修飾 class、行程途經是 `.transit`），不要每次改名——`assets/validate.js` 會機械抽查 HTML 裡有沒有 `source-tag` 字串，class 名稱對不上會被誤判成漏做。
 
-- **標題連結＋地圖連結**：卡片標題沿用上面的連結規範——有 `url` 就整個標題包成 `<a>`，沒有就維持純文字。**額外規則**：只要卡片有 `lat`/`lng`（不論標題有沒有官網連結），都在卡片下方另外加一行地圖連結，呼叫頁面已內聯的 `map.js` 的 `buildMapAppLinks(lat, lng, name)`（跟時間軸地圖彈窗用的是同一個函式：境內只給高德，境外給 Google＋高德），渲染成一或兩個小連結（`target="_blank" rel="noopener"`）。沒有座標就不渲染這一行，不要另外手拼地圖連結。這一行固定用 `.poi-maplink` 這個 class 包住，理由同上——`validate.js` 也會抽查這個字串。
+- **標題連結＋地圖連結**：卡片標題沿用上面的連結規範——有 `url` 就整個標題包成 `<a>`，沒有就維持純文字（`poiCardHTML` 內建的 `linkOrText` 已經處理）。**額外規則**：只要卡片有 `lat`/`lng`（不論標題有沒有官網連結），都在卡片下方另外加一行地圖連結，呼叫頁面已內聯的 `map.js` 的 `buildMapAppLinks(lat, lng, name)`（跟時間軸地圖彈窗用的是同一個函式：境內只給高德，境外給 Google＋高德）——`poiCardHTML` 會自動處理這步，只要把 `buildMapAppLinks` 當最後一個參數傳進去即可，不用另外手拼。沒有座標就不渲染這一行。這一行固定用 `.poi-maplink` 這個 class 包住，理由同上——`validate.js` 也會抽查這個字串。
 
 ## 3.（一律適用）每站「附近特色美食・店家・景點」toggle 面板
 
@@ -99,42 +104,20 @@ trip.highlights = {
 - 點擊切換 `hidden` 屬性與 `aria-expanded`，按鈕文字同步在「▸ 顯示…」/「▾ 隱藏…」間切換。
 - 事件用**事件代理**（在時間軸容器上監聽 click，`event.target.closest('.nearby-toggle')`），不要為每個按鈕各自綁定，避免動態內容重繪後失效。
 
-### 距離計算（Haversine，公尺）
+### 距離計算 + 去重 + 候選池命中記錄：一律呼叫 `poi.js` 的 `nearbyGridHTML`
+
+跟第 2 節一樣，距離計算（Haversine）、去重（排除跟該站「同一家」的項目）、命中記錄，全部已經包進共用引擎 `assets/poi.js` 的 `nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts)`——不要自己重寫一份 haversine 或 `sameCore`：
+
+- **距離計算**：內部用 Haversine 公式（公尺），排序後全部列出（不做數量截斷），每張卡片標示距離（如 `190 m` / `1.2 km`，`formatDist()`）。
+- **去重**：避免「魚見亭」這一站的附近清單裡又推薦「魚見亭」自己。用站點標題（`slot.name`，即 `stopTitle` 參數）跟候選項目的 `name`／`shop` 做**寬鬆比對**（`sameCore()`），而非精確字串相等——因為同一地點常有不同寫法（如站點標題寫「片瀬東浜海岸」、highlights 裡登記為「片瀬東浜海水浴場」）。站點標題會先依常見分隔符（`・`、`／`、括號）拆成多個 token 逐一比對，任一命中就從該站的附近清單中排除（`day.slots` 候選池對自己本身的比對也會被排除）。
+- **候選池命中記錄**（供第 2 節「行程途經」分組使用）：`opts.hitStore` 傳一個空物件進去，`nearbyGridHTML` 會把「候選池裡命中、且來源是 `day.slots`」的項目自動記進這個物件（跨所有站點去重，一個地點只記一次，key 是 `normalizeName(name)`）。渲染完全部站點的附近面板後，這個物件裡的值就是第 2 節延伸推薦「行程途經」那一組的資料來源——不用另外重新算一次距離或去重。
+
+一站的完整呼叫範例（`hlForNearby` 是 `trip.highlights`，`transitHitNames` 是跨全站共用的同一個物件）：
 
 ```js
-function haversineMeters(lat1, lng1, lat2, lng2) {
-  var R = 6371000;
-  var toRad = function (d) { return d * Math.PI / 180; };
-  var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
-  var a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+nearbyGridHTML(hlForNearby.spots, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選', mapAppLinksFn: buildMapAppLinks })
+nearbyGridHTML(otherSlots, s.lat, s.lng, s.name, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHitNames, mapAppLinksFn: buildMapAppLinks })
 ```
-
-排序後全部列出（不做數量截斷），每張卡片標示距離（如 `190 m` / `1.2 km`）。
-
-### 去重：排除跟該站「同一家」的項目
-
-避免「魚見亭」這一站的附近清單裡又推薦「魚見亭」自己。用站點標題（`slot.name`）跟 highlights 項目的 `name`／`shop` 做**寬鬆比對**，而非精確字串相等——因為同一地點常有不同寫法（如站點標題寫「片瀬東浜海岸」、highlights 裡登記為「片瀬東浜海水浴場」）：
-
-```js
-function normalizeName(s) {
-  return String(s || '').replace(/[（）()／/・\s]/g, '');
-}
-function sameCore(a, b) {
-  if (!a || !b) return false;
-  var na = normalizeName(a), nb = normalizeName(b);
-  if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
-  var n = Math.min(4, na.length, nb.length);
-  return n >= 3 && na.slice(0, n) === nb.slice(0, n); // 前綴比對，兜住同地不同命名尾詞的情況
-}
-```
-
-站點標題先依常見分隔符（`・`、`／`、括號）拆成多個 token，逐一與候選項目的 `name`／`shop`（food 專用，`day.slots` 項目就用 `name`）比對，任一命中就從該站的附近清單中排除（同時也排除候選池裡的 `day.slots` 對自己本身的比對）。
-
-### 候選池命中記錄（供第 2 節「行程途經」分組使用）
-
-渲染每一站的附近面板時，把「候選池裡命中、且來源是 `day.slots`（不是 `trip.highlights`）」的項目也記進一個全域集合（跨所有站點去重，一個地點只記一次）。這個集合就是第 2 節延伸推薦「行程途經」那一組的資料來源——不用另外重新算一次距離或去重，複用渲染附近面板時已經做過的排序與 `sameCore()` 結果即可。
 
 ### 常見踩坑：`hidden` 屬性被 CSS 蓋過，面板預設變成展開
 
@@ -231,7 +214,7 @@ trip.glossary = {
 ## 對應 SKILL.md 流程的插入點
 
 - 第 1 節（唯一條件式的一節）與第 2 節的 `trip.highlights` 資料結構屬於「調研補全 + 生成」步驟 3（組織成 `trip` 資料結構）的擴充；第 2 節的「卡片渲染規則」子節則跟第 3、5、6 節一樣，屬於步驟 4（生成風格化 HTML）的必做渲染邏輯。
-- 第 2（卡片渲染規則）、3、5、6 節屬於步驟 4（生成風格化 HTML）的必做渲染邏輯，等同 `page-contract.md` 的「必須包含的區塊」——**不限行程類型，一律要做**，第 6 節僅在目的地語言環境含大量外文詞彙時觸發。
+- 第 2（卡片渲染規則）、3、5、6 節屬於步驟 4（生成風格化 HTML）的必做渲染邏輯，等同 `page-contract.md` 的「必須包含的區塊」——**不限行程類型，一律要做**，第 6 節僅在目的地語言環境含大量外文詞彙時觸發。第 2、3 節的渲染邏輯已抽成 `assets/poi.js`，步驟 4 要跟 `map.js`/`reminders.js` 一起整份內聯進頁面，不要重新手刻。
 - 第 4 節可直接併入 `page-contract.md`「必須包含的區塊」章節開頭，作為區塊順序建議，適用所有行程。
 - 第 7 節取代 `design-guidelines.md`「配色」一節第一條，作為所有行程的預設配色來源。
 
