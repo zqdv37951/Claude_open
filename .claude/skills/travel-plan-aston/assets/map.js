@@ -31,7 +31,7 @@ function buildMapAppLinks(lat, lng, label) {
     label: '高德地图',
     url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
       + '&name=' + encodeURIComponent(label)
-      + '&coordinate=wgs84&callnative=1&src=travel-plan-viz',
+      + '&coordinate=wgs84&callnative=1&src=travel-plan-aston',
   };
   var google = {
     label: 'Google 地图',
