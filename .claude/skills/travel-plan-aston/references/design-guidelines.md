@@ -14,10 +14,21 @@
 
 - **响应式，移动 + 桌面都要好看**：手机端单列、主体约 420–480px；**桌面端（≥768px）容器加宽到约 880–960px 居中**，卡片列表（航班/酒店/行前须知/餐饮/景点）用多列网格、地图更宽。务必写 `@media` 断点，别让大屏只剩一条窄列。
 - 层级分明：标题用有个性的字体（衬线/展示体皆可），正文清爽易读；字号、字重拉开层级。
+- **中日文页面不要内联 webfont**：CJK 字体动辄数 MB，塞进单文件会让页面大到无法用；外链 CDN 字体在离线或受限网络下会静默回退，看起来像没设计过。**系统字体栈才是这里的正确解，不是妥协**——性格靠「角色配对」做出来，不靠加载字体档：
+
+  ```css
+  --font-display: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Songti TC",serif;
+  --font-body:    -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","Noto Sans TC","Hiragino Sans",sans-serif;
+  --font-mono:    ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  ```
+
+  衬线展示体承担标题与外文名词（给页面声音），CJK 无衬线承担正文（萤幕上远比 CJK 衬线好读），等宽体承担所有会对齐的数字。
 - **卡片化**：分区用卡片承载，圆角、充足留白、细边框或极淡阴影，不要拥挤。
 - 一致的视觉语言：图标、徽章、标签"药丸"风格统一（如营业时间/门票/交通用同一套小标签，`.source-tag` 来源标签、`.pill` 营业时间/门票标签、`.dist-tag` 距离标签都算在内，别让 `poi.js` 产出的这几个 class 长得像没设计过的浏览器默认样式）。
 
 ## POI 卡片墙（延伸推荐总览 / 每站附近推荐面板）
+
+> ⚠️ **本节只列了 `poi.js` 的 class。三个引擎输出的 class 完整清单见 `trip-extras.md` 第 11 节**——`map.js` 的 `.route-pin` 与 `reminders.js` 的 `.todo-*` 也必须由页面提供样式，漏写会让地图标记完全隐形、待办清单退化成裸列表，而且**不会报错**。设计步骤请照第 11 节那张表逐条核对，不要只看本节。
 
 结构与版面（几列、横向卷动、滚动提示的触发时机）由 `trip-extras.md` 第 2、3 节和 `assets/poi.js` 定死，这里只管视觉——`poi.js` 只产生语义化的 class（`.poi-grid`、`.poi-card`、`.source-tag.highlight`/`.source-tag.transit`、`.dist-tag`、`.poi-maplink`、`.poi-scroll-hint`），具体长什么样由设计步骤决定：
 
@@ -25,6 +36,8 @@
 - **`.poi-scroll-hint` 要低调，不要抢戏**：这只是个「还能往右滑」的辅助提示，用小字号、弱化的次要文字颜色（如 `--ink-faint`）即可，不需要图标动画或强调色，喧宾夺主反而分散注意力。
 - **`.poi-card` 内容密度**：卡片可能同时有标题＋标签＋备注＋地图连结，行距与内边距要给够，避免挤成一团；`.poi-maplink` 的小连结建议跟卡片正文有明显字号差（比正文小一号），视觉上读作"附属操作"而非"正文内容"。
 - **横向卷动的视觉边界**：卡片牆末端如果卡片被截断一半，读者更容易意识到还能往右滑；不需要额外做渐层遮罩这类效果，`.poi-scroll-hint` 加上被截断的卡片边缘已经足够。
+- **`.route-pin` / `.route-pin__num`（地图编号标记，`map.js`）**：divIcon 只给了 28×28 的空容器，底色、圆角、序号颜色全要页面自己写。用主色实心圆 + 白色等宽序号 + 一圈半透明光晕（`box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 35%, transparent)`），在浅色地图瓦片上才够显眼。**这一条最容易漏，漏了地图上一个点都看不到。**
+- **`.todo-*`（页顶待办清单，`reminders.js`）**：`.todo-item` 用卡片外观（背景 + 细边框 + 圆角），`.todo-deadline` 用主色小徽章（等宽字 + `tabular-nums`）与正文拉开层级，`.todo-item input` 记得设 `accent-color: var(--teal)`，不然勾选框还是浏览器默认蓝。
 - **`.action-link`（航班/酒店/交通的行动按钮，见 page-contract.md「可选适配元素」）**：跟卡片里静态的 `.poi-maplink` 不同，这是「去预订/去导航/叫车」这类会触发实际动作的按钮，视觉权重要比 `.poi-maplink` 明显——用主色（如 `--teal-ink`）加粗体或底线强调，让读者一眼认出"这个可以点、会带我去下一步"，不要跟卡片里其他辅助小字混在一起。
 
 ## 细节

@@ -11,6 +11,26 @@ function validateTrip(trip) {
   if (!trip || typeof trip !== 'object') {
     return { errors: ['trip 不是对象'], warnings: [] };
   }
+  // trip-extras.md 第9节（条件式双方案）：用 trip.plans 时 days 分散在各 plan 里，
+  // 先合并出一份供下面既有的 slot/坐标校验使用（Object.assign 产生新对象，不改动调用方传进来的 trip）。
+  if (Array.isArray(trip.plans) && trip.plans.length) {
+    var mergedDays = [];
+    trip.plans.forEach(function (pl, i) {
+      if (!pl.name) warnings.push('trip.plans[' + i + '] 缺 name');
+      if (!Array.isArray(pl.days) || !pl.days.length) {
+        errors.push('trip.plans[' + i + '] (' + (pl.name || '') + ') 缺 days——双方案要求两套都写完整逐日，不能只写差异');
+      } else {
+        mergedDays = mergedDays.concat(pl.days);
+      }
+    });
+    if (!trip.plans.some(function (pl) { return pl.recommended; })) {
+      warnings.push('trip.plans 没有任何一个标 recommended:true——双方案应明说推荐哪一套及理由');
+    }
+    trip = Object.assign({}, trip, {
+      days: (Array.isArray(trip.days) && trip.days.length) ? trip.days : mergedDays
+    });
+  }
+
   if (!trip.title) errors.push('缺 trip.title');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(trip.startDate || '')) {
     errors.push('trip.startDate 须为 YYYY-MM-DD，当前: ' + trip.startDate);
@@ -28,13 +48,29 @@ function validateTrip(trip) {
   if (!trip.highlights) {
     warnings.push('缺 trip.highlights（延伸推荐总览，trip-extras.md 第2节规定所有行程都要有）');
   } else {
-    ['spots', 'food', 'shops'].forEach(function (key) {
-      var arr = trip.highlights[key];
-      if (!Array.isArray(arr) || arr.length < 10) {
-        warnings.push('trip.highlights.' + key + ' 少于10项（当前 ' + (arr ? arr.length : 0)
-          + ' 项），trip-extras.md 第2节要求各分类至少10项');
-      }
-    });
+    // trip-extras.md 第2节：跨多据点的大范围行程改用 regions 分组，每区各自给满三类。
+    // 用了 regions 就不该再要求顶层的扁平 spots/food/shops，否则正确实现会被误判成漏做。
+    if (Array.isArray(trip.highlights.regions) && trip.highlights.regions.length) {
+      trip.highlights.regions.forEach(function (rg, i) {
+        var who = 'trip.highlights.regions[' + i + ']' + (rg.name ? '（' + rg.name + '）' : '');
+        if (!rg.name) warnings.push(who + ' 缺 name');
+        ['spots', 'food', 'shops'].forEach(function (key) {
+          var arr = rg[key];
+          if (!Array.isArray(arr) || arr.length < 10) {
+            warnings.push(who + '.' + key + ' 少于10项（当前 ' + (arr ? arr.length : 0)
+              + ' 项），trip-extras.md 第2节要求分组后每区三类各至少10项');
+          }
+        });
+      });
+    } else {
+      ['spots', 'food', 'shops'].forEach(function (key) {
+        var arr = trip.highlights[key];
+        if (!Array.isArray(arr) || arr.length < 10) {
+          warnings.push('trip.highlights.' + key + ' 少于10项（当前 ' + (arr ? arr.length : 0)
+            + ' 项），trip-extras.md 第2节要求各分类至少10项');
+        }
+      });
+    }
   }
 
   (trip.reminders || []).forEach(function (r, i) {
@@ -118,6 +154,34 @@ function validateHTML(html) {
   checks.forEach(function (c) {
     if (s.indexOf(c[0]) === -1) errors.push(c[1]);
   });
+  // trip-extras.md 第8节：顶部 sticky tab 导览一律要做。用 .nav-in 当标记（第8节定死的 class）。
+  if (s.indexOf('nav-in') === -1) {
+    warnings.push('未见 "nav-in"，页顶 sticky tab 导览（trip-extras.md 第8节，一律适用）疑似漏做，请确认');
+  }
+  // 最常见的漏做：锚点跳转后标题被 sticky 条盖住，纯读代码看不出来，只有真的点一次才会发现。
+  if (s.indexOf('sticky') !== -1 && s.indexOf('scroll-margin-top') === -1) {
+    warnings.push('页面有 sticky 元素但未见 "scroll-margin-top"，锚点跳转后区块标题可能被导览条盖住（trip-extras.md 第8节），请确认');
+  }
+  // ---- 引擎输出的 class 是否有对应样式（trip-extras.md 第11节完整清单） ----
+  // 三个引擎只输出语义 class，样式由页面负责。poi.js 那几个漏了一眼就看得出来；
+  // map.js / reminders.js 那几个漏了「不会报错、只会安静地消失」——标记变成 28×28 透明 div，
+  // .leaflet-marker-icon 数量还是对的，纯读代码与元素计数都抓不到。这里按「触发条件 → 必需 class」抽查。
+  [
+    ['initTravelMap',       'route-pin',      'error',   '地图编号标记会完全隐形（28×28 透明 div，元素数量正常但看不见）'],
+    ['initTravelMap',       'route-pin__num', 'error',   '地图标记里的序号看不见'],
+    ['renderChecklistHTML', 'todo-item',      'error',   '页顶待办清单退化成没有样式的裸 <li>'],
+    ['renderChecklistHTML', 'todo-deadline',  'warning', '待办日期徽章混在正文里、看不出层级'],
+    ['renderChecklistHTML', 'pretrip-todo',   'warning', '待办清单 <ul> 保留浏览器默认项目符号'],
+    ['reminderBadgeHTML',   'reminder-badge', 'warning', '时间轴上的「建议提前N天订」徽章变裸文字'],
+    ['poiWallHTML',         'hl-card',        'warning', 'POI 卡片少一层样式（poi.js 同时挂 .poi-card 与 .hl-card）'],
+  ].forEach(function (row) {
+    if (s.indexOf(row[0]) === -1) return;               // 该引擎没被用到就不检查
+    if (s.indexOf('.' + row[1]) !== -1) return;         // 已有对应样式规则
+    var msg = '页面调用了 ' + row[0] + ' 但 CSS 里没有 .' + row[1]
+            + ' 规则 —— ' + row[3] + '（trip-extras.md 第11节完整清单）';
+    if (row[2] === 'error') errors.push(msg); else warnings.push(msg);
+  });
+
   if (!/leaflet/i.test(s)) errors.push('未引入 Leaflet CSS/JS');
   if (s.indexOf('@media') === -1) errors.push('缺响应式 @media 断点');
   if (s.indexOf('object-fit') === -1) warnings.push('未见 object-fit（图片防变形），请确认');
@@ -156,10 +220,10 @@ function validateHTML(html) {
       // initTravelMap 内部调用 1 次 + 延伸推荐/附近推荐至少一处把它传给 poi.js。
       warnings.push('延伸推荐卡片疑似未把 buildMapAppLinks 接上地图连结（trip-extras.md 第2节「标题连结＋地图连结」），请确认');
     }
-    // 版面改版史：曾经从「5列横向卷动」改成「3列横向卷动」，这里只认目前生效的 3 列写法；
-    // 若之后再调整行数，记得同步这条字符串，不要留着旧数字继续通过校验。
-    if (s.indexOf('.poi-grid') !== -1 && s.indexOf('repeat(3, auto)') === -1) {
-      warnings.push('未见 "repeat(3, auto)"，延伸推荐/附近推荐卡片墙疑似不是 trip-extras.md 第2节规定的「3列横向卷动」版面，请确认');
+    // 版面改版史：5 列 → 3 列 → 2 列（当前）。这里只认目前生效的 2 列写法；
+    // 若之后再调整行数，记得同步这条字符串与 poi.js 的 POI_GRID_ROWS，不要留着旧数字继续通过校验。
+    if (s.indexOf('.poi-grid') !== -1 && s.indexOf('repeat(2, auto)') === -1) {
+      warnings.push('未见 "repeat(2, auto)"，延伸推荐/附近推荐卡片墙疑似不是 trip-extras.md 第2节规定的「2列横向卷动」版面，请确认');
     }
     if (hasCoordSlot && s.indexOf('nearby-toggle') !== -1 && s.indexOf('source-tag') === -1) {
       warnings.push('附近推荐面板存在，但 HTML 里没见到 "source-tag"，面板卡片疑似没标「精选／行程途经」来源标签（trip-extras.md 第2节「分组标记」第4点），请确认');
@@ -173,13 +237,13 @@ function validateHTML(html) {
     if (hasSlotWithoutUrl && s.indexOf('poi-maplink') === -1) {
       warnings.push('存在没有 url 的带坐标时间轴站点，但 HTML 里没见到 "poi-maplink"，这类站点标题疑似没有地图连结兜底可点（trip-extras.md 第5节），请确认');
     }
-    // 卡片墙超过 3 项（会溢出到第二栏、需要横向卷动）时，poi.js 的 poiWallHTML/nearbyGridHTML
+    // 卡片墙超过 2 项（会溢出到第二栏、需要横向卷动）时，poi.js 的 poiWallHTML/nearbyGridHTML
     // 会自动带 poi-scroll-hint 提示；HTML 里没见到就代表滚动提示疑似被手动删掉或没用 poi.js。
     var hasWideCategory = ['spots', 'food', 'shops'].some(function (key) {
-      return (trip.highlights[key] || []).length > 3;
+      return (trip.highlights[key] || []).length > 2;
     });
     if (hasWideCategory && s.indexOf('poi-scroll-hint') === -1) {
-      warnings.push('highlights 有分类项目数 >3（会超出3列版面、需要横向卷动），但 HTML 里没见到 "poi-scroll-hint" 滚动提示，请确认（trip-extras.md 第2节「版面」）');
+      warnings.push('highlights 有分类项目数 >2（会超出2列版面、需要横向卷动），但 HTML 里没见到 "poi-scroll-hint" 滚动提示，请确认（trip-extras.md 第2节「版面」）');
     }
   }
   return { errors: errors, warnings: warnings };

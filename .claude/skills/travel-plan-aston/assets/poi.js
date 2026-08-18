@@ -78,8 +78,8 @@ function poiCardHTML(it, sourceClass, sourceLabel, distLabel, mapAppLinksFn) {
     '</div>';
 }
 
-// 版面行数固定 3（trip-extras.md 第2节「版面」），超过 3 项才需要滑动提示
-var POI_GRID_ROWS = 3;
+// 版面行数固定 2（trip-extras.md 第2节「版面」），超过 2 项才需要滑动提示
+var POI_GRID_ROWS = 2;
 function scrollHintHTML(itemCount) {
   return itemCount > POI_GRID_ROWS ? '<p class="poi-scroll-hint">◂ 左右滑動查看更多 ▸</p>' : '';
 }
