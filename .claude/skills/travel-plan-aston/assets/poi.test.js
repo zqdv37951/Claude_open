@@ -91,14 +91,14 @@ test('poiWallHTML：空清单返回空字符串', function () {
   assert.strictEqual(poi.poiWallHTML(null, 'highlight', '精選'), '');
 });
 
-test('poiWallHTML：滚动提示阈值精确在 3/4 项之间切换', function () {
+test('poiWallHTML：滚动提示阈值精确在 2/3 项之间切换', function () {
   var mk = function (n) {
     var arr = [];
     for (var i = 0; i < n; i++) arr.push({ name: 'item' + i });
     return arr;
   };
-  assert.ok(poi.poiWallHTML(mk(3), 'highlight', '精選').indexOf('poi-scroll-hint') === -1, '3项不该有提示');
-  assert.ok(poi.poiWallHTML(mk(4), 'highlight', '精選').indexOf('poi-scroll-hint') !== -1, '4项应该有提示');
+  assert.ok(poi.poiWallHTML(mk(2), 'highlight', '精選').indexOf('poi-scroll-hint') === -1, '2项不该有提示');
+  assert.ok(poi.poiWallHTML(mk(3), 'highlight', '精選').indexOf('poi-scroll-hint') !== -1, '3项应该有提示');
 });
 
 test('poiWallHTML：卡片墙容器是 .poi-grid 且每项都带来源标签', function () {
