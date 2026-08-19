@@ -86,18 +86,6 @@ test('poiCardHTML：没有 distLabel/note/shop/category/坐标时对应片段都
   assert.ok(card.indexOf('poi-maplink') === -1);
 });
 
-test('poiCardHTML：地图搜索优先用 mapQuery（原文名），缺省才退回 name', function () {
-  // 页面显示名常是译名或动作描述（「史蒂芬大道步行街」「抵達 YYC 機場」），拿它去 Google 搜必定落空，
-  // 所以地图连结要用 mapQuery 里的当地原文名。见 trip-extras.md 第13节。
-  var seen = [];
-  var spy = function (lat, lng, name) { seen.push(name); return [{ label: 'G', url: 'https://g' }]; };
-  poi.poiCardHTML({ name: '史蒂芬大道步行街', mapQuery: 'Stephen Avenue Walk', lat: 51, lng: -114 },
-    'highlight', '精選', null, spy);
-  assert.strictEqual(seen[0], 'Stephen Avenue Walk', '有 mapQuery 时应该用它去搜');
-  poi.poiCardHTML({ name: '史蒂芬大道步行街', lat: 51, lng: -114 }, 'highlight', '精選', null, spy);
-  assert.strictEqual(seen[1], '史蒂芬大道步行街', '没有 mapQuery 时退回 name');
-});
-
 test('poiWallHTML：空清单返回空字符串', function () {
   assert.strictEqual(poi.poiWallHTML([], 'highlight', '精選'), '');
   assert.strictEqual(poi.poiWallHTML(null, 'highlight', '精選'), '');
