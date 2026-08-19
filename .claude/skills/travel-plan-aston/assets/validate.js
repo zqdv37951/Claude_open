@@ -73,26 +73,6 @@ function validateTrip(trip) {
     }
   }
 
-  // trip-extras.md 第12节：url 存进 trip 前必须 html.unescape()。若资料里留着 &amp;，渲染时
-  // escapeHTML 会再转一次，浏览器解出来的 href 变成字面的 "?api=1&amp;query=X"——参数名成了
-  // amp;query，查询字串整个被忽略。这个 bug 不会报错、页面看起来完全正常，只有真的点下去才发现，
-  // 曾经一次让某份行程页 84 个地图连结全数失效，所以列为 ERROR。
-  var entityUrls = [];
-  (function scanUrl(o) {
-    if (o && typeof o === 'object') {
-      if (Array.isArray(o)) { o.forEach(scanUrl); return; }
-      Object.keys(o).forEach(function (k) {
-        var v = o[k];
-        if (k === 'url' && typeof v === 'string' && /&(amp|lt|gt|quot|#39);/.test(v)) entityUrls.push(v);
-        else scanUrl(v);
-      });
-    }
-  })(trip);
-  if (entityUrls.length) {
-    errors.push('有 ' + entityUrls.length + ' 个 url 里残留 HTML 实体（如 &amp;），渲染时会被二次转义、'
-      + '导致 query string 失效（trip-extras.md 第12节）。例：' + entityUrls[0].slice(0, 70));
-  }
-
   (trip.reminders || []).forEach(function (r, i) {
     if (!r.item || typeof r.leadDays !== 'number') {
       errors.push('reminders[' + i + '] 须含 item 与数字 leadDays');

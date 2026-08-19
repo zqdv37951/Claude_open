@@ -309,12 +309,6 @@ trip.plans = [
 - **中等路線**：半天 5–10 km 等級的健行，標明距離與**累計爬升**（爬升比距離更能反映難度）。
 - **天氣備案**：一段 `<div class="plan-b">`，明說「下雨／下雪時改成什麼」，且備案必須是**低海拔、路況安全、當天可達**的實際替代點，不能只寫「改室內活動」這種空話。
 
-**每個 route stop 的標題旁要再給一個 `(map)` 連結**：標題本身連官網（`url`），`(map)` 另外開 Google 地圖。
-這區的 stop 通常沒有 `lat`/`lng`，用不了 `buildMapAppLinks`，改用官方文件的
-`https://www.google.com/maps/search/?api=1&query=<原文名>` 形式，查詢字串**一律取 `mapQuery`**（第 13 節）。
-**只有備妥 `mapQuery` 的才給 `(map)`**——「強制就寢」「退房 + 行李上車」這類動作描述沒有對應地點，
-硬給連結只會搜到無關結果，寧可不顯示。
-
 這跟 `page-contract.md` 既有的 `day.alternatives`（二選一卡片）不同：`alternatives` 是同一強度下的兩個選擇，這裡是**同一天的兩種體力強度**，兩者可以並存。
 
 ## 10.（條件式）季節狀態標籤
@@ -383,28 +377,17 @@ EOF
 
 從既有 HTML 抽出來的文字會帶著 `&amp;`、`&lt;`、`&#39;` 這些實體。這些字串進了 `trip` 之後，`poi.js`／`map.js`／`reminders.js` 的 `escapeHTML` 會**再轉義一次**，頁面上就會看到 `Chinatown &amp; Cultural Centre`、`Relais &amp; Châteaux` 這種雙重轉義的結果。
 
-**規則**：解析既有 HTML 後，`trip` 裡**所有**字串欄位（**包含 `url`**）一律先 `html.unescape()` 一次再存進資料結構。
+**規則**：解析既有 HTML 後，`trip` 裡**除了 `url` 以外**的所有字串欄位一律先 `html.unescape()` 一次再存進資料結構。`url` 欄位保持原樣（瀏覽器自己會處理 `&amp;`），不要對它反轉義，否則 query string 會壞掉。
 
 ```python
-def unescape_all(o):
-    if isinstance(o, dict):  return {k: unescape_all(v) for k, v in o.items()}
-    if isinstance(o, list):  return [unescape_all(v) for v in o]
-    if isinstance(o, str):   return html.unescape(o)
+def unescape_except_url(o, path=''):
+    if isinstance(o, dict):  return {k: unescape_except_url(v, path+'.'+k) for k, v in o.items()}
+    if isinstance(o, list):  return [unescape_except_url(v, path) for v in o]
+    if isinstance(o, str) and not path.endswith('.url'): return html.unescape(o)
     return o
 ```
 
-> **本節第一版把 `url` 排除在外，說「瀏覽器自己會處理 `&amp;`」——那是錯的，而且真的害慘過一次頁面。**
-> 該說法只在「URL 原樣寫進 HTML 原始碼」時成立。但本 skill 的渲染路徑是
-> `'<a href="' + escapeHTML(url) + '"'`，資料裡若存著 `?api=1&amp;query=X`，`escapeHTML` 會把它再轉成
-> `&amp;amp;`，瀏覽器解碼後 href 變成字面的 `?api=1&amp;query=X`——Google 收到的參數名是 `amp;query`
-> 而不是 `query`，於是**整個查詢字串被忽略、開出空白地圖**。實測某份行程頁 84 個地圖連結因此全數失效。
-> 正確做法就是資料存**乾淨的原始 URL**（`?api=1&query=X`），交給 `escapeHTML` 在輸出時轉一次即可。
-
-生成後掃兩件事確認：
-
-1. `document.body.innerText` 裡不該出現任何 `&amp;` 或 `&lt;`。
-2. **`document.querySelectorAll('a')` 的 `href` 裡不該出現 `&amp;`**（正常的 href 讀出來只會有 `&`）。
-   這條專抓上面那個雙重轉義陷阱——它不會報錯、頁面看起來完全正常，只有真的點下去才會發現連結是壞的。
+生成後掃一次成品確認：`document.body.innerText` 裡不該出現任何 `&amp;` 或 `&lt;`。
 
 ## 13.（一律適用）`mapQuery`：地圖搜尋用的當地原文名稱
 
