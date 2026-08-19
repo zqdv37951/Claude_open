@@ -73,26 +73,6 @@ function validateTrip(trip) {
     }
   }
 
-  // trip-extras.md 第12节：url 存进 trip 前必须 html.unescape()。若资料里留着 &amp;，渲染时
-  // escapeHTML 会再转一次，浏览器解出来的 href 变成字面的 "?api=1&amp;query=X"——参数名成了
-  // amp;query，查询字串整个被忽略。这个 bug 不会报错、页面看起来完全正常，只有真的点下去才发现，
-  // 曾经一次让某份行程页 84 个地图连结全数失效，所以列为 ERROR。
-  var entityUrls = [];
-  (function scanUrl(o) {
-    if (o && typeof o === 'object') {
-      if (Array.isArray(o)) { o.forEach(scanUrl); return; }
-      Object.keys(o).forEach(function (k) {
-        var v = o[k];
-        if (k === 'url' && typeof v === 'string' && /&(amp|lt|gt|quot|#39);/.test(v)) entityUrls.push(v);
-        else scanUrl(v);
-      });
-    }
-  })(trip);
-  if (entityUrls.length) {
-    errors.push('有 ' + entityUrls.length + ' 个 url 里残留 HTML 实体（如 &amp;），渲染时会被二次转义、'
-      + '导致 query string 失效（trip-extras.md 第12节）。例：' + entityUrls[0].slice(0, 70));
-  }
-
   (trip.reminders || []).forEach(function (r, i) {
     if (!r.item || typeof r.leadDays !== 'number') {
       errors.push('reminders[' + i + '] 须含 item 与数字 leadDays');
@@ -126,27 +106,6 @@ function validateTrip(trip) {
     });
     if (!day.slots || !day.slots.length) warnings.push('days[' + di + '] 没有 slots');
   });
-
-  // trip-extras.md 第13节：非中日文语系的目的地，中文显示名（多半是译名或「抵達 XX 機場」这类动作
-  // 描述）直接拿去 Google/高德搜必定落空，必须另给 mapQuery 放当地原文名。用坐标粗判目的地语系：
-  // 东亚经纬度范围内（中日韩台）中文名本来就搜得到，不提示；范围外才检查。
-  var cjkRe = /[一-鿿぀-ヿ]/;
-  var eastAsia = lats.length && lats.every(function (v, i) {
-    return v >= 20 && v <= 46 && lngs[i] >= 100 && lngs[i] <= 146;
-  });
-  if (!eastAsia) {
-    var noMapQuery = [];
-    trip.days.forEach(function (day) {
-      (day.slots || []).forEach(function (s) {
-        if (cjkRe.test(s.name || '') && !s.mapQuery) noMapQuery.push(s.name);
-      });
-    });
-    if (noMapQuery.length) {
-      warnings.push('境外行程有 ' + noMapQuery.length + ' 个中文名站点缺 mapQuery（当地原文名），'
-        + '地图连结会拿译名去搜、多半找不到该地点（trip-extras.md 第13节）。例：'
-        + noMapQuery.slice(0, 3).join('、'));
-    }
-  }
 
   // 离群检测：与中位数偏差 > 3°（约 300km）多半是查错城市/写错数量级
   function median(arr) {

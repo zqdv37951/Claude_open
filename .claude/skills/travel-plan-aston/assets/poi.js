@@ -63,12 +63,9 @@ function mapLinkHTML(lat, lng, name, mapAppLinksFn) {
   }).join('') + '</p>';
 }
 
-// it: { name, url, note, shop, category, lat, lng, mapQuery }
+// it: { name, url, note, shop, category, lat, lng }
 // sourceClass/sourceLabel：来源标签（'highlight'+'精選' 或 'transit'+'行程途經'，见 trip-extras.md 第2节「分组标记」）
 // distLabel：可选，附近推荐面板用（如 "190 m"），延伸推荐总览不传
-// mapQuery：可选，地图搜索用的「当地原文名称」。页面显示名是译名（「史蒂芬大道步行街」）或动作
-//   描述（「抵達 YYC 機場」）时，拿它去 Google/高德搜必定落空，要另外给原文（"Stephen Avenue
-//   Walk"）。没给就退回 name。详见 trip-extras.md 第13节。
 function poiCardHTML(it, sourceClass, sourceLabel, distLabel, mapAppLinksFn) {
   return '<div class="hl-card poi-card"><span class="source-tag ' + escapeHTML(sourceClass) + '">' + escapeHTML(sourceLabel) + '</span>' +
     '<h4>' + linkOrText(it.name, it.url) +
@@ -77,7 +74,7 @@ function poiCardHTML(it, sourceClass, sourceLabel, distLabel, mapAppLinksFn) {
     '</h4>' +
     (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
     (it.note ? '<p>' + escapeHTML(it.note) + '</p>' : '') +
-    mapLinkHTML(it.lat, it.lng, it.mapQuery || it.name, mapAppLinksFn) +
+    mapLinkHTML(it.lat, it.lng, it.name, mapAppLinksFn) +
     '</div>';
 }
 

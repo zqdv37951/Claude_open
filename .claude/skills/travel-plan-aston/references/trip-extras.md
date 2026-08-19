@@ -309,12 +309,6 @@ trip.plans = [
 - **中等路線**：半天 5–10 km 等級的健行，標明距離與**累計爬升**（爬升比距離更能反映難度）。
 - **天氣備案**：一段 `<div class="plan-b">`，明說「下雨／下雪時改成什麼」，且備案必須是**低海拔、路況安全、當天可達**的實際替代點，不能只寫「改室內活動」這種空話。
 
-**每個 route stop 的標題旁要再給一個 `(map)` 連結**：標題本身連官網（`url`），`(map)` 另外開 Google 地圖。
-這區的 stop 通常沒有 `lat`/`lng`，用不了 `buildMapAppLinks`，改用官方文件的
-`https://www.google.com/maps/search/?api=1&query=<原文名>` 形式，查詢字串**一律取 `mapQuery`**（第 13 節）。
-**只有備妥 `mapQuery` 的才給 `(map)`**——「強制就寢」「退房 + 行李上車」這類動作描述沒有對應地點，
-硬給連結只會搜到無關結果，寧可不顯示。
-
 這跟 `page-contract.md` 既有的 `day.alternatives`（二選一卡片）不同：`alternatives` 是同一強度下的兩個選擇，這裡是**同一天的兩種體力強度**，兩者可以並存。
 
 ## 10.（條件式）季節狀態標籤
@@ -383,71 +377,17 @@ EOF
 
 從既有 HTML 抽出來的文字會帶著 `&amp;`、`&lt;`、`&#39;` 這些實體。這些字串進了 `trip` 之後，`poi.js`／`map.js`／`reminders.js` 的 `escapeHTML` 會**再轉義一次**，頁面上就會看到 `Chinatown &amp; Cultural Centre`、`Relais &amp; Châteaux` 這種雙重轉義的結果。
 
-**規則**：解析既有 HTML 後，`trip` 裡**所有**字串欄位（**包含 `url`**）一律先 `html.unescape()` 一次再存進資料結構。
+**規則**：解析既有 HTML 後，`trip` 裡**除了 `url` 以外**的所有字串欄位一律先 `html.unescape()` 一次再存進資料結構。`url` 欄位保持原樣（瀏覽器自己會處理 `&amp;`），不要對它反轉義，否則 query string 會壞掉。
 
 ```python
-def unescape_all(o):
-    if isinstance(o, dict):  return {k: unescape_all(v) for k, v in o.items()}
-    if isinstance(o, list):  return [unescape_all(v) for v in o]
-    if isinstance(o, str):   return html.unescape(o)
+def unescape_except_url(o, path=''):
+    if isinstance(o, dict):  return {k: unescape_except_url(v, path+'.'+k) for k, v in o.items()}
+    if isinstance(o, list):  return [unescape_except_url(v, path) for v in o]
+    if isinstance(o, str) and not path.endswith('.url'): return html.unescape(o)
     return o
 ```
 
-> **本節第一版把 `url` 排除在外，說「瀏覽器自己會處理 `&amp;`」——那是錯的，而且真的害慘過一次頁面。**
-> 該說法只在「URL 原樣寫進 HTML 原始碼」時成立。但本 skill 的渲染路徑是
-> `'<a href="' + escapeHTML(url) + '"'`，資料裡若存著 `?api=1&amp;query=X`，`escapeHTML` 會把它再轉成
-> `&amp;amp;`，瀏覽器解碼後 href 變成字面的 `?api=1&amp;query=X`——Google 收到的參數名是 `amp;query`
-> 而不是 `query`，於是**整個查詢字串被忽略、開出空白地圖**。實測某份行程頁 84 個地圖連結因此全數失效。
-> 正確做法就是資料存**乾淨的原始 URL**（`?api=1&query=X`），交給 `escapeHTML` 在輸出時轉一次即可。
-
-生成後掃兩件事確認：
-
-1. `document.body.innerText` 裡不該出現任何 `&amp;` 或 `&lt;`。
-2. **`document.querySelectorAll('a')` 的 `href` 裡不該出現 `&amp;`**（正常的 href 讀出來只會有 `&`）。
-   這條專抓上面那個雙重轉義陷阱——它不會報錯、頁面看起來完全正常，只有真的點下去才會發現連結是壞的。
-
-## 13.（一律適用）`mapQuery`：地圖搜尋用的當地原文名稱
-
-地圖連結不該只是「在座標上插一根針」。純座標的 Google 連結（`?api=1&query=<lat>,<lng>`）會開出
-`51°28'45.1"N 112°47'24.0"W` 這種**座標條目**——沒有營業時間、沒有評價照片、沒辦法直接導航到建築入口。
-`map.js` 的 `buildMapAppLinks` 因此改成「名稱 + 視野錨定」的搜尋連結：
-
-```
-https://www.google.com/maps/search/<URL-encoded 名稱>/@<lat>,<lng>,17z
-```
-
-`/@lat,lng,17z` 把搜尋視野錨定在該座標附近，所以「中國城」「東村」這類通用名稱不會跑到別的城市去；
-名稱留空時才退回純座標查詢。
-
-> 為什麼不用 Place ID？精確鎖定某個 POI 本來該用 `data=!4m6!3m5!1s0x…` 裡的 Place ID，但 Place ID
-> **只能由 Google 官方介面回傳、無法憑座標或名稱推算**，硬拼必然失效。這裡刻意不偽造，改用官方公開的
-> 搜尋 URL 形式達成同樣的「開出地點卡片」效果。
-
-### 關鍵陷阱：頁面顯示名往往**不能**直接拿去搜
-
-繁中頁面的顯示名通常是**譯名**（「史蒂芬大道步行街」）或根本是**動作描述**（「抵達 YYC 機場」
-「悠閒早餐」）。拿這些去搜加拿大的 Google Maps，輕則搜不到、重則命中別的地方。所以：
-
-**只要顯示名不是當地實際招牌上的名字，就必須另外給 `mapQuery` 放當地原文名稱**，`slot` 與
-`highlights` 項目皆適用：
-
-```js
-{ name: "皇家泰瑞爾古生物博物館", mapQuery: "Royal Tyrrell Museum of Palaeontology",
-  lat: 51.4792, lng: -112.79, url: "https://tyrrellmuseum.com/" }
-```
-
-引擎會優先用 `mapQuery`，沒有才退回 `name`（`poi.js` 的 `poiCardHTML` 與時間軸站點渲染都要照這個
-優先序，別只改一處）。
-
-判斷與填寫原則：
-
-- **名稱本身就是當地原文**（`River Café`、`CF Chinook Centre`）→ 不用給 `mapQuery`。
-- **譯名**（「翡翠湖」→ `Emerald Lake`）→ 給。查證時把官方頁面上的正式名稱抄下來，別自己回譯。
-- **動作描述**（「悠閒早餐」「Inglewood 採買」）→ 這根本不是地點名。若該站有明確地點就給地點的原文名；
-  若只是「在某區隨意逛」，**寧可留空**讓它退回顯示名，不要硬湊一個會搜到錯地方的關鍵字。
-- 同名易混的（`Chinatown`、`Peace Bridge`）→ 補城市名（`Peace Bridge Calgary`），視野錨定加城市名雙保險。
-- `mapQuery` 是**搜尋關鍵字不是網址**，不受「連結只能用搜尋工具實際回傳過的網址」那條約束；但同樣要
-  以查證到的官方名稱為準，別憑印象亂填——填錯的關鍵字會把人導到錯的地方，比沒有更糟。
+生成後掃一次成品確認：`document.body.innerText` 裡不該出現任何 `&amp;` 或 `&lt;`。
 
 ## 對應 SKILL.md 流程的插入點
 
@@ -456,7 +396,6 @@ https://www.google.com/maps/search/<URL-encoded 名稱>/@<lat>,<lng>,17z
 - 第 4 節可直接併入 `page-contract.md`「必須包含的區塊」章節開頭，作為區塊順序建議，適用所有行程。
 - 第 7 節取代 `design-guidelines.md`「配色」一節第一條，作為所有行程的預設配色來源。
 - 第 11 節（引擎 class 檢查表）與第 12 節（Mode B 反轉義）都屬於步驟 4／Mode B 解析階段的必做檢查，一律適用。
-- 第 13 節（`mapQuery` 原文名）橫跨步驟 2（調研時就要把官方原文名記下來）與步驟 3（寫進 `trip` 資料結構），非中文語系目的地一律適用。
 - 第 8 節（sticky tab 導覽）屬於步驟 4 的必做渲染邏輯，一律要做。第 9、10 節是條件式：先判斷觸發條件，滿足才做；第 9 節的 `trip.plans` 屬於步驟 3（組資料），雙強度路線與第 10 節的 `status` 標籤屬於步驟 4。
 
 ## 常見誤區
