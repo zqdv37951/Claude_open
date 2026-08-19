@@ -33,9 +33,20 @@ function buildMapAppLinks(lat, lng, label) {
       + '&name=' + encodeURIComponent(label)
       + '&coordinate=wgs84&callnative=1&src=travel-plan-aston',
   };
+  // Google：用「名称 + 视野锚定」的搜索链接，打开的是该地点本身的信息卡（建筑物/店家/景点），
+  // 而不是只在坐标上插一根针——纯 query=lat,lng 会落在「51°28'45.1"N 112°47'24.0"W」这种
+  // 坐标条目上，看不到营业时间、评价、照片，也没法直接导航到建筑入口。
+  // `/@lat,lng,17z` 把搜索视野锚定在该坐标附近，所以「中國城」「東村」这类通用名称不会跑到
+  // 别的城市去；名称留空时才退回纯坐标查询。
+  // 注：要精确锁定某个 POI 本来该用 Place ID（data=!3m1!4b1!4m…!1s0x…），但 Place ID 只能由
+  // Google 官方接口返回、无法凭坐标或名称推算，硬拼必然失效——这里刻意不伪造，用官方公开的
+  // 搜索 URL 形式达成同样的「开出地点卡片」效果。
+  var name = String(label == null ? '' : label).trim();
   var google = {
     label: 'Google 地图',
-    url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
+    url: name
+      ? 'https://www.google.com/maps/search/' + encodeURIComponent(name) + '/@' + lat + ',' + lng + ',17z'
+      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
   };
   return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
 }

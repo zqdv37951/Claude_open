@@ -234,7 +234,9 @@ function buildNavLink(lat, lng, label, ua) {
 }
 function buildMapAppLinks(lat, lng, label) {
   var amap = { label: '高德地图', url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat + '&name=' + encodeURIComponent(label) + '&coordinate=wgs84&callnative=1&src=travel-plan-viz' };
-  var google = { label: 'Google 地圖', url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng) };
+  // Google：名称 + 视野锚定的搜索链接，打开地点本身的信息卡而不是只在坐标插一根针
+  var name = String(label == null ? '' : label).trim();
+  var google = { label: 'Google 地圖', url: name ? 'https://www.google.com/maps/search/' + encodeURIComponent(name) + '/@' + lat + ',' + lng + ',17z' : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng) };
   return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
 }
 var GCJ_A = 6378245.0;
