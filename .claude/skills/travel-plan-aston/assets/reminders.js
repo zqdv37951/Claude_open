@@ -1,8 +1,8 @@
-// 出发前提醒：截止日期计算 + 渲染。浏览器与 Node 双用。
+// 出發前提醒：截止日期計算 + 渲染。瀏覽器與 Node 雙用。
 
 // startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
-// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 为 'YYYY-MM-DD'
-// 用 UTC 做日期运算，避免本地时区导致的偏移。
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 為 'YYYY-MM-DD'
+// 用 UTC 做日期運算，避免本地時區導致的偏移。
 function computeReminders(startDateISO, items) {
   return items
     .map(function (it) {
@@ -29,14 +29,14 @@ function renderChecklistHTML(reminders) {
     return '<li class="todo-item">'
       + '<input type="checkbox"> '
       + '<span class="todo-deadline">' + r.deadline + '前</span> '
-      + '<span class="todo-text">' + escapeHTML(r.item) + '（建议提前' + r.leadDays + '天）</span>'
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建議提前' + r.leadDays + '天）</span>'
       + '</li>';
   }).join('');
   return '<ul class="pretrip-todo">' + lis + '</ul>';
 }
 
 function reminderBadgeHTML(leadDays) {
-  return '<span class="reminder-badge">⚠️ 建议提前' + leadDays + '天订</span>';
+  return '<span class="reminder-badge">⚠️ 建議提前' + leadDays + '天訂</span>';
 }
 
 if (typeof module !== 'undefined' && module.exports) {
