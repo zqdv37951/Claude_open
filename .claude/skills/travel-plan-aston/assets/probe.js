@@ -58,6 +58,31 @@ if (!page) {
       + base.slice(m.index + m[0].length - '</script>'.length);
   }
 
+  // 同時動 trip-data 與頁面文字。單獨動一邊驗不到「資料說要做、頁面沒做」這一整類檢查。
+  function withTripAnd(fn, strFn) { return strFn(withTrip(fn)); }
+  // 只改 trip-data **之外**的頁面文字。
+  // 為什麼需要這個變體：欄位名跟程式碼裡的識別字同名時（unverified 就是），
+  // withTripAnd 的全域取代會把 JSON 裡的鍵一起改掉，於是「資料有給、頁面沒渲染」
+  // 這種檢查根本看不到資料，探測就變成假的死檢查。這一條是 probe 自己抓出來的。
+  function withTripAndOutside(fn, strFn) {
+    const html = withTrip(fn);
+    const mm = html.match(/<script id="trip-data"[^>]*>[\s\S]*?<\/script>/);
+    if (!mm) return strFn(html);
+    const head = strFn(html.slice(0, mm.index));
+    const tail = strFn(html.slice(mm.index + mm[0].length));
+    return head + mm[0] + tail;
+  }
+  // 把第一個 slot 改成「需要預訂」的樣子，其餘欄位由呼叫方補
+  function firstSlot(t) { return t.plans[0].days[0].slots[0]; }
+  function stripAllBookingUrl(t) {
+    (t.plans || []).forEach(function (pl) {
+      (pl.days || []).forEach(function (d) {
+        (d.slots || []).forEach(function (x) { delete x.bookingUrl; });
+        (d.routes || []).forEach(function (r) { (r.stops || []).forEach(function (x) { delete x.bookingUrl; }); });
+      });
+    });
+  }
+
   const cases = [
     ['缺 trip-data（應降級為輔助頁）', () => base.replace('id="trip-data"', 'id="xx"'), '輔助頁'],
     ['缺 initTravelMap',        () => base.replace(/initTravelMap/g, 'xxA'),  'initTravelMap'],
@@ -101,6 +126,35 @@ if (!page) {
     ['缺 tips',                 () => withTrip((t) => { t.tips = []; }),      'tips'],
     ['缺 flights',              () => withTrip((t) => delete t.flights),      'flights'],
     ['缺 highlights',           () => withTrip((t) => delete t.highlights),   'highlights'],
+    ['unverified 有給卻沒渲染', () => withTripAndOutside((t) => {
+                                  t.unverified = [{ category: 'x', item: 'a', why: 'b', how: 'c' }]; },
+                                  (h) => h.replace(/unverified/g, 'xxY')), '沒有讀這個欄位'],
+    ['unverified 缺 how',      () => withTrip((t) => {
+                                  t.unverified = [{ category: 'x', item: 'a', why: 'b' }]; }), '缺 how'],
+    ['資料裡有字面 markdown 記號', () => withTrip((t) => { t.tips.push('這是' + '**' + '粗體' + '**' + '測試'); }),
+                                  'markdown 強調記號'],
+    ['站點有 status 卻沒渲染', () => withTripAnd((t) => {
+                                  firstSlot(t).status = { label: '10/12 封路', kind: 'season' }; },
+                                  (h) => h.replace(/statusHTML/g, 'xxX')), '沒有呼叫 statusHTML'],
+    ['bookingKind 不合法',      () => withTrip((t) => Object.assign(firstSlot(t),
+                                  { needsBooking: true, leadDays: 3, bookingKind: 'bogus' })), 'bookingKind'],
+    ['有 bookingUrl 卻沒 needsBooking', () => withTrip((t) => {
+                                  var x = firstSlot(t); delete x.needsBooking;
+                                  x.bookingUrl = 'https://x.test/tickets'; }), '卻沒有 needsBooking'],
+    ['bookingUrl 只指到首頁',   () => withTrip((t) => Object.assign(firstSlot(t),
+                                  { needsBooking: true, leadDays: 3, bookingUrl: 'https://x.test/' })), '指向網域首頁'],
+    ['要預訂卻沒渲染徽章',      () => withTripAnd((t) => Object.assign(firstSlot(t),
+                                  { needsBooking: true, leadDays: 3 }),
+                                  (h) => h.replace(/reminderBadgeHTML/g, 'xxW')), '沒有呼叫 reminderBadgeHTML'],
+    ['要預訂但一個 bookingUrl 都沒有', () => withTrip((t) => { stripAllBookingUrl(t);
+                                  Object.assign(firstSlot(t), { needsBooking: true, leadDays: 3 }); }),
+                                  '一個 bookingUrl 都沒有'],
+    ['缺 .reminder-badge 樣式（資料驅動）', () => withTripAnd((t) => Object.assign(firstSlot(t),
+                                  { needsBooking: true, leadDays: 3, bookingKind: 'ticket' }),
+                                  (h) => h.replace(/\.reminder-badge[^{]*\{[^}]*\}/g, '')), '會產生 .reminder-badge'],
+    ['route stop 的預訂欄位也要驗', () => withTrip((t) => {
+                                  var st = t.plans[0].days[0].routes[0].stops[0];
+                                  st.needsBooking = true; delete st.leadDays; }), 'routes['],
     ['免責宣告完全沒渲染',      () => base.replace(/disclaimer\)/g, 'xxV)'),  '免責宣告既不在正文裡'],
     ['沒有 plan 標 recommended', () => withTrip((t) => t.plans.forEach((p) => { delete p.recommended; })), 'recommended'],
     ['glossary 有分組但無詞條', () => withTrip((t) => { t.glossary.groups.forEach((g) => { g.items = []; }); }), '沒有任何詞條'],
@@ -246,6 +300,35 @@ if (baseRun.code !== 0) {
   });
 }
 fs.rmSync(tmpRoot, { recursive: true, force: true });
+
+// ══════════════════════════════════════════════════════════════
+// Part C：check-links.js —— 離線探測它的純函式判斷
+// ══════════════════════════════════════════════════════════════
+// check-links 主體要外網，沒辦法在探測裡跑。但它最容易出錯的那一段判斷
+//（「200 但其實是停放頁」）是純函式，抽出來就能離線驗證。
+// 不能因為「這支工具要連網」就整支不探測——那正是它的檢查一條都沒被證明過的原因。
+console.log('\n── Part C：check-links.js（純函式，離線）──');
+{
+  let CL;
+  try { CL = require(path.join(HERE, 'check-links.js')); }
+  catch (e) { CL = null; bad('載入 check-links.js', 'require 就拋錯：' + e.message); }
+  if (CL && typeof CL.looksParked === 'function') {
+    const cases = [
+      ['停放頁要抓到', 'PigeonholeYyc.com is for sale | HugeDomains', true],
+      ['另一種停放措辭', '<h1>Buy this domain</h1>', true],
+      ['正常訂位頁不能誤報', 'Reservations | Grizzly House Banff', false],
+      ['SPA 的 title=Home Page 不能誤報', '<html><title>Home Page</title></html>', false],
+      ['空回應不能誤報', '', false],
+    ];
+    cases.forEach(([name, body, want]) => {
+      const got = CL.looksParked(body);
+      if (got === want) ok(name);
+      else bad(name, '期望 ' + want + '，實際 ' + got);
+    });
+  } else if (CL) {
+    bad('check-links.js 匯出 looksParked', '沒有匯出這個函式，無法離線探測');
+  }
+}
 
 console.log('\n' + probed + ' 條檢查中，' + (probed - dead) + ' 條證明會叫，'
   + dead + ' 條可疑'

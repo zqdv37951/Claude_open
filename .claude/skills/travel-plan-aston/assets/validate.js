@@ -5,6 +5,34 @@
 // 美學與文案質量不歸它管。errors 必須修復；warnings 供人工判斷。
 
 // 校驗 trip 資料結構，返回 { errors: [], warnings: [] }
+
+// 預訂欄位的共用校驗（page-contract.md#booking）。slot 與 route stop 共用同一組欄位，
+// 所以抽成一個函式，不要在兩個地方各寫一份判斷——那正是規則會漂移的地方。
+function checkBooking(o, at) {
+  var out = { errors: [], warnings: [] };
+  if (!o) return out;
+  var KINDS = ['ticket', 'reserve', 'permit'];
+  if (o.bookingKind && KINDS.indexOf(o.bookingKind) === -1) {
+    out.errors.push(at + ' bookingKind 是 "' + o.bookingKind + '"，只能是 '
+      + KINDS.join(' / ') + '（page-contract.md#booking）');
+  }
+  if (o.bookingUrl && !o.needsBooking) {
+    out.errors.push(at + ' 有 bookingUrl 卻沒有 needsBooking:true —— 徽章不會渲染，'
+      + '那個訂票連結等於白查（page-contract.md#booking）');
+  }
+  if (o.bookingUrl) {
+    var m = String(o.bookingUrl).match(/^https?:\/\/[^/?#]+([/?#].*)?$/);
+    var rest = (m && m[1]) ? m[1] : '/';
+    if (rest === '/' || rest === '') {
+      out.warnings.push(at + ' bookingUrl 指向網域首頁（' + o.bookingUrl + '）—— '
+        + '契約要求的是「能真的下單的頁面」。查不到訂票頁時**留空比填首頁好**：'
+        + '徽章會退化成不可點的標籤，仍有提醒作用，而首頁會讓讀者以為你查過了'
+        + '（page-contract.md#booking）');
+    }
+  }
+  return out;
+}
+
 function validateTrip(trip) {
   var errors = [];
   var warnings = [];
@@ -108,6 +136,26 @@ function validateTrip(trip) {
     });
   })();
 
+  // ── trip-data 的字串不得含 markdown 強調記號 ──
+  // 每個渲染器都會 escapeHTML，所以 **粗體** 會原樣印在畫面上變成「**粗體**」。
+  // 寫資料的時候很容易照著文件的語氣打上去——本輪就打了兩次（一條待辦、一段導語）。
+  // 這不會壞掉任何功能，只會讓頁面看起來像沒排版好，而且沒有任何機制會發現。
+  (function () {
+    var hits = [];
+    (function walk(o, path) {
+      if (o && typeof o === 'object') {
+        Object.keys(o).forEach(function (k) { walk(o[k], path + '.' + k); });
+      } else if (typeof o === 'string' && /\*\*|__[^_]/.test(o)) {
+        hits.push(path + '：«' + o.replace(/\s+/g, ' ').slice(0, 40) + '»');
+      }
+    })(trip, 'trip');
+    if (hits.length) {
+      warnings.push('trip-data 有 ' + hits.length + ' 個字串含 markdown 強調記號（** 或 __）—— '
+        + '渲染時會被 escapeHTML 原樣印出，畫面上會看到字面星號。要強調就在渲染端包 <strong>，'
+        + '不要寫在資料裡：' + hits.slice(0, 3).join('；'));
+    }
+  })();
+
   // ── url 不得含 &amp;（雙重轉義，曾經上線過）──
   // 從既有 HTML 解析出來的 url 帶著字面 &amp;，渲染時 escapeHTML 會再轉一次成 &amp;amp;，
   // 瀏覽器解回 &amp; 後 Google 收到的參數名是「amp;query」而不是「query」——沒有搜尋詞，
@@ -118,7 +166,9 @@ function validateTrip(trip) {
     (function walk(o, path) {
       if (o && typeof o === 'object') {
         Object.keys(o).forEach(function (k) { walk(o[k], path + '.' + k); });
-      } else if (typeof o === 'string' && /\.url$|\burl$/.test(path) && o.indexOf('&amp;') !== -1) {
+      // 認任何以 url/Url/URL 結尾的欄位。原本只認小寫 .url，bookingUrl 這種
+      // 駝峰命名的新欄位會靜默繞過——而它正是最需要這條檢查的欄位之一。
+      } else if (typeof o === 'string' && /[uU][rR][lL]$/.test(path) && o.indexOf('&amp;') !== -1) {
         bad.push(path);
       }
     })(trip, 'trip');
@@ -159,6 +209,22 @@ function validateTrip(trip) {
       if (s.needsBooking && typeof s.leadDays !== 'number') {
         errors.push(at + ' needsBooking 為 true 但缺數字 leadDays');
       }
+      (function (r) { errors.push.apply(errors, r.errors); warnings.push.apply(warnings, r.warnings); })(checkBooking(s, at));
+    });
+    // 路線停靠點也吃同一組預訂欄位（page-contract.md#booking）。
+    // 它們刻意沒有 lat/lng——是路線敘述裡的一站，不是地圖上的點——所以不能併進上面
+    // 那個迴圈：那裡缺座標會 return，預訂欄位就整組驗不到。
+    (day.routes || []).forEach(function (rt, ri) {
+      (rt.stops || []).forEach(function (st, sti) {
+        var rat = 'days[' + di + '].routes[' + ri + '].stops[' + sti + ']';
+        if (!st.name) errors.push(rat + ' 缺 name');
+        if (st.needsBooking && typeof st.leadDays !== 'number') {
+          errors.push(rat + ' needsBooking 為 true 但缺數字 leadDays');
+        }
+        var rb = checkBooking(st, rat);
+        errors.push.apply(errors, rb.errors);
+        warnings.push.apply(warnings, rb.warnings);
+      });
     });
     if (!day.slots || !day.slots.length) warnings.push('days[' + di + '] 沒有 slots');
   });
@@ -294,6 +360,63 @@ function validateHTML(html) {
   });
 
 
+  // ---- 有站點需要預訂，頁面就必須把徽章渲染出來（page-contract.md#booking）----
+  // 這是「有給就必須渲染」那一類：資料標了 needsBooking 卻沒呼叫 reminderBadgeHTML，
+  // 讀者在時間軸上完全看不到要訂票這件事——而頁面看起來一切正常，只是少了一個徽章。
+  if (trip) {
+    var bookDays = (trip.plans && trip.plans.length)
+      ? trip.plans.reduce(function (a, pl) { return a.concat(pl.days || []); }, [])
+      : (trip.days || []);
+    var bookable = [];
+    bookDays.forEach(function (d) {
+      (d.slots || []).forEach(function (x) { if (x.needsBooking) bookable.push(x); });
+      (d.routes || []).forEach(function (rt) {
+        (rt.stops || []).forEach(function (x) { if (x.needsBooking) bookable.push(x); });
+      });
+    });
+    // unverified 給了卻沒渲染，等於把「我沒驗到什麼」這件事留在資料裡沒人看見——
+    // 而那正是這個欄位存在的唯一理由（page-contract.md#unverified）。
+    if ((trip.unverified || []).length && outside.indexOf('unverified') === -1) {
+      errors.push('trip.unverified 有 ' + trip.unverified.length + ' 條，但頁面沒有讀這個欄位 —— '
+        + '「建置時驗不了的事」是必須渲染的區塊（page-contract.md#unverified）');
+    }
+    // 三個欄位缺一不可：只寫「這個沒驗證」等於把問題丟回給讀者
+    (trip.unverified || []).forEach(function (u, ui) {
+      ['item', 'why', 'how'].forEach(function (k) {
+        if (!u[k]) {
+          errors.push('unverified[' + ui + '] 缺 ' + k
+            + ' —— why（為什麼驗不了）與 how（怎麼確認）缺任一條，讀者就得自己重新研究一遍'
+            + '（page-contract.md#unverified）');
+        }
+      });
+    });
+
+    // 站點層級的 status 也是「有給就必須渲染」。契約允許 slot／route stop 帶 status
+    // （page-contract.md#trip-data），但頁面很容易只在 POI 卡片上處理它——
+    // 結果資料放得進去、時間軸上看不到，而且完全不報錯。這個洞是真的踩到過。
+    var statusStops = [];
+    bookDays.forEach(function (d) {
+      (d.slots || []).forEach(function (x) { if (x.status && x.status.label) statusStops.push(x); });
+      (d.routes || []).forEach(function (rt) {
+        (rt.stops || []).forEach(function (x) { if (x.status && x.status.label) statusStops.push(x); });
+      });
+    });
+    if (statusStops.length && outside.indexOf('statusHTML') === -1) {
+      errors.push('有 ' + statusStops.length + ' 個時間軸站點帶 status，但頁面沒有呼叫 statusHTML —— '
+        + '那些標籤（如「10/12 封路」）在畫面上完全看不到（conditional-features.md#season-status）');
+    }
+    if (bookable.length && outside.indexOf('reminderBadgeHTML') === -1) {
+      errors.push('有 ' + bookable.length + ' 個站點標了 needsBooking，但頁面沒有呼叫 reminderBadgeHTML —— '
+        + '時間軸上看不到「要先訂」這件事（page-contract.md#booking）');
+    }
+    var withUrl = bookable.filter(function (x) { return x.bookingUrl; }).length;
+    if (bookable.length && withUrl === 0) {
+      warnings.push('有 ' + bookable.length + ' 個站點標了 needsBooking，但一個 bookingUrl 都沒有 —— '
+        + '徽章只會是不可點的標籤。查不到訂票頁是可以接受的答案，但全部都查不到通常代表這一步跳過了'
+        + '（page-contract.md#booking）');
+    }
+  }
+
   // ---- 資料驅動的 class 樣式核對（engine-contract.md#engine-classes）----
   // 上面那張抽查表只涵蓋 7 個高風險 class。剩下的一半漏了照樣不會報錯，
   // 而 engine-contract 原本 publish 的自查腳本用正則掃引擎原始碼的 class="..."，
@@ -333,6 +456,26 @@ function validateHTML(html) {
     if (poiItems.some(function (it) { return it && it.shop; })) {
       need.push(['hl-shop', '美食項目的來源店家缺次級文字色']);
     }
+    var bkinds = {};
+    var bdays = (trip.plans && trip.plans.length)
+      ? trip.plans.reduce(function (a, pl) { return a.concat(pl.days || []); }, [])
+      : (trip.days || []);
+    bdays.forEach(function (d) {
+      var mark = function (x) {
+        if (!x.needsBooking) return;
+        bkinds.__any = true;
+        if (x.bookingKind) bkinds[x.bookingKind] = true;
+      };
+      (d.slots || []).forEach(mark);
+      (d.routes || []).forEach(function (rt) { (rt.stops || []).forEach(mark); });
+    });
+    if (bkinds.__any) {
+      need.push(['reminder-badge', '「需先訂」徽章變裸文字']);
+      ['ticket', 'reserve', 'permit'].forEach(function (k) {
+        if (bkinds[k]) need.push([k, '預訂徽章的 ' + k + ' 這一種沒有自己的顏色']);
+      });
+    }
+
     var kinds = {};
     poiItems.forEach(function (it) {
       if (it && it.status && it.status.label) {

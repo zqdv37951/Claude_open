@@ -14,11 +14,12 @@
 | `map.js` | `gcj02ToWgs84(lat, lng)` | GCJ-02 → WGS-84。**高德／騰訊回傳的座標必須先過這一關**，否則 OSM 圖上偏移數百公尺 |
 | `reminders.js` | `computeReminders(startDateISO, items)` | 由 `leadDays` 算出實際截止日 |
 | `reminders.js` | `renderChecklistHTML(reminders)` | 頁頂待辦清單 HTML |
-| `reminders.js` | `reminderBadgeHTML(leadDays)` | 時間軸上的「建議提前 N 天訂」徽章 |
+| `reminders.js` | `reminderBadgeHTML(leadDays, opts?)` | 時間軸上的「要先訂」徽章。`opts = {kind, url}` 時輸出可點的訂票連結，見 [#booking-badge](#booking-badge) |
 | `poi.js` | `poiWallHTML(items, sourceClass, sourceLabel, mapAppLinksFn?)` | 延伸推薦卡片牆，見 [#poi-wall](#poi-wall) |
 | `poi.js` | `nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts?)` | 每站附近推薦，見 [#nearby-panel](#nearby-panel) |
+| `poi.js` | `statusHTML(status)` | 季節狀態標籤。POI 卡片內部會用，**時間軸站點與路線停靠點的 `status` 也要由頁面呼叫它渲染**（`conditional-features.md#season-status`） |
 
-這張表列的是**頁面作者要呼叫的入口**。三個引擎的 `module.exports` 還多出十幾個名字（`sameCore`、`haversineMeters`、`poiCardHTML`、`routeCoordinates` 等），那些是**內部 helper，匯出只為了讓回歸測試在零依賴的情況下夠得到**，不是公開 API——頁面不該直接呼叫它們。文件別處若提到某個 helper（如 `page-contract.md#a11y` 提到 `gridOpenTag`），是在說明引擎內部行為，不是叫你去呼叫。
+這張表列的是**頁面作者要呼叫的入口**。三個引擎的 `module.exports` 還多出十幾個名字（`sameCore`、`haversineMeters`、`poiCardHTML`、`routeCoordinates` 等），那些是**內部 helper，匯出只為了讓回歸測試在零依賴的情況下夠得到**，不是公開 API——頁面不該直接呼叫它們。（`statusHTML` 是例外，已升為入口函式列在表裡：卡片牆之外的站點也要用它。）文件別處若提到某個 helper（如 `page-contract.md#a11y` 提到 `gridOpenTag`），是在說明引擎內部行為，不是叫你去呼叫。
 
 ## 引擎只輸出語意 class，樣式責任在頁面 {#engine-classes}
 
@@ -34,7 +35,7 @@
 | `reminders.js` | `.todo-item` | 單一待辦 `<li>` | 沒有卡片外觀 |
 | `reminders.js` | `.todo-deadline` | 日期徽章 | 日期混在正文裡看不出來 |
 | `reminders.js` | `.todo-text` | 待辦內容 | 缺次級文字色 |
-| `reminders.js` | `.reminder-badge` | 時間軸上的「建議提前 N 天訂」 | 徽章變裸文字 |
+| `reminders.js` | `.reminder-badge` + `.ticket` / `.reserve` / `.permit` | 時間軸上的「要先訂」徽章（`page-contract.md#booking`） | 徽章變裸文字；三種類型分不出來 |
 | `poi.js` | `.poi-grid` | 卡片牆容器（2 列 × 橫向捲動） | 退化成直向堆疊 |
 | `poi.js` | `.poi-card` `.hl-card` | 卡片本體（**兩個 class 同時掛在同一個元素上**） | 卡片沒有邊框背景 |
 | `poi.js` | `.poi-scroll-hint` | 「◂ 左右滑動檢視更多 ▸」 | 提示變裸文字 |
@@ -173,12 +174,35 @@ nearbyGridHTML(otherSlots, s.lat, s.lng, s.name, { sourceClass: 'transit', sourc
 
 **改動 `buildMapAppLinks` 時要維持這個保證**：任何進到 URL 的外部字串都必須先過 `encodeURIComponent`。如果哪天改成直接串接未編碼的值，所有呼叫方都會同時變成注入點，而它們不會知道。
 
+## 預訂徽章 {#booking-badge}
+
+`reminderBadgeHTML(leadDays, opts)` 有兩種輸出，差別只在有沒有 `opts.url`：
+
+```js
+reminderBadgeHTML(5)
+// <span class="reminder-badge">⚠️ 建議提前5天訂</span>        ← 舊呼叫，輸出逐字不變
+
+reminderBadgeHTML(5, { kind: 'ticket', url: 'https://…/tickets' })
+// <a class="reminder-badge ticket" href="…" target="_blank" rel="noopener">需購票 · 建議提前 5 天 ↗</a>
+
+reminderBadgeHTML(14, { kind: 'reserve' })
+// <span class="reminder-badge reserve">需訂位 · 建議提前 14 天</span>   ← 沒有 url 就不是連結
+```
+
+三件由引擎負責、呼叫方不要自己判斷的事：
+
+- **未知 `kind` 整個降級**成無 kind 的舊輸出，不會把不認識的字串寫進 class。
+- **`leadDays` 為 0 或缺**時只顯示「需購票」，不會出現「提前 0 天」這種沒有意義的字。
+- **沒有 `url` 就渲染成 `<span>`**，不是空連結。查不到訂票頁時這是正確的降級，不是缺陷。
+
+**舊呼叫的輸出必須逐字不變**——這個函式已經內聯進多份既有頁面，輸出一變那些頁面的樣式就對不上。`reminders.test.js` 有一條專門釘住這件事的回歸測試。
+
 ## 改動引擎前先跑回歸測試 {#tests}
 
 ```bash
 node assets/poi.test.js         # 24 個測試：卡片牆、距離排序、去重、字首比對、狀態標籤、轉義、鍵盤可聚焦
 node assets/map.test.js         # 14 個測試：境內／境外連結分流、GCJ-02 轉換、initTravelMap（假 Leaflet）
-node assets/reminders.test.js   # 11 個測試：日期回推（跨月／跨年／閏年）、清單 class、轉義
+node assets/reminders.test.js   # 16 個測試：日期回推（含預訂徽章的三種形態與向後相容）、日期回推（跨月／跨年／閏年）、清單 class、轉義
 ```
 
 **三個引擎都有測試，改哪個就跑哪個。** `map.js` 的「高德只在境內」與「境外用名稱+視野錨點」兩條規則、`reminders.js` 的日期回推（最容易被時區坑掉）、`poi.js` 的 `sameCore` 字首佔比規則，都是被測試釘住的——改動時測試紅了，先確認是你的意圖還是迴歸。

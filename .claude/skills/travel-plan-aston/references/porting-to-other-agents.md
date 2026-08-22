@@ -43,7 +43,7 @@ ln -sfn "<repo>/travel-plan-aston" ~/.codex/skills/travel-plan-aston
 你將扮演一個「旅行計劃視覺化」工具。請先閱讀我提供的這套檔案並嚴格遵循：
 - SKILL.md：工作流（判斷模式 → 聯網調研 → 用設計步驟生成單檔案 HTML）
 - README.md：規則索引——「某條規則寫在哪」的速查表，加上不可破的維護原則
-- assets/page-contract.md：一律適用的規則——trip 資料結構、區塊順序、必須包含的區塊、頁頂 tab 導覽、外文名詞註解、硬性約束、兩種頁面型別（行程頁 / 輔助頁）
+- assets/page-contract.md：一律適用的規則——trip 資料結構、區塊順序、必須包含的區塊、頁頂 tab 導覽、**需要購票／訂位的站點要在時間軸標出徽章且徽章本身是訂票連結**、外文名詞註解、硬性約束、兩種頁面型別（行程頁 / 輔助頁）
 - assets/engine-contract.md：引擎規則——三引擎函式簽章、**引擎只輸出語義 class、樣式責任在頁面**（漏寫會讓地圖示記全部隱形卻不報錯）、卡片牆與附近面板的渲染規則、地圖連結規則（境內高德／境外只給 Google 且用名稱+視野錨點，不用純座標）
 - assets/conditional-features.md：條件式功能——先判斷觸發條件再決定要不要做：transit 取代航班住宿、雙方案 A/B 與每日雙強度路線、季節狀態標籤
 - assets/map.js、assets/reminders.js、assets/poi.js：必須原樣內聯進輸出 HTML 的引擎（地圖、提醒、延伸推薦/附近推薦卡片牆）；完整 trip 物件以 <script id="trip-data" type="application/json"> 內嵌
@@ -64,6 +64,8 @@ ln -sfn "<repo>/travel-plan-aston" ~/.codex/skills/travel-plan-aston
 
 - **圖片**：URL 形式與「必須驗證返回 200」的規則寫在 `references/research-guide.md`（唯一權威，本檔不複述）。要注意的是**別讓模型手拼帶雜湊的直鏈**——那是跨 Agent 適配時最常見的失敗。
 - **單檔案自包含**：`map.js`/`reminders.js`/`poi.js` 三個引擎內容都要內聯進 HTML，不要外鏈本地檔案——漏掉 `poi.js` 時延伸推薦總覽與每站附近推薦面板會直接失效（`nearbyGridHTML`/`poiWallHTML` 等未定義）。
+- **建置時驗不了的事**：查不到、或在你的執行環境驗不了的具體項目，要列進 `trip.unverified` 並渲染成可勾選清單（`item` / `why` / `how` 三個欄位缺一不可）。**一句籠統的免責宣告不算交代**——它對每份頁面都成立，所以不帶資訊。規則見 `assets/page-contract.md#unverified`。
+- **預訂徽章**：需要提前購票／訂位的站點要標在**時間軸上**（不是只放進頁頂待辦清單），徽章本身就是官方訂票頁的連結。查不到訂票頁就留空——**填官網首頁比空著更糟**。規則見 `assets/page-contract.md#booking`（唯一權威，本檔不複述）。
 - **免責宣告**：覆蓋全部聯網資訊（天氣/餐廳/評分…），不只是機票酒店。
 - **不查實時價**：機票/門票只給參考區間。
 - **座標系**：高德/騰訊類工具返回的 GCJ-02 座標須先經 `map.js` 的 `gcj02ToWgs84` 轉成 WGS-84 再入 `trip`，否則 OSM 地圖上偏移幾百米。

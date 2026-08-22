@@ -18,6 +18,8 @@
 | 頂部 sticky tab 導覽怎麼做？ | `assets/page-contract.md#tab-nav` |
 | 時間軸站點的標題要連到哪？沒官網的站怎麼辦？ | `assets/page-contract.md#slot-links` |
 | 地圖連結要排在哪？為什麼不另起一行？ | `assets/page-contract.md#slot-links` |
+| 需要訂票／訂位的站點怎麼標？訂票連結放哪？ | `assets/page-contract.md#booking` |
+| 查不到／驗不了的東西怎麼交給讀者？ | `assets/page-contract.md#unverified` |
 | 地圖上的編號要怎麼對回行程？ | `assets/page-contract.md#map-numbering` |
 | 淺色／深色切換鈕怎麼做？ | `assets/page-contract.md#theme-toggle` |
 | 外文名詞註解區塊什麼時候要做？ | `assets/page-contract.md#glossary` |
@@ -38,6 +40,7 @@
 | 卡片牆的版面、來源標籤、捲動提示規則？ | `assets/engine-contract.md#poi-wall` |
 | 每站「附近推薦」面板怎麼做？距離怎麼算？ | `assets/engine-contract.md#nearby-panel` |
 | 地圖連結什麼時候給高德、什麼時候給 Google？ | `assets/engine-contract.md#map-links` |
+| 預訂徽章的三種形態與降級規則？ | `assets/engine-contract.md#booking-badge` |
 | 改動引擎前要跑什麼？ | `assets/engine-contract.md#tests` |
 
 ### 條件式功能（先判斷觸發條件，不是每份行程都做）
@@ -56,6 +59,7 @@
 | 排版、斷點、桌機寬度？ | `references/design-guidelines.md#layout` |
 | 卡片牆的來源標籤、距離標籤長什麼樣？ | `references/design-guidelines.md#poi-visuals` |
 | 季節狀態標籤長什麼樣？ | `references/design-guidelines.md#status-visuals` |
+| 預訂徽章長什麼樣？ | `references/design-guidelines.md#booking-visuals` |
 | 雙方案／雙強度路線長什麼樣？ | `references/design-guidelines.md#dual-plan-visuals` |
 | 圖片、徽章、動畫的細節準則？ | `references/design-guidelines.md#details` |
 | 開始前該問使用者什麼？哪些該自己查？ | `references/brief-checklist.md` |
@@ -90,7 +94,7 @@ assets/
   map.js  reminders.js  poi.js      ← 三份都要原樣內聯進產出的 HTML
   poi.test.js                       poi.js 回歸測試（24 個）
   map.test.js                       map.js 回歸測試（14 個）
-  reminders.test.js                 reminders.js 回歸測試（11 個）
+  reminders.test.js                 reminders.js 回歸測試（16 個）
   validate.js                       產出頁面的契約校驗
   check-refs.js                     文件自身的十一項檢查（引用、清單、數字、誤字、指路方式）
   check-links.js                    產出頁面的外部連結有效性

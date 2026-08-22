@@ -73,6 +73,48 @@ test('reminderBadgeHTML：輸出 .reminder-badge 並帶天數', function () {
   assert.ok(b.indexOf('21') !== -1);
 });
 
+test('reminderBadgeHTML：不給 opts 時輸出與舊版逐字相同（既有頁面不能被改壞）', function () {
+  // 這條是防回歸用的：reminderBadgeHTML 已經被內聯進多份既有頁面，
+  // 加新功能時舊呼叫的輸出必須一個字都不變，否則那些頁面的樣式會對不上。
+  assert.strictEqual(rem.reminderBadgeHTML(5),
+    '<span class="reminder-badge">⚠️ 建議提前5天訂</span>');
+});
+
+test('reminderBadgeHTML：三種 kind 各有自己的字與 class', function () {
+  var t = rem.reminderBadgeHTML(5, { kind: 'ticket' });
+  var r = rem.reminderBadgeHTML(14, { kind: 'reserve' });
+  var p = rem.reminderBadgeHTML(14, { kind: 'permit' });
+  assert.ok(t.indexOf('class="reminder-badge ticket"') !== -1 && t.indexOf('需購票') !== -1);
+  assert.ok(r.indexOf('class="reminder-badge reserve"') !== -1 && r.indexOf('需訂位') !== -1);
+  assert.ok(p.indexOf('class="reminder-badge permit"') !== -1 && p.indexOf('需通行證') !== -1);
+  // 未知 kind 不能把不認識的字串寫進 class，要整個退回舊行為
+  var bogus = rem.reminderBadgeHTML(3, { kind: 'bogus' });
+  assert.ok(bogus.indexOf('bogus') === -1, '未知 kind 被寫進了 class');
+  assert.strictEqual(bogus, rem.reminderBadgeHTML(3));
+});
+
+test('reminderBadgeHTML：有 url 就變成可點的連結，沒有就是純標籤', function () {
+  var a = rem.reminderBadgeHTML(5, { kind: 'ticket', url: 'https://x.test/tickets' });
+  assert.ok(/^<a /.test(a), '有 url 應該渲染成 <a>');
+  assert.ok(a.indexOf('target="_blank"') !== -1 && a.indexOf('rel="noopener"') !== -1);
+  assert.ok(a.indexOf('↗') !== -1, '外開連結要有可見的指示');
+  var s = rem.reminderBadgeHTML(5, { kind: 'ticket' });
+  assert.ok(/^<span /.test(s), '沒有 url 就不該是連結');
+});
+
+test('reminderBadgeHTML：leadDays 為 0 或缺時只顯示要訂什麼，不顯示「提前 0 天」', function () {
+  var b = rem.reminderBadgeHTML(0, { kind: 'permit' });
+  assert.ok(b.indexOf('需通行證') !== -1);
+  assert.ok(b.indexOf('0') === -1, '不該出現「提前 0 天」這種沒有意義的字');
+});
+
+test('reminderBadgeHTML：url 有轉義，不會被注入屬性', function () {
+  var b = rem.reminderBadgeHTML(3, { kind: 'ticket', url: '" onload=alert(1) x="' });
+  assert.ok(b.indexOf('onload=alert(1)') === -1 || b.indexOf('&quot;') !== -1,
+    'url 未轉義，可以跳出 href 屬性');
+  assert.ok(b.indexOf('href="&quot;') !== -1);
+});
+
 var failed = 0;
 tests.forEach(function (t) {
   try { t.fn(); console.log('  ok - ' + t.name); }
