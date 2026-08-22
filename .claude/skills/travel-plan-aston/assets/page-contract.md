@@ -370,6 +370,19 @@ section{scroll-margin-top:56px}                    /* 錨點跳轉時不被 stic
 - **每個 `<section>` 必須加 `scroll-margin-top`**，否則點錨點跳過去，標題會被 sticky 導覽條蓋住——這是最常見的漏做。
 - 導覽項目跟著 `trip` 實際有的區塊產生（用 `regions` 的行程就每個地區一個 tab），不要寫死一份固定清單。
 - 隱藏捲軸但保留捲動能力；不要為了美觀改成 `overflow:hidden`，那會讓後面的 tab 永遠點不到。
+- **桌面版要補上滑鼠滾輪橫向捲動**。`overflow-x:auto` 只解決了「能不能捲」，沒解決「怎麼捲」——多數瀏覽器裡，垂直滾輪預設不會移動橫向溢出的容器，沒有 shift、沒有觸控板的人只能用滑鼠拖曳。tab 一多超出視窗寬度時，後面的項目在使用者眼裡就像不存在，其實只是滾輪滾不到（真實發生過：新增的姊妹頁連結一直都在 DOM 裡，使用者以為沒生效）。渲染完 `nav-in` 之後補上：
+
+  ```js
+  var nav = $('nav-in');
+  nav.addEventListener('wheel', function (e) {
+    if (nav.scrollWidth <= nav.clientWidth) return;        // 沒有橫向溢出就不攔截
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;   // 手勢本來就偏橫向，交給瀏覽器原生處理
+    nav.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }, { passive: false });
+  ```
+
+  兩個判斷都不能省：沒有第一個，`nav-in` 沒溢出時也會吃掉游標經過它上方的垂直滾動，把頁面本身的捲動鎖住；沒有第二個，觸控板本來就能橫向捲動的手勢會被重複處理，變成捲動速度加倍。
 
 ## 時間軸站點的連結出口 {#slot-links}
 

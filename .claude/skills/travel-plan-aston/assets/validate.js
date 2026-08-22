@@ -339,6 +339,13 @@ function validateHTML(html) {
   if (outside.indexOf('sticky') !== -1 && outside.indexOf('scroll-margin-top') === -1) {
     warnings.push('頁面有 sticky 元素但未見 "scroll-margin-top"，錨點跳轉後區塊標題可能被導覽條蓋住（page-contract.md#tab-nav），請確認');
   }
+  // overflow-x:auto 只解決「能不能捲」，沒解決「怎麼捲」——垂直滾輪預設滾不動橫向溢出的容器，
+  // 沒有 shift、沒有觸控板的人會以為排在後面的 tab 消失了（真實發生過）。純讀程式碼看不出來，
+  // 只有量 scrollWidth/clientWidth 或真的拿滾輪滑一次才會發現。
+  if (outside.indexOf('nav-in') !== -1 && outside.indexOf("addEventListener('wheel'") === -1
+    && outside.indexOf('addEventListener("wheel"') === -1) {
+    warnings.push('有 "nav-in" 但沒見到綁 wheel 事件，tab 數超出視窗寬度時滑鼠滾輪可能捲不到後面的項目（page-contract.md#tab-nav），請確認');
+  }
   // ---- 引擎輸出的 class 是否有對應樣式（engine-contract.md#engine-classes 完整清單） ----
   // 三個引擎只輸出語義 class，樣式由頁面負責。poi.js 那幾個漏了一眼就看得出來；
   // map.js / reminders.js 那幾個漏了「不會報錯、只會安靜地消失」——標記變成 28×28 透明 div，
