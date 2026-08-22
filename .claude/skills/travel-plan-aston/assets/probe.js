@@ -101,6 +101,7 @@ if (!page) {
     ['缺 min-width:0',          () => base.replace(/min-width:0/g, 'xxI'),    'min-width'],
     ['缺 nav-in',               () => base.replace(/nav-in/g, 'xxJ'),         'nav-in'],
     ['缺 scroll-margin-top',    () => base.replace(/scroll-margin-top/g, 'xxK'), 'scroll-margin-top'],
+    ['缺 nav-in 的 wheel 監聽', () => base.replace(/addEventListener\('wheel'/g, "addEventListener('xxP'"), 'wheel'],
     ['列印網格沒改成換行',      () => base.replace('repeat(2, auto)', 'repeat(9, auto)'), 'repeat(2, auto)'],
     ['缺 nearby-toggle',        () => base.replace(/nearby-toggle/g, 'xxL'),  'nearby-toggle'],
     ['缺 source-tag',           () => base.replace(/source-tag/g, 'xxM'),     'source-tag'],

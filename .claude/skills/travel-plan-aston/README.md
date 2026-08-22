@@ -131,8 +131,9 @@ node assets/probe.js <頁面>            # 改過 validate.js／check-refs.js �
 7. **永遠都在的警告等於沒有警告。** `validate.js` 曾經對每一份輔助頁報「本檔是輔助頁」、對每一份行程頁報「免責宣告疑似沒渲染」——後者尤其糟，它懲罰的正是契約強制要求的「資料與呈現分離」。兩條都是 100% 誤報，於是每份頁面跑完都是「通過（有 1 條 warning）」，人就學會了跳過警告區。現在這類訊息走 `· 註記` 通道，**合規頁面應該 0 warning**。
 8. **能機械擋的規則，不要只寫在文件裡；而每條檢查都要餵合成陽性證明它會叫。** 上面第 1 條原本只是文件裡的一句話，靠人記得——結果兩份契約累積了 15 處序號引用，抽查的每一處都已經指錯地方。加進 `check-refs.js` 之後同一類錯誤再也回不來。另一面同樣重要：`validate.js` 曾經有四條檢查因為讀錯欄位而**永遠不會叫**，跑起來全過。`assets/probe.js` 就是為此存在——它故意把輸入弄壞，斷言檢查器抱怨到對的點上。**不會叫的檢查比沒有檢查更糟，它給人被守著的錯覺。**
 
-## 三個花過代價才學到的坑
+## 四個花過代價才學到的坑
 
 - **雙重轉義**：從既有 HTML 解析出來的字串帶著 `&amp;`，引擎的 `escapeHTML` 會再轉一次，頁面上出現 `Chinatown &amp; Cultural Centre`；更糟的是 URL 裡的 `&amp;` 會讓 Google 收到參數名 `amp;query`，連結全部失效。見 `page-contract.md#unescape`。
 - **`min-width: 0`**：grid／flex 子項預設不得縮小到比內容更窄，卡片牆會把欄位撐開到三千多 px，`overflow-x` 永不觸發，外層 `overflow:hidden` 再把它裁掉——卡片既不能捲也點不到。見 `engine-contract.md#poi-wall`。
 - **`[hidden]` 被 class 選擇器蓋過**：`.nearby-panel{display:flex}` 的優先權高於瀏覽器對 `hidden` 的 UA 樣式，面板一開始就是展開的，按鈕卻還寫著「顯示」。見 `engine-contract.md#nearby-panel`。
+- **橫向捲動的容器，滑鼠滾輪預設捲不動**：`overflow-x:auto` 的元素（頁頂 tab 導覽、卡片牆）在多數瀏覽器裡，沒有 shift、沒有觸控板的人用垂直滾輪完全滾不動——內容看起來像消失了，其實只是捲不到。曾經害使用者以為新增的 tab 連結沒生效，實際上它一直都在 DOM 裡，只是要用滑鼠拖曳才捲得到。見 `page-contract.md#tab-nav`。
