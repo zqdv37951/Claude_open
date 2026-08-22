@@ -762,6 +762,18 @@ if (typeof module !== 'undefined' && module.exports) {
   $('nav-in').innerHTML = tabs.map(function (t) {
     return '<a href="' + t[0] + '">' + E(t[1]) + '</a>';
   }).join('') + '<button class="theme-btn" id="theme-btn" type="button" aria-label="切換淺色／深色主題"></button>';
+  // tab 太多會橫向溢出，但滑鼠滾輪預設只認垂直滾動——沒有 shift 或觸控板的人
+  // 滾輪滾不動這排 tab，會以為「住宿規劃」這類排在後面的項目消失了。
+  // 把垂直滾動量轉成橫向捲動，且只在真的有橫向空間可捲時才攔截，不搶頁面本身的垂直捲動。
+  (function () {
+    var nav = $('nav-in');
+    nav.addEventListener('wheel', function (e) {
+      if (nav.scrollWidth <= nav.clientWidth) return;
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      nav.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  })();
   // 主題切換：色票本來就定義了 :root[data-theme]，這裡只補上 UI 與記憶
   (function () {
     var root = document.documentElement, btn = $('theme-btn');
