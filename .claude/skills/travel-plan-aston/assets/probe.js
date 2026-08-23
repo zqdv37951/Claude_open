@@ -60,6 +60,36 @@ if (!page) {
 
   // 同時動 trip-data 與頁面文字。單獨動一邊驗不到「資料說要做、頁面沒做」這一整類檢查。
   function withTripAnd(fn, strFn) { return strFn(withTrip(fn)); }
+  // 母本可能是雙方案（days 在 plans[].days）也可能是單一方案（trip.days）。
+  // 把取 days 的動作集中在這裡，案例就不會因為母本換形狀而整批變成假死檢查——
+  // 本輪把母本從雙方案收成單一方案，一次弄死 22 條案例。
+  function daysOf(t) {
+    return (t.plans && t.plans.length)
+      ? t.plans.reduce(function (a, p) { return a.concat(p.days || []); }, [])
+      : (t.days || []);
+  }
+  function d0(t) { return daysOf(t)[0]; }
+  // 把母本就地變形成「雙方案」再套用 mutation。
+  // 為什麼不改用一份雙方案的頁面當母本：那等於把覆蓋率綁在某一份檔案的形狀上，
+  // 那份檔案哪天被改成單一方案（本輪就發生了），5 條檢查就無聲地變成打不到。
+  // 讓探測器自己造出需要的形狀，覆蓋率就跟外部檔案脫鉤。
+  function withPlans(fn) {
+    return withTrip(function (t) {
+      if (!t.plans) {
+        const ds = t.days || [];
+        t.plans = [
+          { key: 'a', name: '方案 A', recommended: true, reason: '合成用', days: ds },
+          { key: 'b', name: '方案 B', reason: '合成用',
+            days: JSON.parse(JSON.stringify(ds)).map(function (d, i) {
+              if (i === 0) d.theme = '合成的差異日';
+              return d;
+            }) },
+        ];
+        delete t.days;
+      }
+      fn(t);
+    });
+  }
   // 只改 trip-data **之外**的頁面文字。
   // 為什麼需要這個變體：欄位名跟程式碼裡的識別字同名時（unverified 就是），
   // withTripAnd 的全域取代會把 JSON 裡的鍵一起改掉，於是「資料有給、頁面沒渲染」
@@ -73,9 +103,9 @@ if (!page) {
     return head + mm[0] + tail;
   }
   // 把第一個 slot 改成「需要預訂」的樣子，其餘欄位由呼叫方補
-  function firstSlot(t) { return t.plans[0].days[0].slots[0]; }
+  function firstSlot(t) { return d0(t).slots[0]; }
   function stripAllBookingUrl(t) {
-    (t.plans || []).forEach(function (pl) {
+    (t.plans || [{ days: t.days || [] }]).forEach(function (pl) {
       (pl.days || []).forEach(function (d) {
         (d.slots || []).forEach(function (x) { delete x.bookingUrl; });
         (d.routes || []).forEach(function (r) { (r.stops || []).forEach(function (x) { delete x.bookingUrl; }); });
@@ -111,27 +141,79 @@ if (!page) {
     ['startDate 格式錯',        () => withTrip((t) => { t.startDate = '2026/10/01'; }), 'startDate'],
     ['disclaimer 太短',         () => withTrip((t) => { t.disclaimer = '短'; }), 'disclaimer'],
     ['reminders 缺 leadDays',   () => withTrip((t) => { t.reminders[0] = { item: 'x' }; }), 'leadDays'],
-    ['day.date 格式錯',         () => withTrip((t) => { t.plans[0].days[0].date = '10/01'; }), 'date'],
-    ['slot 缺 name',            () => withTrip((t) => delete t.plans[0].days[0].slots[0].name), 'name'],
-    ['slot 缺 lat/lng',         () => withTrip((t) => delete t.plans[0].days[0].slots[0].lat), 'lat/lng'],
-    ['lat 越界',                () => withTrip((t) => { t.plans[0].days[0].slots[0].lat = 200; }), '越界'],
-    ['座標離群',                () => withTrip((t) => { const s = t.plans[0].days[0].slots[0]; s.lat = 20; s.lng = 20; }), '離群'],
-    ['needsBooking 缺 leadDays', () => withTrip((t) => { t.plans[0].days[0].slots[0].needsBooking = true; }), 'needsBooking'],
-    ['url 含 &amp;（雙重轉義）', () => withTrip((t) => { t.plans[0].days[0].routes[0].stops[0].url = 'http://x?a=1&amp;b=2'; }), '&amp;'],
-    ['plan 缺 days',            () => withTrip((t) => delete t.plans[1].days), 'days'],
-    ['兩個 plan 都 recommended', () => withTrip((t) => { t.plans[1].recommended = true; }), 'recommended'],
+    ['day.date 格式錯',         () => withTrip((t) => { d0(t).date = '10/01'; }), 'date'],
+    ['slot 缺 name',            () => withTrip((t) => delete d0(t).slots[0].name), 'name'],
+    ['slot 缺 lat/lng',         () => withTrip((t) => delete d0(t).slots[0].lat), 'lat/lng'],
+    ['lat 越界',                () => withTrip((t) => { d0(t).slots[0].lat = 200; }), '越界'],
+    ['座標離群',                () => withTrip((t) => { const s = d0(t).slots[0]; s.lat = 20; s.lng = 20; }), '離群'],
+    ['needsBooking 缺 leadDays', () => withTrip((t) => { d0(t).slots[0].needsBooking = true; }), 'needsBooking'],
+    ['url 含 &amp;（雙重轉義）', () => withTrip((t) => { daysOf(t).filter(function(d){return (d.routes||[]).length})[0].routes[0].stops[0].url = 'http://x?a=1&amp;b=2'; }), '&amp;'],
+    ['plan 缺 days',            () => withPlans((t) => delete t.plans[1].days), 'days'],
+    ['兩個 plan 都 recommended', () => withPlans((t) => { t.plans[1].recommended = true; }), 'recommended'],
     ['regions 某類不足 10 項',  () => withTrip((t) => { t.highlights.regions[0].spots.length = 3; }), 'regions'],
-    ['有 dining 卻沒渲染',      () => withTrip((t) => { t.plans[0].days[0].dining = [{ meal: '午餐' }]; }), 'dining'],
+    ['有 dining 卻沒渲染',      () => withTrip((t) => { d0(t).dining = [{ meal: '午餐' }]; }), 'dining'],
     ['缺 hotelAreas',           () => withTrip((t) => delete t.hotelAreas),   'hotelAreas'],
     ['缺 preTrip',              () => withTrip((t) => delete t.preTrip),      'preTrip'],
     ['缺 tips',                 () => withTrip((t) => { t.tips = []; }),      'tips'],
     ['缺 flights',              () => withTrip((t) => delete t.flights),      'flights'],
     ['缺 highlights',           () => withTrip((t) => delete t.highlights),   'highlights'],
+    ['路線被改薄', () => withTrip((t) => {
+        const ds = (t.plans && t.plans.length) ? t.plans[0].days : t.days;
+        ds.forEach(function (d) { (d.routes || []).forEach(function (r) { r.stops = (r.stops || []).slice(0, 1); }); });
+      }), '少於 3 站'],
+    // 母本天生沒有 day.alternatives，光壞渲染標記（原本的寫法）觸發不了 validate.js 的
+    // n>0 閘門——必須連 trip-data 一起造出至少一張選項卡，這兩條探測才踩得到真正的分支。
+    ['alternatives 有給卻沒渲染', () => withTripAndOutside((t) => {
+        d0(t).alternatives = [{ label: '選項 ①（本頁採用）a', summary: 'b' }]; },
+        (h) => h.replace(/alternatives/g, 'xxA1')), '選項只存在於 trip-data'],
+    ['alternatives 沒有專屬樣式', () => withTripAndOutside((t) => {
+        d0(t).alternatives = [{ label: '選項 ①（本頁採用）a', summary: 'b' }]; },
+        (h) => h.replace(/class="alt/g, 'class="zz').replace(/alt-l/g, 'zz-l')),
+        '沒有專屬樣式'],
+    // 同理：母本的 hotelAreas 選項本來就沒有 bookingUrl，必須先造一個才觸發得到
+    // 「有給卻沒渲染」那個分支，否則 withLink 恆為 0，這條警告永遠不會叫。
+    ['住宿訂房連結有給卻沒渲染', () => withTripAndOutside((t) => {
+        t.hotelAreas[0].options[0].bookingUrl = 'https://x.test/book'; },
+        (h) => h.replace(/bookingUrl/g, 'xxB1').replace(/actionLink/g, 'xxB2')), '住宿渲染完全沒讀'],
+    ['住宿 bookingUrl 不是完整網址', () => withTrip((t) => {
+        t.hotelAreas[1].options[0].bookingUrl = '/booking'; }), '不是完整網址'],
+    ['carPlan 有給卻沒渲染', () => withTripAndOutside((t) => {
+        t.carPlan = { recommendation: { choice: 'a', why: 'b', totalCAD: 'c' } }; },
+        (h) => h.replace(/carPlan/g, 'xxZ')), '沒有讀這個欄位'],
+    // 母本原本沒有 trip.carPlan，`delete t.carPlan.recommendation` 對 undefined 取屬性
+    // 會直接拋錯，讓探測腳本自己中斷——必須先把 carPlan 造出來才能測「造好之後再拿掉一塊」。
+    ['carPlan 只有比價沒有推薦', () => withTrip((t) => {
+        t.carPlan = { recommendation: { choice: 'a', why: 'b', totalCAD: 'c' } };
+        delete t.carPlan.recommendation; }),
+        '缺 recommendation'],
+    ['carPlan 推薦不具體', () => withTrip((t) => {
+        t.carPlan = { recommendation: { choice: 'a', why: 'b', totalCAD: 'c' } };
+        delete t.carPlan.recommendation.totalCAD; }),
+        '缺 totalCAD'],
+    // validate.js 這條警告整個包在 `if (trip.carPlan)` 裡，母本沒有 carPlan 時
+    // 光把「取車」「還車」字樣改掉，閘門從頭到尾沒打開，訊息當然不會出現。
+    // 順手把既有站名裡可能含的「取車」「還車」拿掉，讓探測不受母本站名影響。
+    ['時間軸沒有取車還車站點', () => withTrip((t) => {
+        t.carPlan = { recommendation: { choice: 'a', why: 'b', totalCAD: 'c' } };
+        daysOf(t).forEach(function (d) {
+          (d.slots || []).forEach(function (x) { x.name = (x.name || '').replace(/取車|還車/g, ''); });
+          (d.routes || []).forEach(function (r) {
+            (r.stops || []).forEach(function (x) { x.name = (x.name || '').replace(/取車|還車/g, ''); });
+          });
+        }); }),
+        '找不到「取車」或「還車」'],
     ['unverified 有給卻沒渲染', () => withTripAndOutside((t) => {
                                   t.unverified = [{ category: 'x', item: 'a', why: 'b', how: 'c' }]; },
                                   (h) => h.replace(/unverified/g, 'xxY')), '沒有讀這個欄位'],
     ['unverified 缺 how',      () => withTrip((t) => {
                                   t.unverified = [{ category: 'x', item: 'a', why: 'b' }]; }), '缺 how'],
+    ['雙方案差異天數太少', () => withPlans((t) => {
+        // 把 plan b 的每一天都改成跟 plan a 一樣，只留一天不同
+        t.plans[1].days = t.plans[0].days.map(function (d) { return JSON.parse(JSON.stringify(d)); });
+        t.plans[1].days[0].theme = '刻意改掉這一天';
+      }), '不該用 trip.plans'],
+    ['頁面註解用序號指路', () => base.replace('<style>', '<style>/* 見 ' + '第 9 ' + '節 */'),
+                                  '位置式引用'],
     ['資料裡有字面 markdown 記號', () => withTrip((t) => { t.tips.push('這是' + '**' + '粗體' + '**' + '測試'); }),
                                   'markdown 強調記號'],
     ['站點有 status 卻沒渲染', () => withTripAnd((t) => {
@@ -154,22 +236,24 @@ if (!page) {
                                   { needsBooking: true, leadDays: 3, bookingKind: 'ticket' }),
                                   (h) => h.replace(/\.reminder-badge[^{]*\{[^}]*\}/g, '')), '會產生 .reminder-badge'],
     ['route stop 的預訂欄位也要驗', () => withTrip((t) => {
-                                  var st = t.plans[0].days[0].routes[0].stops[0];
+                                  var st = daysOf(t).filter(function (d) { return (d.routes || []).length; })[0].routes[0].stops[0];
                                   st.needsBooking = true; delete st.leadDays; }), 'routes['],
     ['免責宣告完全沒渲染',      () => base.replace(/disclaimer\)/g, 'xxV)'),  '免責宣告既不在正文裡'],
-    ['沒有 plan 標 recommended', () => withTrip((t) => t.plans.forEach((p) => { delete p.recommended; })), 'recommended'],
+    ['沒有 plan 標 recommended', () => withPlans((t) => t.plans.forEach((p) => { delete p.recommended; })), 'recommended'],
     ['glossary 有分組但無詞條', () => withTrip((t) => { t.glossary.groups.forEach((g) => { g.items = []; }); }), '沒有任何詞條'],
     ['days 形式但 days 為空',   () => withTrip((t) => { delete t.plans; t.days = []; }), 'trip.days'],
     ['是 HTML 片段不是完整文件', () => '<div><p>只有片段</p></div>',          'HTML 片段'],
     ['<html> 沒有 lang',        () => base.replace(/lang="[^"]*"/, 'data-x="1"'), 'lang 屬性'],
-    ['缺雙方案渲染 class',      () => base.replace(/plan-head/g, 'xxP'),      'plan-head'],
+    ['缺雙方案渲染 class',      () => withPlans(() => {}).replace(/plan-head/g, 'xxP'), 'plan-head'],
     ['缺雨雪備案樣式 .wx',      () => base.replace(/\.wx\b/g, '.xxQ'),        '.wx'],
     ['JSON.parse 沒有保護',     () => base.replace(/try \{\s*trip = JSON\.parse/, 'trip = JSON.parse'), 'try/catch'],
     ['卡片牆缺 tabindex',       () => base.replace(/poi-grid" tabindex="0"/g, 'poi-grid"'), 'tabindex'],
     ['時間軸缺 .tl-num',        () => base.replace(/tl-num/g, 'xxR'),         'tl-num'],
     ['缺 typeof L 守衛',        () => base.replace(/typeof L/g, 'typeof xxS'), 'typeof L'],
-    ['缺 object-fit',           () => base.replace(/object-fit/g, 'xxT'),     'object-fit',
-      (b) => /<img[\s>]/.test(b) || '母本一張 <img> 都沒有（荒野行程刻意不收照片），這條檢查的前提在此母本不成立'],
+    // 母本可能一張 <img> 都沒有（荒野行程刻意不收照片）。與其標成「打不到」，
+    // 不如自己塞一張進去——前提是我們造得出來的，就不要把覆蓋率讓給母本。
+    ['缺 object-fit',           () => base.replace(/object-fit/g, 'xxT')
+                                        .replace('</body>', '<img src="x.jpg" alt=""></body>'), 'object-fit'],
     ['沒把 buildMapAppLinks 接上', () => base.replace(/buildMapAppLinks/g, 'xxU').replace('xxU', 'buildMapAppLinks'), 'buildMapAppLinks'],
   ];
 
