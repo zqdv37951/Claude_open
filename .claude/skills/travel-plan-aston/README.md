@@ -19,6 +19,7 @@
 | 時間軸站點的標題要連到哪？沒官網的站怎麼辦？ | `assets/page-contract.md#slot-links` |
 | 地圖連結要排在哪？為什麼不另起一行？ | `assets/page-contract.md#slot-links` |
 | 需要訂票／訂位的站點怎麼標？訂票連結放哪？ | `assets/page-contract.md#booking` |
+| 租車／共享車怎麼比價、怎麼給推薦？ | `assets/page-contract.md#car-plan` |
 | 查不到／驗不了的東西怎麼交給讀者？ | `assets/page-contract.md#unverified` |
 | 地圖上的編號要怎麼對回行程？ | `assets/page-contract.md#map-numbering` |
 | 淺色／深色切換鈕怎麼做？ | `assets/page-contract.md#theme-toggle` |

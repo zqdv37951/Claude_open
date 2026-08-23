@@ -131,6 +131,29 @@ description: 把旅行行程做成美觀、離線可讀、手機優先的單一�
 
 10. 告訴使用者：之後可把該 HTML 丟回來，說「把第三天的 X 挪到第四天」，會在原結構上修改（直接改內嵌的 `trip-data` JSON 再重渲染）。
 
+## 改寫既有頁面時，先把站點清單存起來再改 {#rewrite}
+
+使用者說「重新規劃」時，最容易發生而且**最不容易發現**的傷害是：你把某幾天改寫成新的樣子，順手把原本那幾天的站點弄丟了。
+
+真實案例：一次重排把 12 天的每日路線從「每天約 10 站、分輕鬆與中等兩條」改寫成「每天 3–4 站」，整份頁面從 113 個站點掉到 74 個——丟掉的包括 Yoho 唯一的餐廳、冰原大道沿線五個觀景點、露易絲湖區的茶屋步道。**所有檢查器都通過**，因為單檔校驗看不到「以前有、現在沒有」。
+
+**所以改寫前先跑這一行，改完再跑一次，diff：**
+
+```bash
+node -e '
+const fs=require("fs");
+const t=JSON.parse(fs.readFileSync(process.argv[1],"utf8").match(/<script id="trip-data"[^>]*>([\s\S]*?)<\/script>/)[1]);
+const days=(t.plans&&t.plans.length)?t.plans.flatMap(p=>p.days||[]):(t.days||[]);
+const n=new Set(); days.forEach(d=>(d.slots||[]).concat((d.routes||[]).flatMap(r=>r.stops||[])).forEach(x=>n.add(x.name)));
+console.log([...n].sort().join("\n"));
+' <頁面.html> > /tmp/stops-before.txt      # 改寫前
+# …改寫…
+# 改寫後同一行 > /tmp/stops-after.txt，然後：
+diff /tmp/stops-before.txt /tmp/stops-after.txt
+```
+
+**每一個消失的站點都要能說出為什麼。** 使用者指定不去的、那一天整個換掉的、重複的別名——這些是合理的。其餘的都是意外丟失，要放回新的日程裡。`validate.js` 會對「少於 3 站的路線」發警告，那是抓得到一部分的代理指標，但**不能取代 diff**。
+
 ## 改動引擎後的傳播 {#propagation}
 
 **三個引擎是「複製進每個頁面」的，不是外鏈。** 所以修好 `assets/poi.js` **不等於**修好既有頁面——頁面裡是舊的副本，帶著你剛修掉的 bug，而且畫面上看不出來。

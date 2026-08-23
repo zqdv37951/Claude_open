@@ -229,19 +229,43 @@ function validateTrip(trip) {
     if (!day.slots || !day.slots.length) warnings.push('days[' + di + '] 沒有 slots');
   });
 
-  // 離群檢測：與中位數偏差 > 3°（約 300km）多半是查錯城市/寫錯數量級
+  // 離群檢測：抓「查錯城市／寫錯數量級」的座標。
+  //
+  // 只用「離中位數 > 3°」會在長距離行程上誤報：卡加利＋冰原大道的行程，
+  // 哥倫比亞冰原離卡加利就是 3° 以上——座標完全正確，卻每次都跳警告。
+  // 而永遠都在的警告等於沒有警告（README.md 維護原則）。
+  //
+  // 分辨方法：**打錯的座標離「所有」點都遠，真正遠的景點離它的鄰居很近。**
+  // 冰原沿線有弓湖、佩托湖這些鄰居在 0.5° 內；打成 (20, 20) 的座標則離最近的
+  // 點也有幾十度。所以加上第二個條件：離最近的其他站點也要 > 1° 才算離群。
   function median(arr) {
     var a = arr.slice().sort(function (x, y) { return x - y; });
     return a[Math.floor(a.length / 2)];
   }
   if (lats.length >= 3) {
     var mLat = median(lats), mLng = median(lngs);
+    var pts = [];
+    trip.days.forEach(function (day) {
+      (day.slots || []).forEach(function (s) {
+        if (typeof s.lat === 'number' && typeof s.lng === 'number') pts.push([s.lat, s.lng]);
+      });
+    });
     trip.days.forEach(function (day, di) {
       (day.slots || []).forEach(function (s, si) {
         if (typeof s.lat !== 'number' || typeof s.lng !== 'number') return;
-        if (Math.abs(s.lat - mLat) > 3 || Math.abs(s.lng - mLng) > 3) {
+        var farFromCentre = Math.abs(s.lat - mLat) > 3 || Math.abs(s.lng - mLng) > 3;
+        if (!farFromCentre) return;
+        var nearest = Infinity;
+        pts.forEach(function (p) {
+          if (p[0] === s.lat && p[1] === s.lng) return;            // 自己不算
+          var d = Math.max(Math.abs(p[0] - s.lat), Math.abs(p[1] - s.lng));
+          if (d < nearest) nearest = d;
+        });
+        if (nearest > 1) {
           warnings.push('days[' + di + '].slots[' + si + '] "' + s.name
-            + '" 座標疑似離群（與行程中位點差 >3°），請核實: ' + s.lat + ',' + s.lng);
+            + '" 座標疑似離群（離行程中位點 >3°，而且離最近的其他站點也有 '
+            + nearest.toFixed(1) + '°）—— 多半是查錯城市或寫錯數量級，請核實: '
+            + s.lat + ',' + s.lng);
         }
       });
     });
@@ -311,6 +335,20 @@ function validateHTML(html) {
   // 判斷「某欄位有沒有被渲染」時必須用它：
   // 資料本身就含欄位名，不剝掉的話「有資料」會自我滿足「有渲染」。
   var outside = s.replace(/<script id="trip-data"[\s\S]*?<\/script>/, '');
+
+  // ── 頁面裡不得用序號引用契約章節 ──
+  // check-refs.js 守的是 skill 目錄，掃不到產出的 HTML。而頁面註解一樣會寫
+  // 「（trip-extras 第9節）」這種指路——那份檔案早就被刪了，序號也早就對不上。
+  // 產出的頁面壽命比契約長：一年後有人打開它想查規則，序號會把他帶到不存在的地方。
+  {
+    var posRefs = (outside.match(/第 ?\d+ ?節|trip-extras/g) || []);
+    if (posRefs.length) {
+      warnings.push('頁面裡有 ' + posRefs.length + ' 處位置式引用或指向已刪除檔案的引用（'
+        + [...new Set(posRefs)].slice(0, 4).join('、') + '）—— 改寫成 檔名#錨點，'
+        + '序號會隨契約增修靜默失效（README.md 的維護原則第 1 條）');
+    }
+  }
+
   if (!isTripPage) {
     // 輔助頁只驗「不論哪種頁面都該成立」的那幾條：響應式、tab 導覽、單檔自包含、
     // 以及「用到哪個引擎就要有那個引擎的 class 樣式」（下方引擎 class 檢查會自己判斷）。
@@ -381,6 +419,110 @@ function validateHTML(html) {
         (rt.stops || []).forEach(function (x) { if (x.needsBooking) bookable.push(x); });
       });
     });
+    // 路線太薄：一條 easy／mid 路線少於 3 站，多半是改寫時把內容弄丟了。
+    // 這條是**代價換來的**：一次重排把 12 天的路線從每天約 10 站改寫成 3–4 站，
+    // 整份頁面從 113 個站點掉到 74 個，而所有檢查器都通過——因為單檔校驗看不到
+    // 「以前有、現在沒有」。這個代理指標抓不到全部，但抓得到最常見的那種。
+    // 抵達日與回程日路線本來就短，看到警告先確認是不是那兩天。
+    (function () {
+      var thin = [];
+      var carDays2 = (trip.plans && trip.plans.length)
+        ? trip.plans.reduce(function (a, p) { return a.concat(p.days || []); }, [])
+        : (trip.days || []);
+      // 抵達日與回程日的路線本來就短（落地那天在通關、回程那天在趕飛機），
+      // 直接排除，不要讓一條每份頁面都會出現的警告佔著警告區。
+      carDays2.forEach(function (d, di) {
+        if (di === 0 || di === carDays2.length - 1) return;
+        (d.routes || []).forEach(function (r) {
+          if ((r.stops || []).length < 3) {
+            thin.push(d.date + ' 的「' + (r.label || r.kind) + '」只有 ' + (r.stops || []).length + ' 站');
+          }
+        });
+      });
+      if (thin.length) {
+        warnings.push('有 ' + thin.length + ' 條路線少於 3 站：' + thin.join('、')
+          + ' —— 改寫某一天時很容易把原本的站點弄丟。（抵達日與回程日已排除）'
+          + '（SKILL.md#rewrite）');
+      }
+    })();
+
+    // day.alternatives 有給就必須渲染。
+    // 這條是**交付物被靜默吞掉**才補的：一次重排在兩天各放了三張選項卡（含
+    // 「自駕 vs 參團 vs 住冰原」這種價差 CA$760 的決策），資料齊全、頁面完全沒讀，
+    // 而當時三個檢查器全綠——因為沒有任何一條在問「這個欄位有沒有被渲染」。
+    // 通則：**每新增一個會出現在畫面上的欄位，就要同時新增一條「有給卻沒渲染」的檢查。**
+    (function () {
+      var altDays = (trip.plans && trip.plans.length)
+        ? trip.plans.reduce(function (a, p) { return a.concat(p.days || []); }, [])
+        : (trip.days || []);
+      var n = altDays.reduce(function (a, d) { return a + (d.alternatives || []).length; }, 0);
+      if (n && outside.indexOf('alternatives') === -1) {
+        errors.push('有 ' + n + ' 張 day.alternatives 選項卡，但頁面完全沒讀這個欄位 —— '
+          + '選項只存在於 trip-data 裡，讀者看不到（conditional-features.md#alternatives）');
+      }
+      if (n && outside.indexOf('alt-l') === -1 && outside.indexOf('class="alt') === -1) {
+        warnings.push('頁面讀了 alternatives 但沒見到 .alt 系列 class —— '
+          + '選項卡疑似沒有專屬樣式（references/design-guidelines.md）');
+      }
+    })();
+
+    // 住宿選項的訂房連結有給就必須渲染。
+    // 這個洞是自己踩到的：bookingUrl 機制先做在時間軸站點上，卻忘了延伸到 hotelAreas——
+    // 而住宿是整趟最需要訂的東西。當時在資料裡放了 actionLink，頁面完全沒讀，
+    // 沒有任何檢查發現。通則：**新增一種連結欄位時，要問「還有哪裡也會用到它」。**
+    (function () {
+      var withLink = 0;
+      (trip.hotelAreas || []).forEach(function (a) {
+        (a.options || []).forEach(function (o) {
+          if (o.bookingUrl || (o.actionLink && o.actionLink.url)) withLink += 1;
+          if (o.bookingUrl && !/^https?:\/\//.test(o.bookingUrl)) {
+            errors.push('hotelAreas「' + a.area + '」的「' + o.name
+              + '」bookingUrl 不是完整網址（page-contract.md#booking）');
+          }
+        });
+      });
+      if (withLink && outside.indexOf('bookingUrl') === -1 && outside.indexOf('actionLink') === -1) {
+        errors.push('hotelAreas 有 ' + withLink + ' 個選項帶訂房連結，但頁面的住宿渲染完全沒讀 '
+          + 'bookingUrl／actionLink —— 連結等於不存在（page-contract.md#booking）');
+      }
+    })();
+
+    // carPlan：有給就必須渲染，而且推薦必須具體（page-contract.md#car-plan）
+    if (trip.carPlan) {
+      if (outside.indexOf('carPlan') === -1) {
+        errors.push('trip.carPlan 有資料但頁面沒有讀這個欄位 —— 租車規劃是必須渲染的區塊'
+          + '（page-contract.md#car-plan）');
+      }
+      var rec = trip.carPlan.recommendation;
+      if (!rec) {
+        errors.push('trip.carPlan 缺 recommendation —— 只給比價表不給推薦，等於把決定推回給讀者'
+          + '（page-contract.md#car-plan）');
+      } else {
+        ['choice', 'why', 'totalCAD'].forEach(function (k) {
+          if (!rec[k]) errors.push('carPlan.recommendation 缺 ' + k
+            + ' —— 推薦要具體到「跟誰租、哪個地點、租幾天」與總價（page-contract.md#car-plan）');
+        });
+      }
+      // 租車天數要跟時間軸對齊：取車與還車本身就該是站點。
+      // days 在這個位置還沒定義（它在下面的 IIFE 裡），所以自己取一次——
+      // 檢查要自帶它需要的資料，不要依賴「剛好插在某個變數後面」。這一條踩過兩次了。
+      var carDays = (trip.plans && trip.plans.length)
+        ? trip.plans.reduce(function (a, p) { return a.concat(p.days || []); }, [])
+        : (trip.days || []);
+      var allNames = [];
+      carDays.forEach(function (d) {
+        (d.slots || []).forEach(function (x) { allNames.push(x.name); });
+        (d.routes || []).forEach(function (r) {
+          (r.stops || []).forEach(function (x) { allNames.push(x.name); });
+        });
+      });
+      var joined = allNames.join(' ');
+      if (!/取車/.test(joined) || !/還車/.test(joined)) {
+        warnings.push('有 carPlan 但時間軸上找不到「取車」或「還車」站點 —— 租車天數的結論'
+          + '如果沒反映在逐日行程上，讀者照著走會對不上（page-contract.md#car-plan）');
+      }
+    }
+
     // unverified 給了卻沒渲染，等於把「我沒驗到什麼」這件事留在資料裡沒人看見——
     // 而那正是這個欄位存在的唯一理由（page-contract.md#unverified）。
     if ((trip.unverified || []).length && outside.indexOf('unverified') === -1) {
@@ -530,6 +672,38 @@ function validateHTML(html) {
           + row[2] + ' 疑似漏渲染');
       }
     });
+    // 雙方案差異太小就不該用 plans（conditional-features.md#dual-plans）。
+    // 兩案逐日比對，內容相同的日子不算差異。差異少於 3 天時，其餘日子是
+    // 逐字重複的——12 天只差 2 天，等於多印 10 天一模一樣的內容。
+    // 最常見的成因：使用者後來把住宿訂死，雙方案的前提消失了卻沒回頭收掉。
+    if (t.plans && t.plans.length === 2) {
+      var sig = function (d) {
+        return JSON.stringify([(d.slots || []).map(function (x) { return x.name; }),
+          (d.routes || []).map(function (r) { return (r.stops || []).map(function (x) { return x.name; }); }),
+          d.theme || '']);
+      };
+      var byDate = {};
+      t.plans.forEach(function (pl, pi) {
+        (pl.days || []).forEach(function (d) {
+          byDate[d.date] = byDate[d.date] || [];
+          byDate[d.date][pi] = sig(d);
+        });
+      });
+      var dates = Object.keys(byDate);
+      var differ = dates.filter(function (dt) {
+        var pair = byDate[dt];
+        return pair[0] !== undefined && pair[1] !== undefined && pair[0] !== pair[1];
+      }).length;
+      var onlyOne = dates.filter(function (dt) {
+        return byDate[dt][0] === undefined || byDate[dt][1] === undefined;
+      }).length;
+      if (differ + onlyOne > 0 && differ + onlyOne < 3) {
+        warnings.push('兩個 plan 只有 ' + (differ + onlyOne) + ' 天不同（共 ' + dates.length
+          + ' 天）—— 差異少於 3 天不該用 trip.plans，其餘日子是重複內容。'
+          + '改成單一 trip.days，在那幾天放 day.alternatives（conditional-features.md#dual-plans）');
+      }
+    }
+
     // 雙方案的渲染 class（conditional-features.md#dual-plans「渲染 class 規格」）
     if (t.plans && t.plans.length) {
       ['plan-head', 'route-h'].forEach(function (c) {
@@ -538,9 +712,15 @@ function validateHTML(html) {
             + ' —— 雙方案的渲染 class 規格見 conditional-features.md#dual-plans');
         }
       });
-      if (days.some(function (d) { return d.planB; }) && outside.indexOf('.wx') === -1) {
-        warnings.push('有雨雪備案資料但頁面沒見到 .wx —— 備案區塊疑似沒有專屬樣式（conditional-features.md#dual-plans）');
-      }
+    }
+
+    // planB 是**每日**欄位，單一方案（trip.days）一樣會有 —— 所以這條不能包在
+    // 上面的 plans-only 區塊裡。原本包在裡面，等於單一方案的行程完全不檢查。
+    // 這是本 skill 踩過那個 bug 的鏡像：上次是「雙方案的 days 藏在 plans[] 裡」讓
+    // 四條檢查永遠讀到 undefined；這次是反過來，把每日的檢查綁在雙方案的條件下。
+    // 通則：**檢查的條件要對應「資料在哪一層」，不要對應「這趟用了哪種形狀」。**
+    if (days.some(function (d) { return d.planB; }) && outside.indexOf('.wx') === -1) {
+      warnings.push('有雨雪備案資料但頁面沒見到 .wx —— 備案區塊疑似沒有專屬樣式（conditional-features.md#dual-plans）');
     }
   })();
 
