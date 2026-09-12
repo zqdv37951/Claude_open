@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Network-Level Ad Blocker + Conditional Lazy Load Trigger (Universal Pro)
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.6
 // @description  廣告攔截全站生效,僅在 /books/ 閱讀頁觸發懶加載滾動
 // @author       Gemini
 // @match        *://*.roumanm.com/*
@@ -11,7 +11,11 @@
 (function() {
     'use strict';
 
-    const BLOCKED_PATTERNS = [/ar01\.xyz/i, /taboola\.com/i];
+    const BLOCKED_PATTERNS = [
+        /ar01\.xyz/i,
+        /taboola\.com/i,
+        /towm\d*\.xyz/i   // 京華夜遊 gif 廣告 CDN(towm85.xyz),用 \d* 涵蓋可能輪替的數字子網域
+    ];
 
     function isBlocked(url) {
         if (!url) return false;
@@ -68,6 +72,13 @@
         interceptElementSrc('img');
         interceptElementSrc('iframe');
 
+        function clickAdCloseButton(el) {
+            if (el.tagName === 'BUTTON' && el.getAttribute && el.getAttribute('aria-label') === '關閉廣告') {
+                console.log('[網路攔截] 自動點擊關閉廣告按鈕');
+                el.click();
+            }
+        }
+
         const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 mutation.addedNodes.forEach(node => {
@@ -77,6 +88,10 @@
                     }
                     if (node.tagName === 'A' && isBlocked(node.href)) {
                         node.remove();
+                    }
+                    clickAdCloseButton(node);
+                    if (node.querySelectorAll) {
+                        node.querySelectorAll('button[aria-label="關閉廣告"]').forEach(clickAdCloseButton);
                     }
                 });
             }
