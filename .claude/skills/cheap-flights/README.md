@@ -1,4 +1,4 @@
-# jojo-cheap-flights
+# cheap-flights
 
 A Claude Code skill that finds cheap flights and hidden flight deals by
 comparing current Google Flights prices against ~61 days of real historical
@@ -11,7 +11,7 @@ research workflow. Paired with a published Claude Artifact query-builder UI
 ## What's in here
 
 - **`SKILL.md`** — the skill definition: search modes, workflow, gotchas.
-  Load this in Claude Code (`~/.claude/skills/jojo-cheap-flights/`) to
+  Load this in Claude Code (`~/.claude/skills/cheap-flights/`) to
   reproduce the whole system in a fresh session.
 - **`scripts/flight_deal_check.py`** — the query engine. Scrapes Google
   Flights via Bright Data's SERP API and reverse-engineers the page's
