@@ -1,5 +1,5 @@
 ---
-name: jojo-cheap-flights
+name: cheap-flights
 description: Find cheap flights and hidden flight deals by comparing current Google Flights prices against ~61 days of real historical pricing for the same route, not just absolute lowest price. Use this whenever the user asks to find cheap flights, check if a flight price is a good deal, search flights across flexible dates/origins/destinations, or mentions the "JoJo 便宜機票查詢台" / "JoJoNowhere" flight tool — even if they just paste a JSON query spec from that tool without further explanation, or ask things like "幫我查機票", "這張票貴不貴", "有沒有比較便宜的時候", "查一下這個航線的優惠". Also use it if the user wants to update or debug the flight_query_console.html Artifact or the flight_deal_check.py script themselves.
 ---
 
