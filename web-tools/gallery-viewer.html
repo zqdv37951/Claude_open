@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>圖片瀏覽器</title>
+<style>
+  :root { --img-width: 900px; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; font-family: -apple-system, "PingFang TC", sans-serif; }
+
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(17,17,17,0.95);
+    color: #eee; border-bottom: 1px solid #333;
+  }
+  .row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; font-size: 13px;
+  }
+  .row + .row { border-top: 1px solid #262626; }
+  .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; }
+  .right { display: flex; align-items: center; gap: 8px; color: #888; flex-shrink: 0; }
+  #pageIndicator { color: #aaa; min-width: 60px; text-align: right; }
+
+  select, button {
+    background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 6px;
+    padding: 6px 10px; font-size: 12px; cursor: pointer;
+  }
+  select { max-width: 180px; }
+  button:hover { background: #383838; }
+
+  .slider-group { display: flex; align-items: center; gap: 6px; color: #888; }
+  input[type="range"] { width: 110px; }
+
+  main { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  main.spread { }
+  main img { display: block; width: 100%; max-width: var(--img-width); height: auto; background: #1a1a1a; }
+  main .row-pair {
+    display: flex; flex-direction: row-reverse; width: 100%;
+    max-width: calc(var(--img-width) * 2 + 4px);
+    justify-content: center;
+  }
+  main .row-pair img { width: calc(50% - 2px); max-width: none; }
+  main img.broken {
+    min-height: 160px; background: #2a1414; border: 1px dashed #633;
+    color: #f88; display: flex; align-items: center; justify-content: center;
+  }
+
+  #empty { color: #888; text-align: center; padding: 80px 20px; font-size: 15px; line-height: 1.8; }
+  #empty button { margin-top: 16px; font-size: 14px; padding: 10px 20px; }
+
+  footer { color: #666; text-align: center; padding: 24px; font-size: 13px; }
+
+  #backToTop {
+    display: none; position: fixed; right: 20px; bottom: 24px; z-index: 20;
+    width: 44px; height: 44px; border-radius: 50%; align-items: center; justify-content: center;
+    background: #2a2a2a; color: #eee; border: 1px solid #444; font-size: 18px; cursor: pointer;
+  }
+  #backToTop:hover { background: #383838; }
+
+  #chapterNav { display: none; position: relative; flex-shrink: 0; }
+  #chapterBtn {
+    display: flex; align-items: center; gap: 5px;
+    background: #2a2a2a; color: #aaa; border: 1px solid #444; border-radius: 6px;
+    padding: 4px 8px; font-size: 12px; cursor: pointer;
+  }
+  #chapterBtn:hover { background: #383838; }
+  #chapterBtn .chapter-icon { font-size: 14px; }
+  #chapterBtn .chapter-label {
+    max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #chapterPanel {
+    display: none; position: absolute; left: 0; top: 100%; margin-top: 6px;
+    background: #1c1c1c; border: 1px solid #444; border-radius: 8px;
+    max-height: 60vh; overflow-y: auto; min-width: 200px; max-width: 320px;
+    padding: 6px; box-shadow: 0 4px 18px rgba(0,0,0,0.5); z-index: 30;
+  }
+  #chapterPanel.open { display: block; }
+  .chapter-item {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    color: #ddd; padding: 8px 10px; font-size: 13px; border-radius: 6px; cursor: pointer;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .chapter-item:hover { background: #333; }
+  .chapter-item.active { background: #3a4d63; color: #fff; }
+
+  #historyNav { display: none; position: relative; flex-shrink: 0; }
+  #historyBtn {
+    display: flex; align-items: center; gap: 5px;
+    background: #2a2a2a; color: #aaa; border: 1px solid #444; border-radius: 6px;
+    padding: 4px 8px; font-size: 12px; cursor: pointer;
+  }
+  #historyBtn:hover { background: #383838; }
+  #historyBtn .chapter-icon { font-size: 14px; }
+  #historyPanel {
+    display: none; position: absolute; right: 0; top: 100%; margin-top: 6px;
+    background: #1c1c1c; border: 1px solid #444; border-radius: 8px;
+    max-height: 60vh; overflow-y: auto; min-width: 180px; max-width: 280px;
+    padding: 6px; box-shadow: 0 4px 18px rgba(0,0,0,0.5); z-index: 30;
+  }
+  #historyPanel.open { display: block; }
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <span class="name" id="folderName">尚未選擇資料夾</span>
+    <div id="chapterNav">
+      <button id="chapterBtn" title="章節">
+        <span class="chapter-icon">📑</span><span class="chapter-label" id="chapterLabel"></span>
+      </button>
+      <div id="chapterPanel"></div>
+    </div>
+    <span class="right">
+      <span id="pageIndicator"></span>
+      <select id="recentSelect"><option value="">最近的資料夾…</option></select>
+      <button id="pickBtn">選擇資料夾</button>
+    </span>
+  </div>
+  <div class="row">
+    <div class="slider-group">
+      <span>寬度</span>
+      <input type="range" id="widthSlider" min="300" max="1600" step="20">
+    </div>
+    <span class="right" style="margin-left:auto;">
+      <div id="historyNav">
+        <button id="historyBtn" title="閱讀紀錄">
+          <span class="chapter-icon">🕘</span><span class="chapter-label" id="historyLabel"></span>
+        </button>
+        <div id="historyPanel"></div>
+      </div>
+      <button id="spreadBtn">雙頁模式</button>
+      <button id="refreshBtn" style="display:none;">重新整理</button>
+    </span>
+  </div>
+</header>
+<main id="main">
+  <div id="empty">
+    這個網頁可以放在任何地方（不用放在圖片資料夾裡）。<br>
+    點右上角「選擇資料夾」，選一次你要看的圖片資料夾，<br>
+    之後同一台電腦、同一個瀏覽器重新打開這個網頁時會自動記住，不用每次重選。<br><br>
+    僅支援 Chrome / Edge（Safari 不支援這個瀏覽器功能）。
+    <div><button id="pickBtn2">選擇資料夾</button></div>
+  </div>
+</main>
+<footer id="pageFooter"></footer>
+<div id="backToTop" title="回到頂部">↑</div>
+
+<script>
+const IMAGE_EXT = new Set(["jpg","jpeg","png","gif","webp","bmp","avif","tif","tiff"]);
+const DB_NAME = "gallery-viewer-db";
+const STORE = "handles";
+const LEGACY_KEY = "lastFolder";
+const MAX_RECENTS = 8;
+
+// ---------- natural sort ----------
+function naturalCompare(a, b) {
+  const re = /(\d+)|(\D+)/g;
+  const ax = a.match(re) || [];
+  const bx = b.match(re) || [];
+  const len = Math.max(ax.length, bx.length);
+  for (let i = 0; i < len; i++) {
+    const av = ax[i] ?? "";
+    const bv = bx[i] ?? "";
+    if (av === bv) continue;
+    const an = /^\d+$/.test(av), bn = /^\d+$/.test(bv);
+    if (an && bn) return parseInt(av, 10) - parseInt(bv, 10);
+    return av < bv ? -1 : 1;
+  }
+  return 0;
+}
+
+// ---------- IndexedDB: recent folder handles ----------
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function migrateLegacy() {
+  const db = await openDb();
+  await new Promise((resolve) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const store = tx.objectStore(STORE);
+    const req = store.get(LEGACY_KEY);
+    req.onsuccess = () => {
+      const handle = req.result;
+      if (handle) {
+        store.put({ handle, ts: Date.now() }, handle.name);
+        store.delete(LEGACY_KEY);
+      }
+      resolve();
+    };
+    req.onerror = () => resolve();
+  });
+}
+
+async function getAllRecents() {
+  const db = await openDb();
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, "readonly");
+    const store = tx.objectStore(STORE);
+    const items = [];
+    const req = store.openCursor();
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        if (cursor.key !== LEGACY_KEY && cursor.value && cursor.value.handle) {
+          items.push({ key: cursor.key, handle: cursor.value.handle, ts: cursor.value.ts || 0 });
+        }
+        cursor.continue();
+      } else {
+        items.sort((a, b) => b.ts - a.ts);
+        resolve(items);
+      }
+    };
+    req.onerror = () => resolve([]);
+  });
+}
+
+async function saveRecentHandle(handle) {
+  const db = await openDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put({ handle, ts: Date.now() }, handle.name);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+  const all = await getAllRecents();
+  if (all.length > MAX_RECENTS) {
+    const db2 = await openDb();
+    const tx2 = db2.transaction(STORE, "readwrite");
+    const store2 = tx2.objectStore(STORE);
+    all.slice(MAX_RECENTS).forEach((item) => store2.delete(item.key));
+  }
+}
+
+// ---------- DOM refs ----------
+const folderNameEl = document.getElementById("folderName");
+const pageIndicator = document.getElementById("pageIndicator");
+const mainEl = document.getElementById("main");
+const pickBtn = document.getElementById("pickBtn");
+const pickBtn2 = document.getElementById("pickBtn2");
+const refreshBtn = document.getElementById("refreshBtn");
+const spreadBtn = document.getElementById("spreadBtn");
+const widthSlider = document.getElementById("widthSlider");
+const recentSelect = document.getElementById("recentSelect");
+const footerEl = document.getElementById("pageFooter");
+const backToTop = document.getElementById("backToTop");
+const chapterNav = document.getElementById("chapterNav");
+const chapterBtn = document.getElementById("chapterBtn");
+const chapterPanel = document.getElementById("chapterPanel");
+const chapterLabel = document.getElementById("chapterLabel");
+const historyNav = document.getElementById("historyNav");
+const historyBtn = document.getElementById("historyBtn");
+const historyPanel = document.getElementById("historyPanel");
+const historyLabel = document.getElementById("historyLabel");
+
+let currentHandle = null;
+let currentFolderName = "";
+let currentImages = []; // [{name, url}]
+let pageEls = [];       // <img> elements in reading order, for page counter/progress
+let spreadMode = localStorage.getItem("gallery-spread") === "1";
+
+// ---------- settings init ----------
+const savedWidth = localStorage.getItem("gallery-width") || 900;
+document.documentElement.style.setProperty("--img-width", savedWidth + "px");
+widthSlider.value = savedWidth;
+spreadBtn.textContent = spreadMode ? "單頁模式" : "雙頁模式";
+
+widthSlider.addEventListener("input", () => {
+  document.documentElement.style.setProperty("--img-width", widthSlider.value + "px");
+  localStorage.setItem("gallery-width", widthSlider.value);
+});
+
+spreadBtn.addEventListener("click", () => {
+  spreadMode = !spreadMode;
+  localStorage.setItem("gallery-spread", spreadMode ? "1" : "0");
+  spreadBtn.textContent = spreadMode ? "單頁模式" : "雙頁模式";
+  if (currentImages.length) renderImages();
+});
+
+refreshBtn.addEventListener("click", () => {
+  if (currentHandle) loadAndRender(currentHandle);
+});
+
+// ---------- recursive folder scan ----------
+async function collectImageEntries(dirHandle, prefix) {
+  const entries = [];
+  for await (const [name, entry] of dirHandle.entries()) {
+    if (entry.kind === "file") {
+      const ext = name.split(".").pop().toLowerCase();
+      if (IMAGE_EXT.has(ext)) entries.push({ name: prefix + name, entry });
+    } else if (entry.kind === "directory") {
+      const sub = await collectImageEntries(entry, prefix + name + "/");
+      entries.push(...sub);
+    }
+  }
+  return entries;
+}
+
+// ---------- progress + reading history (last 5 per folder) ----------
+const MAX_HISTORY = 5;
+function progressKey(folderName) { return "progress:" + folderName; }
+function historyKey(folderName) { return "history:" + folderName; }
+
+function getProgress(folderName) {
+  const raw = localStorage.getItem(progressKey(folderName));
+  if (!raw) return null;
+  try {
+    const obj = JSON.parse(raw);
+    if (obj && Number.isFinite(obj.idx)) return obj;
+  } catch (e) { /* legacy plain-integer value below */ }
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? { idx: n, total: null, ts: 0 } : null;
+}
+
+function setProgress(folderName, idx, total) {
+  localStorage.setItem(progressKey(folderName), JSON.stringify({ idx, total, ts: Date.now() }));
+}
+
+function getHistory(folderName) {
+  try { return JSON.parse(localStorage.getItem(historyKey(folderName)) || "[]"); }
+  catch (e) { return []; }
+}
+
+function pushHistory(folderName, idx, total) {
+  if (!folderName || !Number.isFinite(idx)) return;
+  const hist = getHistory(folderName);
+  if (hist.length && hist[0].idx === idx) {
+    hist[0].ts = Date.now();
+  } else {
+    hist.unshift({ idx, total, ts: Date.now() });
+  }
+  localStorage.setItem(historyKey(folderName), JSON.stringify(hist.slice(0, MAX_HISTORY)));
+}
+
+function snapshotCurrentProgress() {
+  if (!currentFolderName || !pageEls.length) return;
+  const prog = getProgress(currentFolderName);
+  if (prog) pushHistory(currentFolderName, prog.idx, prog.total);
+}
+
+function timeAgo(ts) {
+  const min = Math.floor((Date.now() - ts) / 60000);
+  if (min < 1) return "剛剛";
+  if (min < 60) return min + " 分鐘前";
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return hr + " 小時前";
+  return Math.floor(hr / 24) + " 天前";
+}
+
+// ---------- loading + rendering ----------
+async function loadAndRender(handle) {
+  snapshotCurrentProgress();
+  currentHandle = handle;
+  currentFolderName = handle.name;
+  folderNameEl.textContent = handle.name;
+  refreshBtn.style.display = "inline-block";
+  mainEl.innerHTML = "";
+  footerEl.textContent = "";
+
+  const entries = await collectImageEntries(handle, "");
+  entries.sort((a, b) => naturalCompare(a.name, b.name));
+
+  if (entries.length === 0) {
+    mainEl.innerHTML = '<div id="empty">這個資料夾裡沒有找到圖片檔案。</div>';
+    pageIndicator.textContent = "";
+    chapterNav.style.display = "none";
+    historyNav.style.display = "none";
+    return;
+  }
+
+  currentImages = [];
+  for (let i = 0; i < entries.length; i++) {
+    pageIndicator.textContent = `載入中 ${i + 1}/${entries.length}`;
+    const file = await entries[i].entry.getFile();
+    currentImages.push({ name: entries[i].name, url: URL.createObjectURL(file) });
+  }
+
+  renderImages();
+}
+
+function renderImages() {
+  mainEl.innerHTML = "";
+  pageEls = [];
+
+  function makeImg(item) {
+    const img = document.createElement("img");
+    img.src = item.url;
+    img.alt = item.name;
+    img.title = item.name;
+    img.loading = "lazy";
+    img.onerror = () => img.classList.add("broken");
+    pageEls.push(img);
+    return img;
+  }
+
+  if (spreadMode) {
+    for (let i = 0; i < currentImages.length; i += 2) {
+      const pair = currentImages.slice(i, i + 2);
+      if (pair.length === 2) {
+        const row = document.createElement("div");
+        row.className = "row-pair";
+        row.appendChild(makeImg(pair[0]));
+        row.appendChild(makeImg(pair[1]));
+        mainEl.appendChild(row);
+      } else {
+        mainEl.appendChild(makeImg(pair[0]));
+      }
+    }
+  } else {
+    for (const item of currentImages) mainEl.appendChild(makeImg(item));
+  }
+
+  footerEl.textContent = `已顯示全部 ${currentImages.length} 張圖片（依檔名排序）`;
+  renderHistoryNav();
+  restoreProgress();
+  updateCurrentPage();
+  renderChapters();
+}
+
+// ---------- chapters (subfolders) ----------
+let chapters = []; // [{folder, index, btn}]
+let activeChapterIdx = -1;
+
+function buildChapters() {
+  const result = [];
+  let lastFolder = null;
+  currentImages.forEach((item, idx) => {
+    const slash = item.name.lastIndexOf("/");
+    const folder = slash === -1 ? "" : item.name.slice(0, slash);
+    if (folder !== lastFolder) {
+      result.push({ folder, index: idx });
+      lastFolder = folder;
+    }
+  });
+  return result;
+}
+
+function chapterShortLabel(folder) {
+  if (!folder) return "根目錄";
+  const parts = folder.split("/");
+  return parts[parts.length - 1];
+}
+
+function renderChapters() {
+  chapters = buildChapters();
+  chapterPanel.innerHTML = "";
+  chapterPanel.classList.remove("open");
+  activeChapterIdx = -1;
+  if (chapters.length <= 1) {
+    chapterNav.style.display = "none";
+    return;
+  }
+  chapterNav.style.display = "flex";
+  for (const ch of chapters) {
+    const btn = document.createElement("button");
+    btn.className = "chapter-item";
+    const label = ch.folder || "（根目錄）";
+    btn.textContent = label;
+    btn.title = label;
+    btn.addEventListener("click", () => {
+      pageEls[ch.index].scrollIntoView({ block: "start", behavior: "smooth" });
+      chapterPanel.classList.remove("open");
+    });
+    ch.btn = btn;
+    chapterPanel.appendChild(btn);
+  }
+  updateActiveChapter(0);
+}
+
+function updateActiveChapter(pageIdx) {
+  if (!chapters.length) return;
+  let idx = 0;
+  for (let i = 0; i < chapters.length; i++) {
+    if (chapters[i].index <= pageIdx) idx = i; else break;
+  }
+  if (idx === activeChapterIdx) return;
+  activeChapterIdx = idx;
+  chapters.forEach((ch, i) => ch.btn.classList.toggle("active", i === idx));
+  chapterLabel.textContent = chapterShortLabel(chapters[idx].folder);
+  chapterBtn.title = chapters[idx].folder || "根目錄";
+}
+
+chapterBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  chapterPanel.classList.toggle("open");
+});
+
+document.addEventListener("click", (e) => {
+  if (!chapterNav.contains(e.target)) chapterPanel.classList.remove("open");
+});
+
+function restoreProgress() {
+  const prog = getProgress(currentFolderName);
+  if (!prog || !pageEls[prog.idx]) return;
+  const el = pageEls[prog.idx];
+  const doScroll = () => el.scrollIntoView({ block: "start" });
+  requestAnimationFrame(doScroll);
+  setTimeout(doScroll, 400);
+}
+
+// ---------- reading history (last 5 per folder) ----------
+function renderHistoryNav() {
+  const hist = getHistory(currentFolderName);
+  historyPanel.innerHTML = "";
+  historyPanel.classList.remove("open");
+  if (!hist.length) {
+    historyNav.style.display = "none";
+    return;
+  }
+  historyNav.style.display = "flex";
+  const latest = hist[0];
+  const latestLabel = latest.total ? `${latest.idx + 1}/${latest.total}` : `${latest.idx + 1}`;
+  historyLabel.textContent = latestLabel;
+  historyBtn.title = `上次讀到 ${latestLabel} · ${timeAgo(latest.ts)}`;
+  for (const h of hist) {
+    const btn = document.createElement("button");
+    btn.className = "chapter-item";
+    const label = h.total ? `${h.idx + 1}/${h.total}` : `${h.idx + 1}`;
+    btn.textContent = `${label} · ${timeAgo(h.ts)}`;
+    btn.addEventListener("click", () => {
+      if (pageEls[h.idx]) pageEls[h.idx].scrollIntoView({ block: "start", behavior: "smooth" });
+      historyPanel.classList.remove("open");
+    });
+    historyPanel.appendChild(btn);
+  }
+}
+
+historyBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  historyPanel.classList.toggle("open");
+});
+
+document.addEventListener("click", (e) => {
+  if (!historyNav.contains(e.target)) historyPanel.classList.remove("open");
+});
+
+window.addEventListener("beforeunload", snapshotCurrentProgress);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") snapshotCurrentProgress();
+});
+
+// ---------- page counter / progress / back-to-top ----------
+let ticking = false;
+window.addEventListener("scroll", () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => { updateCurrentPage(); ticking = false; });
+}, { passive: true });
+
+function updateCurrentPage() {
+  if (!pageEls.length) return;
+  const headerH = document.querySelector("header").offsetHeight + 4;
+  let idx = 0;
+  for (let i = 0; i < pageEls.length; i++) {
+    const rect = pageEls[i].getBoundingClientRect();
+    idx = i;
+    if (rect.bottom > headerH) break;
+  }
+  pageIndicator.textContent = `${idx + 1} / ${pageEls.length}`;
+  if (currentFolderName) setProgress(currentFolderName, idx, pageEls.length);
+  backToTop.style.display = window.scrollY > 600 ? "flex" : "none";
+  updateActiveChapter(idx);
+}
+
+backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+// ---------- keyboard navigation ----------
+window.addEventListener("keydown", (e) => {
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if (["INPUT", "SELECT", "TEXTAREA"].includes(tag)) return;
+  switch (e.key) {
+    case " ":
+    case "ArrowDown":
+    case "PageDown":
+      e.preventDefault();
+      window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" });
+      break;
+    case "ArrowUp":
+    case "PageUp":
+      e.preventDefault();
+      window.scrollBy({ top: -window.innerHeight * 0.9, behavior: "smooth" });
+      break;
+    case "Home":
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      break;
+    case "End":
+      e.preventDefault();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      break;
+  }
+});
+
+// ---------- folder picking ----------
+async function pickFolder() {
+  try {
+    const handle = await window.showDirectoryPicker();
+    const perm = await handle.requestPermission({ mode: "read" });
+    if (perm !== "granted") return;
+    await saveRecentHandle(handle);
+    await refreshRecentSelect();
+    await loadAndRender(handle);
+    pickBtn.textContent = "選擇其他資料夾";
+  } catch (e) {
+    if (e.name !== "AbortError") console.error(e);
+  }
+}
+pickBtn.addEventListener("click", pickFolder);
+pickBtn2.addEventListener("click", pickFolder);
+
+async function ensurePermissionAndLoad(handle) {
+  let perm = await handle.queryPermission({ mode: "read" });
+  if (perm !== "granted") perm = await handle.requestPermission({ mode: "read" });
+  if (perm !== "granted") return false;
+  await saveRecentHandle(handle);
+  await loadAndRender(handle);
+  pickBtn.textContent = "選擇其他資料夾";
+  return true;
+}
+
+async function refreshRecentSelect() {
+  const recents = await getAllRecents();
+  recentSelect.innerHTML = '<option value="">最近的資料夾…</option>';
+  for (const item of recents) {
+    const opt = document.createElement("option");
+    opt.value = item.key;
+    const prog = getProgress(item.handle.name);
+    opt.textContent = prog && prog.total
+      ? `${item.handle.name}（${prog.idx + 1}/${prog.total}）`
+      : item.handle.name;
+    recentSelect.appendChild(opt);
+  }
+  return recents;
+}
+
+recentSelect.addEventListener("change", async () => {
+  const key = recentSelect.value;
+  if (!key) return;
+  const recents = await getAllRecents();
+  const found = recents.find((r) => r.key === key);
+  if (found) await ensurePermissionAndLoad(found.handle);
+});
+
+// ---------- boot ----------
+async function boot() {
+  if (!window.showDirectoryPicker) {
+    document.getElementById("empty").innerHTML =
+      "你目前用的瀏覽器不支援這個功能，請改用 Chrome 或 Edge 開啟這個網頁。";
+    return;
+  }
+  await migrateLegacy();
+  const recents = await refreshRecentSelect();
+  if (recents.length === 0) return;
+
+  const latest = recents[0];
+  const ok = await ensurePermissionAndLoad(latest.handle).catch(() => false);
+  if (!ok) {
+    folderNameEl.textContent = latest.handle.name + "（需要重新授權）";
+    pickBtn.textContent = "重新授權「" + latest.handle.name + "」";
+    pickBtn.onclick = async () => {
+      const success = await ensurePermissionAndLoad(latest.handle);
+      if (success) pickBtn.onclick = null; // fall back to the default listener added via addEventListener
+    };
+  }
+}
+boot();
+</script>
+</body>
+</html>
