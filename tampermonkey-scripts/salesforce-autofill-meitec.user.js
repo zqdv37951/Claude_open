@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Salesforce Auto-Fill Ultimate (Meitec)
 // @namespace    http://tampermonkey.net/
-// @version      8.6
+// @version      8.7
 // @description  極速調校版：三軌自動化（手当 / デイリーサマリー / 申請）+ 見込み勤務時間／業務内容／勤務場所自動帶入 + 自動保存，挑戰 Salesforce API 同步極限
 // @author       YourDebatePartner
 // @match        *://*.force.com/*
@@ -14,7 +14,7 @@
 (function() {
     'use strict';
 
-    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.6 已載入！(競速調校版)");
+    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.7 已載入！(競速調校版)");
 
     // 🏆 競速核心配置區
     const CONFIG = {
@@ -328,6 +328,20 @@
         const row = input.closest('tr');
         if (!row) return;
 
+        // 防止同一列被重複觸發：勤務場所下拉選單關閉後有時會把焦點還給這顆 input，
+        // 在畫面還沒反映「已選擇」之前就再次進到這個 handler，導致整組流程重跑。
+        if (row.dataset.estAutoRunning === '1' || row.dataset.estAutoDone === '1') return;
+        row.dataset.estAutoRunning = '1';
+
+        try {
+            await runEstWorkTimeAutofill(input, row);
+        } finally {
+            row.dataset.estAutoDone = '1';
+            delete row.dataset.estAutoRunning;
+        }
+    });
+
+    async function runEstWorkTimeAutofill(input, row) {
         // 見込み勤務時間：帶入本列工数
         if (!input.value) {
             const taskTimeEl = row.querySelector('.timesheet-pc-main-content-timesheet-daily-summary-button__total-task-time');
@@ -368,7 +382,7 @@
                 console.error(`[Debug-EstWorkTime] ❌ 找不到「${WORK_LOCATION_TEXT}」選項。`);
             }
         }
-    });
+    }
 
     // 狀態控管模組
     const AppState = {
