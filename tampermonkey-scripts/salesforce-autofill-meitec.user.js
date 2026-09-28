@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Salesforce Auto-Fill Ultimate (Meitec)
 // @namespace    http://tampermonkey.net/
-// @version      8.3
-// @description  極速調校版：三軌自動化（手当 / デイリーサマリー / 申請）挑戰 Salesforce API 同步極限
+// @version      8.7
+// @description  極速調校版：三軌自動化（手当 / デイリーサマリー / 申請）+ 見込み勤務時間／業務内容／勤務場所自動帶入 + 自動保存，挑戰 Salesforce API 同步極限
 // @author       YourDebatePartner
 // @match        *://*.force.com/*
 // @match        *://*.salesforce.com/*
@@ -14,7 +14,7 @@
 (function() {
     'use strict';
 
-    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.3 已載入！(競速調校版)");
+    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.7 已載入！(競速調校版)");
 
     // 🏆 競速核心配置區
     const CONFIG = {
@@ -126,6 +126,17 @@
         const buttons = container.querySelectorAll('button');
         for (let btn of buttons) {
             if (btn.textContent.trim() === text && isElementStrictlyVisible(btn)) return btn;
+        }
+        return null;
+    }
+
+    async function waitForOptionByText(text, timeout = 3000) {
+        const start = Date.now();
+        while (Date.now() - start < timeout) {
+            const found = Array.from(document.querySelectorAll('li[role="option"]'))
+                .find(li => li.textContent.trim() === text && isElementStrictlyVisible(li));
+            if (found) return found;
+            await sleep(100);
         }
         return null;
     }
@@ -303,6 +314,73 @@
             await forceClick(applyBtn);
         } else {
             console.error("[Debug-Request] ❌ 找不到「申請」按鈕。");
+        }
+    }
+
+    // --- 流程 4：見込み勤務時間 欄位取得焦點時，同時帶入本列的工数／業務内容／勤務場所 ---
+    const WORK_CONTENT_TEXT = 'aws azure infra設計管理 typescript python react フルスタック';
+    const WORK_LOCATION_TEXT = '在宅：客先業務';
+
+    document.addEventListener('focusin', async function(e) {
+        const input = e.target;
+        if (!input.matches || !input.matches('input.commons-fields-att-time-3-digit-hour-field')) return;
+
+        const row = input.closest('tr');
+        if (!row) return;
+
+        // 防止同一列被重複觸發：勤務場所下拉選單關閉後有時會把焦點還給這顆 input，
+        // 在畫面還沒反映「已選擇」之前就再次進到這個 handler，導致整組流程重跑。
+        if (row.dataset.estAutoRunning === '1' || row.dataset.estAutoDone === '1') return;
+        row.dataset.estAutoRunning = '1';
+
+        try {
+            await runEstWorkTimeAutofill(input, row);
+        } finally {
+            row.dataset.estAutoDone = '1';
+            delete row.dataset.estAutoRunning;
+        }
+    });
+
+    async function runEstWorkTimeAutofill(input, row) {
+        // 見込み勤務時間：帶入本列工数
+        if (!input.value) {
+            const taskTimeEl = row.querySelector('.timesheet-pc-main-content-timesheet-daily-summary-button__total-task-time');
+            const taskTime = taskTimeEl && taskTimeEl.textContent.trim();
+            if (taskTime) {
+                console.log("[Debug-EstWorkTime] 🎯 見込み勤務時間欄位取得焦點，帶入本列工数：", taskTime);
+                await setNativeValue(input, taskTime);
+            }
+        }
+
+        // 業務内容：帶入固定文字
+        const workContentInput = row.querySelector('input.ts-text-field');
+        if (workContentInput && !workContentInput.value) {
+            console.log("[Debug-EstWorkTime] 📝 帶入業務内容固定文字。");
+            await setNativeValue(workContentInput, WORK_CONTENT_TEXT);
+        }
+
+        // 勤務場所：選擇「在宅：客先業務」
+        const locationLabel = row.querySelector('.DropdownButton__Label-sc-8ghard-3');
+        const locationBtn = row.querySelector('.DropdownButton__Button-sc-8ghard-2');
+        if (locationLabel && locationBtn && !locationLabel.textContent.trim()) {
+            console.log("[Debug-EstWorkTime] 📍 開啟勤務場所下拉選單。");
+            await forceClick(locationBtn);
+            const option = await waitForOptionByText(WORK_LOCATION_TEXT);
+            if (option) {
+                await forceClick(option);
+                console.log(`[Debug-EstWorkTime] ✅ 已選擇勤務場所：${WORK_LOCATION_TEXT}`);
+
+                await sleep(200);
+                const saveBtn = findButtonByText('保存', row);
+                if (saveBtn) {
+                    console.log("[Debug-EstWorkTime] 💾 點擊本列「保存」按鈕。");
+                    await forceClick(saveBtn);
+                } else {
+                    console.error("[Debug-EstWorkTime] ❌ 找不到本列「保存」按鈕。");
+                }
+            } else {
+                console.error(`[Debug-EstWorkTime] ❌ 找不到「${WORK_LOCATION_TEXT}」選項。`);
+            }
         }
     }
 
