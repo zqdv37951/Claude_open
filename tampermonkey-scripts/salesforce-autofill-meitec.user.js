@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Salesforce Auto-Fill Ultimate (Meitec)
 // @namespace    http://tampermonkey.net/
-// @version      8.3
-// @description  極速調校版：三軌自動化（手当 / デイリーサマリー / 申請）挑戰 Salesforce API 同步極限
+// @version      8.4
+// @description  極速調校版：三軌自動化（手当 / デイリーサマリー / 申請）+ 見込み勤務時間自動帶入，挑戰 Salesforce API 同步極限
 // @author       YourDebatePartner
 // @match        *://*.force.com/*
 // @match        *://*.salesforce.com/*
@@ -14,7 +14,7 @@
 (function() {
     'use strict';
 
-    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.3 已載入！(競速調校版)");
+    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.4 已載入！(競速調校版)");
 
     // 🏆 競速核心配置區
     const CONFIG = {
@@ -305,6 +305,23 @@
             console.error("[Debug-Request] ❌ 找不到「申請」按鈕。");
         }
     }
+
+    // --- 流程 4：見込み勤務時間 欄位取得焦點時，帶入同一列的工数 ---
+    document.addEventListener('focusin', function(e) {
+        const input = e.target;
+        if (!input.matches || !input.matches('input.commons-fields-att-time-3-digit-hour-field')) return;
+        if (input.value) return; // 已有值就不覆蓋
+
+        const row = input.closest('tr');
+        if (!row) return;
+
+        const taskTimeEl = row.querySelector('.timesheet-pc-main-content-timesheet-daily-summary-button__total-task-time');
+        const taskTime = taskTimeEl && taskTimeEl.textContent.trim();
+        if (!taskTime) return;
+
+        console.log("[Debug-EstWorkTime] 🎯 見込み勤務時間欄位取得焦點，帶入本列工数：", taskTime);
+        setNativeValue(input, taskTime);
+    });
 
     // 狀態控管模組
     const AppState = {
