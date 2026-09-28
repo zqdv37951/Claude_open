@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Salesforce Auto-Fill Ultimate (Meitec)
 // @namespace    http://tampermonkey.net/
-// @version      8.5
-// @description  極速調校版：三軌自動化（手当 / デイリーサマリー / 申請）+ 見込み勤務時間／業務内容／勤務場所自動帶入，挑戰 Salesforce API 同步極限
+// @version      8.6
+// @description  極速調校版：三軌自動化（手当 / デイリーサマリー / 申請）+ 見込み勤務時間／業務内容／勤務場所自動帶入 + 自動保存，挑戰 Salesforce API 同步極限
 // @author       YourDebatePartner
 // @match        *://*.force.com/*
 // @match        *://*.salesforce.com/*
@@ -14,7 +14,7 @@
 (function() {
     'use strict';
 
-    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.5 已載入！(競速調校版)");
+    console.log("[Debug-Core] 🚀 三軌自動化腳本 V8.6 已載入！(競速調校版)");
 
     // 🏆 競速核心配置區
     const CONFIG = {
@@ -355,6 +355,15 @@
             if (option) {
                 await forceClick(option);
                 console.log(`[Debug-EstWorkTime] ✅ 已選擇勤務場所：${WORK_LOCATION_TEXT}`);
+
+                await sleep(200);
+                const saveBtn = findButtonByText('保存', row);
+                if (saveBtn) {
+                    console.log("[Debug-EstWorkTime] 💾 點擊本列「保存」按鈕。");
+                    await forceClick(saveBtn);
+                } else {
+                    console.error("[Debug-EstWorkTime] ❌ 找不到本列「保存」按鈕。");
+                }
             } else {
                 console.error(`[Debug-EstWorkTime] ❌ 找不到「${WORK_LOCATION_TEXT}」選項。`);
             }
