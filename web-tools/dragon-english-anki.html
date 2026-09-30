@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>基本英文100 Anki</title>
+<style>
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eceff4; --text: #1b1f27; --muted: #667085; --border: #dde1e8;
+  --accent: #2f6fed; --accent-ink: #ffffff;
+  --new: #2f6fed; --learn: #d92d20; --review: #12a150;
+  --again: #d92d20; --hard: #a86400; --good: #12a150; --easy: #2f6fed;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 10px 30px rgba(16, 24, 40, .07);
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1218; --surface: #181c24; --surface-2: #222833; --text: #e8ebf0; --muted: #98a2b3; --border: #2c3340;
+    --accent: #6d9bff; --accent-ink: #0b1220;
+    --new: #6d9bff; --learn: #ff7a70; --review: #4cd08a;
+    --again: #ff7a70; --hard: #f0b24a; --good: #4cd08a; --easy: #6d9bff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px rgba(0, 0, 0, .35);
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100dvh;
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "PingFang TC", "Noto Sans TC", "Noto Sans JP", "Microsoft JhengHei", "Yu Gothic", sans-serif;
+}
+[lang="ja"] { font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Meiryo", system-ui, sans-serif; }
+[lang="zh-Hant"] { font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; }
+[lang="en"] { font-family: ui-serif, Georgia, "Times New Roman", serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.app { max-width: 760px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); }
+.top { margin: 4px 0 6px; }
+.top h1 { margin: 0; font-size: 19px; line-height: 1.3; }
+.top p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+
+.tabs-wrap { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0 12px; }
+.tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 12px; }
+.tab { flex: 1; border: 0; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; padding: 9px 6px; border-radius: 9px; white-space: nowrap; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .1); }
+
+.counts { display: flex; justify-content: center; gap: 30px; margin: 2px 0 14px; }
+.count { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: var(--muted); }
+.count b { font-size: 24px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.count.new b { color: var(--new); }
+.count.learn b { color: var(--learn); }
+.count.review b { color: var(--review); }
+.count.current b { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px 18px 20px; min-height: 230px; display: flex; flex-direction: column; gap: 14px;
+}
+.card.clickable { cursor: pointer; }
+.card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+.badge { padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--muted); }
+.badge.new { color: var(--new); }
+.badge.learn { color: var(--learn); }
+.badge.review { color: var(--review); }
+.line { display: flex; gap: 10px; align-items: flex-start; }
+.tag { flex: none; margin-top: .5em; font-size: 11px; font-weight: 700; line-height: 1; padding: 4px 6px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.line p { margin: 0; flex: 1; white-space: pre-line; overflow-wrap: anywhere; }
+.line-main { flex: 1; min-width: 0; }
+.front .line p { font-size: clamp(20px, 4.8vw, 26px); line-height: 1.55; }
+.back { display: flex; flex-direction: column; gap: 12px; }
+.back .line p { font-size: clamp(17px, 4vw, 20px); }
+.speak { flex: none; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); padding: 6px; border-radius: 8px; }
+.speak:hover { background: var(--surface-2); color: var(--text); }
+.speak.playing { color: var(--accent); background: var(--surface-2); }
+.divider { border: 0; border-top: 1px dashed var(--border); margin: 0; }
+
+.actions { margin-top: 14px; }
+.btn { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 11px 16px; font-weight: 600; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { width: 100%; padding: 16px; font-size: 16px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.danger { color: var(--learn); }
+.rate { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rate button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 66px; padding: 8px 2px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); }
+.rate button:hover { background: var(--surface-2); }
+.rate .lbl { font-weight: 700; font-size: 15px; }
+.rate .iv { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rate .again .lbl { color: var(--again); }
+.rate .hard .lbl { color: var(--hard); }
+.rate .good .lbl { color: var(--good); }
+.rate .easy .lbl { color: var(--easy); }
+kbd { font: 11px ui-monospace, monospace; padding: 0 5px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; color: var(--muted); background: var(--surface-2); margin-left: 6px; }
+.rate kbd { margin: 2px 0 0; }
+@media (hover: none) { kbd { display: none; } }
+.subactions { display: flex; justify-content: center; margin-top: 12px; }
+.link { border: 0; background: none; color: var(--muted); font-size: 13px; padding: 6px 10px; border-radius: 8px; }
+.link:hover:not(:disabled) { color: var(--text); background: var(--surface-2); }
+.link:disabled { opacity: .4; cursor: default; }
+
+.done { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 36px 20px; }
+.done h2 { margin: 0 0 6px; font-size: 20px; }
+.done p { margin: 4px 0; color: var(--muted); }
+.done .btn { margin-top: 16px; }
+
+.toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+.toolbar input { flex: 1; min-width: 0; }
+input[type="search"], select { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 9px 12px; }
+.vis { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.chip { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 13px; font-size: 13px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.muted { color: var(--muted); font-size: 13px; margin: 6px 0 10px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 14px 12px; }
+.item-head { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.item .line { padding: 2px 0; }
+.item .line p { font-size: 16px; }
+.item .line p.blur { filter: blur(7px); cursor: pointer; user-select: none; }
+.gv-toggle { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 3px 11px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-size: 12.5px; }
+.gv-toggle::before { content: '▸'; font-size: 10px; transition: transform .15s; }
+.gv-toggle[aria-expanded="true"] { background: var(--surface-2); color: var(--text); }
+.gv-toggle[aria-expanded="true"]::before { transform: rotate(90deg); }
+.gv-panel { margin-top: 8px; padding: 10px 12px 12px; background: var(--surface-2); border-radius: 10px; font-size: 14px; line-height: 1.65; color: var(--text); }
+.gv-panel h4 { margin: 10px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+.gv-panel h4:first-child { margin-top: 0; }
+.gv-panel ul { margin: 0; padding: 0; list-style: none; }
+.gv-panel li { margin: 0 0 6px; }
+.gv-panel li b { font-weight: 700; }
+.gv-grammar li b { display: block; }
+.gv-grammar li span { display: block; color: var(--muted); }
+.gv-vocab { display: grid; gap: 2px 14px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.gv-vocab li { margin: 0; }
+.gv-vocab .rd { color: var(--muted); font-size: 12.5px; }
+.gv-orig { margin: 0; white-space: pre-line; color: var(--muted); }
+.empty-hint { text-align: center; color: var(--muted); padding: 32px 0; }
+
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.panel h3 { margin: 0 0 10px; font-size: 15px; }
+.panel .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.seg { display: inline-flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: 10px; }
+.seg button { border: 0; background: transparent; padding: 7px 14px; border-radius: 8px; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .1); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat span { font-size: 12px; color: var(--muted); }
+.note { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .back { animation: rise .18s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>基本英文100 Anki</h1>
+    <p>ドラゴン・イングリッシュ ｜ 中・日・英 ｜ 間隔複習</p>
+  </header>
+
+  <div class="tabs-wrap">
+    <div class="tabs" role="tablist" aria-label="頁籤">
+      <button class="tab" role="tab" id="t-study" data-tab="study" aria-controls="tab-study">學習</button>
+      <button class="tab" role="tab" id="t-all" data-tab="all" aria-controls="tab-all">全部詞條</button>
+      <button class="tab" role="tab" id="t-settings" data-tab="settings" aria-controls="tab-settings">設定與統計</button>
+    </div>
+  </div>
+
+  <main>
+    <section id="tab-study" role="tabpanel" aria-labelledby="t-study">
+      <div class="counts" aria-label="今日進度">
+        <div class="count new" id="k-new"><b id="cNew">0</b><span>新卡</span></div>
+        <div class="count learn" id="k-learn"><b id="cLearn">0</b><span>學習中</span></div>
+        <div class="count review" id="k-review"><b id="cDue">0</b><span>待複習</span></div>
+      </div>
+
+      <article class="card" id="card">
+        <div class="card-meta"><span id="cardNo"></span><span class="badge" id="cardBadge"></span></div>
+        <div class="front" id="front"></div>
+        <hr class="divider" id="divider" hidden>
+        <div class="back" id="back" hidden></div>
+      </article>
+
+      <div class="actions" id="actions">
+        <button class="btn primary" id="showBtn" type="button">顯示答案<kbd>Space</kbd></button>
+        <div class="rate" id="rate" hidden>
+          <button type="button" class="again" data-r="1"><span class="lbl">重來</span><span class="iv"></span><kbd>1</kbd></button>
+          <button type="button" class="hard" data-r="2"><span class="lbl">困難</span><span class="iv"></span><kbd>2</kbd></button>
+          <button type="button" class="good" data-r="3"><span class="lbl">良好</span><span class="iv"></span><kbd>3</kbd></button>
+          <button type="button" class="easy" data-r="4"><span class="lbl">簡單</span><span class="iv"></span><kbd>4</kbd></button>
+        </div>
+        <div class="subactions"><button class="link" id="undoBtn" type="button">復原上一張 <kbd>Z</kbd></button></div>
+      </div>
+
+      <div class="done" id="done" hidden>
+        <h2 id="doneTitle"></h2>
+        <p id="doneMsg"></p>
+        <p id="doneNext"></p>
+        <button class="btn" id="moreBtn" type="button" hidden>再學 10 張新卡</button>
+        <div class="subactions"><button class="link" id="undoBtn2" type="button">復原上一張</button></div>
+      </div>
+    </section>
+
+    <section id="tab-all" role="tabpanel" aria-labelledby="t-all" hidden>
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="搜尋 中／日／英／編號" aria-label="搜尋詞條">
+        <select id="filter" aria-label="狀態篩選">
+          <option value="all">全部狀態</option>
+          <option value="new">新卡</option>
+          <option value="learn">學習中</option>
+          <option value="review">複習中</option>
+        </select>
+      </div>
+      <div class="vis" role="group" aria-label="顯示語言">
+        <span>顯示</span>
+        <button class="chip" type="button" data-vis="zh" aria-pressed="true">中</button>
+        <button class="chip" type="button" data-vis="ja" aria-pressed="true">日</button>
+        <button class="chip" type="button" data-vis="en" aria-pressed="true">英</button>
+        <span>關閉的語言會模糊，點一下可單獨顯示</span>
+      </div>
+      <p class="muted" id="allCount"></p>
+      <ol class="list" id="list"></ol>
+    </section>
+
+    <section id="tab-settings" role="tabpanel" aria-labelledby="t-settings" hidden>
+      <div class="panel">
+        <h3>卡片正面語言</h3>
+        <div class="row">
+          <div class="seg" id="frontSeg" role="group" aria-label="正面語言">
+            <button type="button" data-front="zh" aria-pressed="false">中文</button>
+            <button type="button" data-front="ja" aria-pressed="false">日文</button>
+            <button type="button" data-front="en" aria-pressed="false">英文</button>
+          </div>
+        </div>
+        <p class="note">正面顯示所選語言，翻面後顯示另外兩種語言。</p>
+      </div>
+      <div class="panel">
+        <h3>每日新卡數</h3>
+        <div class="row">
+          <label for="newPerDay">每天最多學習幾張新卡</label>
+          <select id="newPerDay"></select>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>學習統計</h3>
+        <div class="stats" id="stats"></div>
+        <p class="note">「已熟悉」＝複習間隔 21 天以上。進度只存在這個瀏覽器（localStorage）；清除網站資料或換裝置會歸零。</p>
+      </div>
+      <div class="panel">
+        <h3>文法・單字說明</h3>
+        <p class="note" style="margin-top:0">日文與英文句子下方的「文法・單字」按鈕可展開說明，預設收合；換下一張卡會自動收起。若英文或日文和原書不同，說明最上方會列出「原書寫法」供對照。</p>
+      </div>
+      <div class="panel">
+        <h3>朗讀音檔</h3>
+        <p class="note" style="margin-top:0">日文與英文各 100 句都有音檔，點句子旁的喇叭播放（再點一次停止），學習頁可按 <kbd>R</kbd> 重播。音檔是 AI 語音合成（Kokoro-82M，Apache-2.0），不是真人錄音；找不到音檔時會改用瀏覽器內建語音。中文沒有音檔。</p>
+      </div>
+      <div class="panel">
+        <h3>重置</h3>
+        <button class="btn danger" id="resetBtn" type="button">清除所有學習進度</button>
+      </div>
+    </section>
+  </main>
+  <noscript><p class="empty-hint">需要啟用 JavaScript 才能使用。</p></noscript>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const DECK = [
+{"id": 1, "zh": "喝了整整兩瓶威士忌還開車，是很危險的。", "ja": "ウィスキーのボトルを2本も空けて車を運転するのは危険だ。", "en": "It would be dangerous to drink two bottles of whiskey and drive a car.", "eg": ["It would be + 形容詞 + to V｜形式主語 it 代替後面的 to 不定詞（真主語）。would 帶假設語氣：「如果真的這麼做，會很危險」，比 is 委婉。", "drink ... and drive｜兩個動詞用 and 並列，共用一個 to。「酒駕」的固定說法是 drink and drive。"], "ev": ["dangerous｜危險的", "bottle｜瓶子", "whiskey｜威士忌（美式拼法；英式常寫 whisky）", "drive a car｜開車"], "jg": ["V(辞書形)＋のは＋形容詞｜「のは」把動詞片語名詞化當主語：「運転するのは危険だ」＝開車這件事很危險。", "数量＋も｜「2本も」表示說話者覺得數量很多（多達、整整）。", "V-て＋V｜「空けて運転する」用〜て連接先後兩個動作：先喝光，再開車。"], "jv": ["ウィスキー｜｜威士忌", "ボトル｜｜瓶子（酒瓶）", "本｜ほん｜計算細長物（瓶、筆）的量詞", "空ける｜あける｜弄空、喝光", "運転｜うんてん｜駕駛", "危険｜きけん｜危險"]},
+{"id": 2, "zh": "在綠燈亮起之前就穿越車流量大的馬路，是非常危險的。", "ja": "交通量の多い通りを、信号が青に変わらないうちに横断することはとても危険です。", "en": "It is very dangerous to cross a busy street before the light turns green.", "eg": ["It is + 形容詞 + to V｜形式主語句型：評價「做這件事」本身。", "before + 子句（現在式）｜before 引導時間副詞子句，用現在式（the light turns green），不用 will。", "turn + 形容詞｜turn 表示「變成」某種狀態（顏色、天氣）：turn green、turn cold。"], "ev": ["cross｜穿越", "busy street｜車流量大的馬路", "the light｜紅綠燈（= traffic light）", "turn green｜變成綠燈", "very｜非常"], "jg": ["〜ないうちに｜「V-ない＋うちに」＝趁還沒…的時候／在…之前：「青に変わらないうちに」＝綠燈還沒亮就…。", "V(辞書形)＋ことは＋形容詞｜與「のは」相近但較書面：「横断することは危険です」＝穿越馬路這件事很危險。", "N1の多いN2｜「交通量の多い通り」＝車流量多的馬路；「〜の多い」用來修飾名詞。"], "jv": ["交通量｜こうつうりょう｜車流量", "通り｜とおり｜馬路、街道", "信号｜しんごう｜紅綠燈", "青｜あお｜綠燈（日文的交通號誌綠燈說「青」）", "横断｜おうだん｜橫越", "変わる｜かわる｜變成、改變（自動詞）"]},
+{"id": 3, "zh": "清晨一邊聽著鳥鳴一邊散步，真的很舒服。", "ja": "早朝、鳥のさえずりを聴きながら散歩するのは本当に気持ちがいい。", "en": "It is really pleasant to take a walk early in the morning, listening to birds singing.", "eg": ["It is ... to V｜形式主語句型。", "分詞構句 listening to ...｜省略 while you listen，表示伴隨動作「一邊…一邊…」。", "listen to + N + V-ing｜listen to birds singing：聽著鳥「正在」鳴叫（強調過程）。"], "ev": ["pleasant｜令人愉快的", "take a walk｜散步", "early in the morning｜一大早", "bird｜鳥", "sing｜（鳥）鳴叫；唱歌"], "jg": ["V(辞書形)＋のは＋形容詞｜「散歩するのは気持ちがいい」＝散步很舒服。", "V-ながら｜「聴きながら」＝一邊聽一邊…；主要動作是後面的「散歩する」。", "本当に｜副詞，加強語氣（真的）。"], "jv": ["早朝｜そうちょう｜清晨", "さえずり｜｜（鳥）啼囀", "聴く｜きく｜（專心）聽", "散歩｜さんぽ｜散步", "気持ちがいい｜きもちがいい｜舒服、心情愉快"]},
+{"id": 4, "zh": "日本的高中生當中，有些人為了準備大學入學考試而去補習班。", "ja": "日本の高校生の中には、大学入試に備えるため塾に行く。", "en": "Some Japanese high school students go to a cram school to prepare for university entrance exams.", "enOrig": "Most Japanese high school students go to a cram school to prepare for university entrance exams.", "eg": ["Some + 複數名詞｜「有些…」，對應日文「〜の中には」。原書英文寫 Most（大多數），與日文原意不符，這裡改為 Some。", "to + 原形（目的）｜go to a cram school to prepare for ...：to 不定詞表目的「為了…」。", "prepare for + N｜為…做準備。"], "ev": ["cram school｜補習班（日本的「塾」）", "entrance exam｜入學考試", "prepare for｜為…做準備", "high school student｜高中生", "university｜大學"], "jg": ["N の中には、〜｜「日本の高校生の中には」＝在日本高中生當中，有些人…；後面省略「〜人もいる」。", "V(辞書形)＋ため（に）｜目的：為了…。「備えるため」＝為了做準備。", "N に備える｜為…做準備、預防。"], "jv": ["高校生｜こうこうせい｜高中生", "大学入試｜だいがくにゅうし｜大學入學考試", "備える｜そなえる｜準備、防備", "塾｜じゅく｜補習班"]},
+{"id": 5, "zh": "日本人在等電梯或等紅綠燈時，不到三十秒就開始感到不耐煩。", "ja": "日本人は、エレベーターや信号を待っている時、わずか30秒も経たないうちにいらいらし始める。", "en": "When waiting for the elevator to come or the traffic light to change, most Japanese people become irritated within only thirty seconds.", "eg": ["When + V-ing（分詞構句）｜When waiting ... 等於 When they are waiting ...，主詞與主句相同（Japanese people）時可省略主詞與 be。", "wait for + N + to V｜等某物做某事：wait for the elevator to come。", "become + 形容詞｜變得…（狀態改變）；within + 時間＝在…之內。"], "ev": ["elevator｜電梯", "irritated｜煩躁的、不耐煩的", "traffic light｜紅綠燈", "within｜在…之內", "thirty seconds｜三十秒"], "jg": ["V-ている時｜「待っている時」＝正在等的時候。", "〜ないうちに｜「30秒も経たないうちに」＝還不到三十秒就…；「も」加強「短」的感覺。", "V-始める｜「いらいらし始める」＝開始…（動作的起點）。"], "jv": ["エレベーター｜｜電梯", "いらいらする｜｜煩躁", "経つ｜たつ｜（時間）經過", "わずか｜｜僅僅、只有", "始める｜はじめる｜開始"]},
+{"id": 6, "zh": "在火車上，坐在我旁邊的老奶奶問我要去哪裡。", "ja": "列車で隣に座ったおばあさんに、どこまで行くのと尋ねられた。", "en": "An elderly woman sitting next to me on the train asked me where I was going.", "eg": ["現在分詞後置修飾｜sitting next to me = who was sitting next to me，用 V-ing 修飾前面的名詞 woman。", "間接問句｜asked me where I was going：疑問詞後接「主詞＋動詞」的敘述語序，不倒裝；時態隨主句過去化（are going → was going）。"], "ev": ["elderly｜年長的（比 old 委婉）", "sit next to｜坐在…旁邊", "train｜火車、電車", "ask｜詢問"], "jg": ["V-た＋N（連体修飾）｜「隣に座ったおばあさん」＝坐在旁邊的老奶奶。", "〜に〜と尋ねられた｜被動：被老奶奶問「要去哪裡」。「〜られる」是被動形。", "どこまで行くの｜口語疑問句，句尾的「の」＝か。"], "jv": ["列車｜れっしゃ｜列車、火車", "隣｜となり｜隔壁、旁邊", "座る｜すわる｜坐", "おばあさん｜｜老奶奶、年長女性", "尋ねる｜たずねる｜詢問"]},
+{"id": 7, "zh": "山姆提議說，大眾運輸不方便，不如租輛車到處逛逛那座城市。", "ja": "公共の交通機関では不便だから、レンタカーを借りてその街をあちこち見てまわるのはどうだろう、とサムは言った。", "en": "Sam suggested that we rent a car to get around the city, because public transportation was inconvenient.", "enOrig": "Sam suggested that we should rent a car to get around the city because the public transportation was inconvenient.", "eg": ["suggest that + 主詞 + (should) + 原形動詞｜建議類動詞後的 that 子句用原形（假設語氣現在式），should 常省略：suggested that we rent ...（不是 rented）。", "to get around the city｜to 不定詞表目的；get around 是「到處移動」。", "public transportation｜大眾運輸（不可數，前面通常不加 the）。"], "ev": ["suggest｜建議", "rent｜租借", "get around｜到處走動", "public transportation｜大眾運輸（英式：public transport）", "inconvenient｜不方便的"], "jg": ["〜のはどうだろう｜提議：「見てまわるのはどうだろう」＝到處逛逛如何呢？", "〜から（原因）｜「不便だから」＝因為不方便，所以…", "〜とサムは言った｜先說內容，再用「と」引用說話者。"], "jv": ["公共｜こうきょう｜公共", "交通機関｜こうつうきかん｜交通工具", "不便｜ふべん｜不方便", "レンタカー｜｜租來的車", "借りる｜かりる｜借、租", "見てまわる｜みてまわる｜到處參觀"]},
+{"id": 8, "zh": "要不要結婚、要不要生孩子，都應該由每個人自由決定。", "ja": "結婚するかどうか、子供を産むか産まないかは、各人の自由な判断によるべきだ。", "en": "Everyone should be free to decide whether to get married and whether to have children.", "eg": ["be free to V｜可以自由地做…：be free to decide＝有自由決定的權利。", "whether to V｜疑問詞 + to 不定詞：whether to get married＝是否要結婚。", "Everyone should ...｜Everyone 視為單數。"], "ev": ["get married｜結婚", "have children｜生小孩", "decide｜決定", "free｜自由的", "whether｜是否"], "jg": ["〜かどうか｜「結婚するかどうか」＝是否要結婚。", "N による｜「各人の自由な判断による」＝取決於每個人自由的判斷；「べきだ」＝應該。", "〜か〜ないか｜「産むか産まないか」＝要生還是不生。"], "jv": ["結婚｜けっこん｜結婚", "産む｜うむ｜生（孩子）", "各人｜かくじん｜各個人", "判断｜はんだん｜判斷", "自由｜じゆう｜自由"]},
+{"id": 9, "zh": "大地震會在何時何地發生，是無法預測的。", "ja": "大地震がいつどこで起きるかは予測不可能だ。", "en": "It is impossible to predict where and when a major earthquake will occur.", "eg": ["It is impossible to V｜形式主語句型。", "where and when ... will occur｜間接問句：疑問詞後接敘述語序；尚未發生的事用 will。", "predict + 疑問詞子句｜predict where and when ...：預測在何時何地。"], "ev": ["impossible｜不可能的", "predict｜預測", "major earthquake｜大地震", "occur｜發生（比 happen 正式）"], "jg": ["疑問詞＋か（間接疑問）｜「いつどこで起きるか」＝何時、在哪裡發生。", "〜かは〜だ｜「起きるかは予測不可能だ」＝會不會…是無法預測的。", "漢語名詞＋だ｜「予測不可能だ」＝無法預測。"], "jv": ["大地震｜おおじしん｜大地震", "起きる｜おきる｜發生；起床", "予測｜よそく｜預測", "不可能｜ふかのう｜不可能"]},
+{"id": 10, "zh": "佛雷德堅持說一切都會順利，但我還是擔心得不得了。", "ja": "フレッドは万事うまくいくと言い張ったが、私は心配で仕方がなかった。", "en": "Fred insisted that everything would be all right, but I could not help feeling worried.", "eg": ["insist that ...｜堅持主張。此處是「堅持說某個事實」，用 would be；若是「堅持要求」則用原形：insist that he go。", "cannot help V-ing｜忍不住…：could not help feeling worried＝忍不住擔心。", "would be｜過去的未來：主句用過去式 insisted，故 will → would。"], "ev": ["insist｜堅持（說）", "all right｜沒問題、順利", "worried｜擔心的", "everything｜一切"], "jg": ["〜と言い張る｜（不管別人怎麼想）堅持說、一口咬定。", "〜が、〜｜逆接：雖然…但是…。", "〜で仕方がない｜「心配で仕方がなかった」＝擔心得受不了（感情形容詞＋で＋仕方がない）。"], "jv": ["万事｜ばんじ｜萬事、一切", "うまくいく｜｜順利", "言い張る｜いいはる｜堅持說", "心配｜しんぱい｜擔心", "仕方がない｜しかたがない｜沒辦法；…得不得了"]},
+{"id": 11, "zh": "我從沒想過自己說的話會傷害到她。", "ja": "僕の発言が彼女を傷つけるなんて思いもしなかった。", "en": "It never occurred to me that my remark might hurt her feelings.", "eg": ["It never occurred to me that ...｜occur to + 人＝（某念頭）浮現在某人腦中；it 是形式主語，that 子句是真主語：「我從沒想過…」。", "might hurt her feelings｜might 表示可能性（可能會）；hurt someone's feelings＝傷了某人的感情。", "never｜否定副詞，放在一般動詞前。"], "ev": ["occur to｜浮現在腦中、想到", "remark｜說的話、言論", "hurt one's feelings｜傷害某人的感情", "might｜可能（比 may 把握更小）"], "jg": ["〜なんて｜「傷つけるなんて」＝竟然…、居然會…；表示意外或不以為然。", "思いもしなかった｜「V-もしない」強調否定：連想都沒想過。", "無生物主語｜「発言が彼女を傷つける」＝我的話傷害了她。"], "jv": ["僕｜ぼく｜我（男性用）", "発言｜はつげん｜發言、說的話", "傷つける｜きずつける｜傷害（他動詞）", "思う｜おもう｜想、認為"]},
+{"id": 12, "zh": "「湯姆，開飯囉。」\n「知道了，媽。我馬上過去。」", "ja": "「トム、ごはんですよ」\n「わかった、ママ。すぐ行くよ。」", "en": "\"Tom, dinner is ready.\"\n\"OK, Mom. I'm coming.\"", "eg": ["dinner is ready｜飯做好了：ready＝準備好的。", "I'm coming.｜回應對方叫喚時，英文說 come（往對方所在的地方移動），不說 go；日文「行くよ」對應英文 I'm coming。", "OK, Mom.｜稱呼（直呼語）用逗號隔開。"], "ev": ["dinner｜晚餐（正餐）", "ready｜準備好的", "coming｜正要過去（進行式表示即將發生）", "Mom｜媽媽（美式；英式 Mum）"], "jg": ["ごはんですよ｜「〜ですよ」用於提醒、告知對方；「ごはん」在這裡指「飯做好了」。", "わかった｜「わかる」的過去形，口語表示「知道了、了解」。", "すぐ行くよ｜「すぐ」＝馬上；句尾的「よ」表示告知。日文用「行く」，英文卻用 come。"], "jv": ["ごはん｜｜飯、餐點", "わかる｜｜懂、了解", "すぐ｜｜馬上", "ママ｜｜媽媽"]},
+{"id": 13, "zh": "到了成田機場我會打電話給你。", "ja": "成田空港に着いたら電話します。", "en": "I will give you a call when I get to Narita Airport.", "eg": ["時間副詞子句用現在式代替未來式｜when I get to ...（不說 will get）：when / if / after / before 子句表示未來時，用現在式。", "give someone a call｜打電話給某人（= call someone）。", "get to + 地點｜到達；比 arrive at 口語。"], "ev": ["give ... a call｜打電話給…", "get to｜到達", "airport｜機場", "when｜當…的時候"], "jg": ["V-たら｜「着いたら」＝一到達的話（假設或確定的條件）。", "電話します｜「電話する」＝打電話；「〜ます」是敬體。", "N に着く｜到達 N，助詞用「に」。"], "jv": ["成田空港｜なりたくうこう｜成田機場", "着く｜つく｜到達", "電話｜でんわ｜電話"]},
+{"id": 14, "zh": "從這裡搭電車去東京迪士尼樂園的話，需要轉三次車。", "ja": "ここから東京ディズニーランドまで電車で行くなら、3回の乗り換えが必要になります。", "en": "If you take the train from here to Tokyo Disneyland, you have to change trains three times.", "eg": ["If + 現在式, S + have to｜真實條件句：條件子句用現在式，主句用 have to（必須）。", "change trains｜換車：change 後接複數 trains（換乘不只一班車）；three times＝三次。", "take the train｜搭火車／電車。"], "ev": ["take the train｜搭電車", "change trains｜換車、轉乘", "three times｜三次", "have to｜必須"], "jg": ["〜なら｜假設條件：「電車で行くなら」＝如果要搭電車去的話。", "N から N まで｜從…到…。", "〜が必要になる｜變得需要…；「乗り換え」＝轉乘（名詞）。"], "jv": ["電車｜でんしゃ｜電車", "乗り換え｜のりかえ｜轉乘", "必要｜ひつよう｜必要", "回｜かい｜次數"]},
+{"id": 15, "zh": "我已經決定大學畢業後要到國外找工作。", "ja": "大学を卒業したら海外で仕事を探すことに決めている。", "en": "I have decided to look for a job abroad when I graduate from university.", "enOrig": "I have decided to work abroad when I graduate from university.", "eg": ["have decided to V｜現在完成式：已經決定了（決定的結果延續到現在）。", "when I graduate｜時間副詞子句用現在式表示未來。", "graduate from + 學校｜從…畢業。", "look for a job｜找工作。原書寫 work abroad（在國外工作），日文是「仕事を探す」（找工作），故改為 look for a job。"], "ev": ["decide｜決定", "look for｜尋找", "abroad｜在國外", "graduate from｜畢業於", "job｜工作"], "jg": ["〜ことに決める｜「V-ることに決めている」＝已經決定要…（自己下的決定）。", "V-たら｜「卒業したら」＝畢業之後。", "仕事を探す｜找工作；「探す」＝尋找。"], "jv": ["卒業｜そつぎょう｜畢業", "海外｜かいがい｜國外", "仕事｜しごと｜工作", "探す｜さがす｜尋找", "決める｜きめる｜決定"]},
+{"id": 16, "zh": "這台吹風機不會動耶，好像壞掉了。", "ja": "このドライヤー、動かないわ。壊れたみたい。", "en": "This hair dryer does not work. It seems something is wrong with it.", "eg": ["It seems (that) + 子句｜似乎…；that 可省略。", "something is wrong with ...｜…有問題／故障了。", "does not work｜（機器）不運作；work 在這裡是「運作」。"], "ev": ["hair dryer｜吹風機", "work｜（機器）運作", "wrong｜有問題的、錯的", "seem｜似乎"], "jg": ["V-ないわ｜句尾的「わ」是女性口語語氣詞；「動かない」＝不會動。", "〜たみたい｜「壊れたみたい」＝好像壞掉了（依現況推測）。", "動く｜自動詞，「機器運轉」用「動く」。"], "jv": ["ドライヤー｜｜吹風機", "動く｜うごく｜動、運轉", "壊れる｜こわれる｜壞掉（自動詞）"]},
+{"id": 17, "zh": "在美國寄宿家庭生活中最開心的事，就是寄宿家庭的父母把我當成親生女兒一樣對待。", "ja": "アメリカでのホームステイで一番うれしかったことは、ホストファミリーの両親が私を自分の娘のように扱ってくれたことです。", "en": "The best thing about my homestay in the U.S. was that my host parents treated me just like their own daughter.", "enOrig": "The best thing about my stay with an American family was that the parents treated me just like a daughter.", "eg": ["The best thing about ... was that ...｜that 子句作補語：最棒的是…。", "treat A like B｜把 A 當作 B 對待；just 加強語氣（就像）。", "one's own + 名詞｜own 強調「自己的」：their own daughter。"], "ev": ["homestay｜寄宿家庭（體驗）", "host parents｜寄宿家庭的父母", "treat｜對待", "own｜自己的", "the U.S.｜美國"], "jg": ["N は〜ことです｜「一番うれしかったことは〜ことです」＝最開心的事是…；用「こと」把句子名詞化。", "V-てくれる｜「扱ってくれた」＝（對方）為我這樣做（帶有感謝、受惠的語氣）。", "N のように｜像…一樣：「自分の娘のように」。"], "jv": ["ホームステイ｜｜寄宿家庭", "両親｜りょうしん｜雙親", "娘｜むすめ｜女兒", "扱う｜あつかう｜對待", "うれしい｜｜開心的"]},
+{"id": 18, "zh": "十幾歲的時候，因為父親工作的關係，我曾在加拿大住過三年。", "ja": "10代の頃、父の仕事の関係でカナダに3年間住んだことがある。", "en": "When I was in my teens, I lived in Canada for three years because my father was transferred there.", "eg": ["in one's teens｜十幾歲時（13 到 19 歲）。", "for + 期間｜持續了…：for three years。", "be transferred｜被調職（transfer 的被動）；there 指前面的 Canada。"], "ev": ["teens｜十幾歲", "transfer｜調職、調派", "because｜因為"], "jg": ["V-たことがある｜「住んだことがある」＝曾經住過（經驗）。", "N の関係で｜因為…的關係（多用於工作、家庭因素）。", "〜間｜「3年間」＝持續三年。"], "jv": ["10代｜じゅうだい｜十幾歲（10 到 19 歲）", "頃｜ころ｜…的時候", "関係｜かんけい｜關係", "住む｜すむ｜居住"]},
+{"id": 19, "zh": "隨著智慧型手機的普及，這幾年無線耳機的銷量快速成長。", "ja": "スマートフォンの普及とともに、ここ数年、ワイヤレスイヤホンの売り上げが急速に伸びている。", "en": "With the spread of smartphones, sales of wireless earphones have been growing rapidly over the past few years.", "enOrig": "Smartphones are widely used, so sales of wireless earphones have been rapidly increasing over the last few years.", "eg": ["With + N｜隨著…（伴隨的變化）：With the spread of smartphones。", "現在完成進行式 have been growing｜從過去持續到現在的變化，常與 over the past few years 連用。", "sales of ...｜sales 用複數形（銷售額）。"], "ev": ["spread｜普及、擴散", "sales｜銷售額", "wireless｜無線的", "earphones｜耳機", "rapidly｜快速地", "over the past few years｜過去幾年間"], "jg": ["N とともに｜隨著…（同時變化）。", "V-ている｜「伸びている」＝正在持續成長的狀態。", "ここ数年｜這幾年（到現在為止）。"], "jv": ["普及｜ふきゅう｜普及", "ワイヤレス｜｜無線", "売り上げ｜うりあげ｜銷售額", "急速｜きゅうそく｜快速", "伸びる｜のびる｜（數字）成長"]},
+{"id": 20, "zh": "我常聽他吹噓自己是游泳高手，卻從沒看過他真的游泳。", "ja": "彼が水泳の名人だと自慢するのをたびたび聞いたことがあるが、実際に泳いでいるところを見たことがない。", "en": "I have often heard him boast that he is very good at swimming, but I have never actually seen him swim.", "eg": ["hear + O + 原形動詞｜have often heard him boast：感官動詞＋受詞＋原形（被動時才加 to）。", "boast that ...｜吹噓…；be good at＝擅長。", "現在完成式 have heard / have never seen｜到現在為止的經驗。", "see him swim｜感官動詞 see + O + 原形＝看見他游泳（整個動作）。"], "ev": ["boast｜吹噓", "be good at｜擅長", "actually｜實際上", "swim｜游泳"], "jg": ["〜と自慢する｜引用：誇耀說…。", "V-たことがある／ない｜聽過／沒看過（經驗）。", "〜ところ｜「泳いでいるところ」＝正在游泳的場面。", "〜が、〜｜逆接：雖然…但是…。"], "jv": ["名人｜めいじん｜高手、名手", "自慢｜じまん｜自誇", "たびたび｜｜屢次", "実際に｜じっさいに｜實際上", "泳ぐ｜およぐ｜游泳"]},
+{"id": 21, "zh": "我在便利商店打工才剛滿一個星期，就已經完全習慣這份工作了。", "ja": "コンビニでアルバイトを始めてから1週間にしかならないが、もうすっかり仕事に慣れた。", "en": "It has been only a week since I began working part-time at a convenience store, but I am already used to it.", "eg": ["It has been + 期間 + since + 過去式｜自從…已經過了…：since 子句用過去式，主句用現在完成式。", "be used to + N / V-ing｜習慣於…（to 是介系詞）；與 used to V（過去常常）不同。", "work part-time｜打工（兼職）。"], "ev": ["part-time｜兼職的、打工的", "convenience store｜便利商店", "already｜已經", "be used to｜習慣於", "begin｜開始"], "jg": ["V-てから〜（期間）｜「始めてから1週間」＝開始之後過了一週。", "〜にしかならない｜「1週間にしかならない」＝才不過一週而已；「しか＋否定」＝只有。", "すっかり｜副詞：完全（已經完全習慣了）。", "N に慣れる｜習慣於 N。"], "jv": ["コンビニ｜｜便利商店", "アルバイト｜｜打工", "慣れる｜なれる｜習慣", "すっかり｜｜完全地", "週間｜しゅうかん｜…週"]},
+{"id": 22, "zh": "今天早上搭電車時，找不到空位。", "ja": "今朝電車に乗ったとき、空いた席が見つからなかった。", "en": "When I got on the train this morning, I could not find an empty seat.", "eg": ["get on the train｜上（火車、公車、飛機）；下車用 get off。", "could not find｜描述某一次的實際狀況時，否定可用 could not；肯定的單次成功則通常用 was able to / managed to。", "empty seat｜空位；empty＝空的。"], "ev": ["get on｜上（車）", "this morning｜今天早上", "empty｜空的", "seat｜座位"], "jg": ["V-たとき｜…的時候：「乗ったとき」＝上車時。", "V-た＋N｜「空いた席」＝空著的座位（「空く」的過去形修飾名詞，表示狀態）。", "〜が見つからない｜找不到（「見つかる」是自動詞，主語用「が」）。"], "jv": ["今朝｜けさ｜今天早上", "乗る｜のる｜搭乘", "空く｜あく｜空著", "席｜せき｜座位", "見つかる｜みつかる｜找得到、被找到"]},
+{"id": 23, "zh": "我現在沒戴眼鏡，所以看不清那塊看板上寫了什麼。", "ja": "今はめがねをかけていないので、あの看板に何と書いてあるかわかりません。", "en": "I am not wearing glasses now, so I cannot make out what the sign says.", "eg": ["be wearing glasses｜戴著眼鏡（進行式表示「戴著」的狀態）；「戴上」這個動作用 put on。", "make out｜辨認出、看清楚（要費點力氣）。", "what the sign says｜間接問句：主詞 the sign 在動詞 says 之前，不倒裝。"], "ev": ["glasses｜眼鏡", "sign｜招牌、告示", "make out｜辨認出", "wear｜穿戴"], "jg": ["V-ているので｜「かけていないので」＝因為沒戴著；「めがねをかける」＝戴眼鏡。", "V-てある｜「書いてある」＝寫著（有人寫上去，留下的結果）。", "疑問詞＋か＋わかりません｜「何と書いてあるかわかりません」＝不知道寫了什麼。"], "jv": ["めがね｜｜眼鏡", "かける｜｜戴（眼鏡）；掛", "看板｜かんばん｜招牌", "書く｜かく｜寫", "わかる｜｜懂、看得出來"]},
+{"id": 24, "zh": "從法國回來已經十年了，我至今仍會不知不覺地用法語思考。", "ja": "フランスから戻って10年も経つのに、いまだに知らず知らずのうちにフランス語で考えている。", "en": "Even though it has been ten years since I came back from France, I still find myself thinking in French without realizing it.", "enOrig": "Even ten years after returning from living in France, I still find myself thinking in French.", "eg": ["Even though + 子句｜即使／儘管…（子句內容是事實）。", "It has been + 期間 + since + 過去式｜自從…已經…。", "find oneself V-ing｜發現自己（不知不覺）在做…；without realizing it＝沒有意識到。", "come back from + 地點｜從…回來。"], "ev": ["come back｜回來", "France｜法國", "still｜仍然", "think in French｜用法語思考", "without realizing it｜沒有察覺到"], "jg": ["V-て＋期間＋も経つのに｜「戻って10年も経つのに」＝回來都已經過了十年，卻…；「のに」表逆接（意外或不滿），「も」強調時間之長。", "いまだに〜｜至今仍然（帶有「照理早該…」的語感）。", "知らず知らずのうちに｜不知不覺之間。", "V-ている｜「考えている」＝持續的狀態。"], "jv": ["戻る｜もどる｜回來", "経つ｜たつ｜（時間）過去", "いまだに｜｜至今仍", "知らず知らず｜しらずしらず｜不知不覺", "考える｜かんがえる｜思考"]},
+{"id": 25, "zh": "人類到了五、六歲左右，就有了表達自己想法的能力。", "ja": "人間は5~6歳になる頃には、思ったことを表現できる能力を持つようになる。", "en": "By the age of five or six, human beings become able to express what they think.", "enOrig": "By the age of five or six, humans learn to express how they feel.", "eg": ["By + 時間點｜到…為止已經：By the age of five or six。", "become able to V｜變得能夠…；can 沒有不定詞形，所以用 be able to。", "what they think｜名詞子句 what ...：他們所想的事。原書寫 how they feel（感受），日文是「思ったこと」，故改為 what they think。"], "ev": ["human being｜人類", "express｜表達", "by the age of｜到…歲時", "be able to｜能夠"], "jg": ["〜頃には｜「5~6歳になる頃には」＝到了五、六歲左右時（就已經）；「には」表示到那個時間點為止。", "N を持つ｜「能力を持つ」＝擁有能力。", "V-ようになる｜變得（漸漸）能夠…、開始…（變化）。"], "jv": ["人間｜にんげん｜人類", "歳｜さい｜…歲", "表現｜ひょうげん｜表達", "能力｜のうりょく｜能力", "持つ｜もつ｜擁有"]},
+{"id": 26, "zh": "多虧您前幾天告訴我的新路線，我開車去公司只花了平常一半的時間。", "ja": "先日教えていただいた新しい道順のおかげで、いつもの半分の時間で車で職場に行くことができました。", "en": "Thanks to the new route you told me about the other day, I managed to drive to work in half the normal time.", "eg": ["thanks to + N｜多虧了…（好的原因）。", "the new route (that) you told me about｜省略受詞關係代名詞：you told me about 修飾 route。", "manage to V｜設法做到…（成功了）。", "half the normal time｜分數／倍數 + the + 名詞：in half the normal time＝用平常一半的時間。"], "ev": ["route｜路線", "the other day｜前幾天", "manage to｜設法做到", "normal｜平常的", "drive to work｜開車上班"], "jg": ["N のおかげで｜多虧…（好結果的原因）；反義為「のせいで」。", "V-ていただく｜「教えていただいた」＝承蒙（您）教我；比「教えてもらう」更有禮貌的謙讓表達。", "いつもの半分｜平常的一半。", "V-ることができました｜（成功地）能夠做到（過去）。"], "jv": ["先日｜せんじつ｜前幾天", "道順｜みちじゅん｜路線、路徑", "半分｜はんぶん｜一半", "職場｜しょくば｜工作地點", "教える｜おしえる｜告訴、教"]},
+{"id": 27, "zh": "去年我請了兩週的假，和家人一起去歐洲旅行。", "ja": "昨年、2週間の休みをとり、家族でヨーロッパ旅行に行きました。", "en": "Last year, I took two weeks off and went on a trip to Europe with my family.", "eg": ["take + 期間 + off｜請…的假：took two weeks off。", "go on a trip to + 地點｜去…旅行。", "and 連接兩個過去式動詞｜took ... and went ...。"], "ev": ["take ... off｜請假", "trip｜旅行", "Europe｜歐洲", "last year｜去年"], "jg": ["休みをとる｜請假、放假（「取る」）。", "V-連用形、V｜「休みをとり、行きました」＝用連用形（去掉「ます」的形式）連接前後兩個動作，較書面。", "N で V｜「家族で」＝以家人（團體）為單位：全家一起。"], "jv": ["昨年｜さくねん｜去年", "休み｜やすみ｜休假", "家族｜かぞく｜家人", "ヨーロッパ｜｜歐洲", "旅行｜りょこう｜旅行"]},
+{"id": 28, "zh": "鮑伯留了鬍子，所以前陣子在同學會見到他時，我沒認出他來。", "ja": "ボブはひげを生やしていたので、このまえ同窓会で会ったときに彼だとわからなかった。", "en": "Bob had grown a beard, so I did not recognize him when I saw him at a class reunion the other day.", "enOrig": "Bob had grown a beard, so when I saw him at a class reunion, I did not recognize him.", "eg": ["過去完成式 had grown｜比「認不出他」更早發生的事（已經留了鬍子）。", "grow a beard｜留鬍子；recognize＝認出。", "the other day｜前幾天、日前（過去的某一天，不明說）。日文的「このまえ」對應這個說法。"], "ev": ["grow a beard｜留鬍子", "recognize｜認出", "class reunion｜同學會", "the other day｜前幾天"], "jg": ["V-ていた＋ので｜「生やしていたので」＝因為（先前就）留著…；「ので」表原因。", "このまえ｜前幾天、上次。", "〜だとわからなかった｜「彼だとわからなかった」＝沒認出是他。"], "jv": ["ひげ｜｜鬍子", "生やす｜はやす｜留（鬍子）；使生長", "同窓会｜どうそうかい｜同學會", "会う｜あう｜見面", "彼｜かれ｜他"]},
+{"id": 29, "zh": "睽違二十年造訪的故鄉完全變了樣，已找不到昔日的模樣。", "ja": "20年ぶりに訪れた故郷はすっかり変わってしまい、昔の面影をとどめていなかった。", "en": "When I visited my hometown for the first time in twenty years, I found that it was no longer what it used to be.", "eg": ["for the first time in + 期間｜睽違…第一次。", "find that ...｜發現…；that 子句與主句時態一致，用過去式。", "no longer｜不再；what it used to be＝它過去的樣子（名詞子句；used to be＝過去曾是）。"], "ev": ["hometown｜故鄉", "no longer｜不再", "used to be｜過去曾是", "visit｜造訪"], "jg": ["N ぶりに｜「20年ぶりに」＝睽違二十年（隔了這麼久才…）。", "V-てしまい｜「変わってしまい」＝完全變了（無法挽回的變化）；連用形中止。", "面影をとどめる｜留有昔日的樣貌；「とどめていなかった」＝沒留下。"], "jv": ["故郷｜ふるさと｜故鄉", "訪れる｜おとずれる｜造訪", "すっかり｜｜完全", "昔｜むかし｜從前", "面影｜おもかげ｜面貌、影子"]},
+{"id": 30, "zh": "昨晚忙著預習數學熬夜到四點，所以現在非常想睡。", "ja": "昨晩は数学の予習に追われて4時まで起きていたので、とても眠い。", "en": "I stayed up until four last night preparing for the math lesson, so I feel very sleepy.", "eg": ["stay up until + 時間｜熬夜到…。", "preparing for the math lesson｜分詞構句表伴隨：stayed up ... preparing ...＝熬夜做預習。", "so + 結果｜so I feel very sleepy：所以…（結果）。"], "ev": ["stay up｜熬夜", "prepare for｜為…做準備、預習", "math｜數學", "sleepy｜想睡的"], "jg": ["N に追われる｜被…追著跑：「予習に追われて」＝忙於預習。", "〜まで起きていた｜熬夜到…；「起きている」＝醒著。", "〜ので、〜｜因為…所以（較客觀的原因）。"], "jv": ["昨晩｜さくばん｜昨晚", "数学｜すうがく｜數學", "予習｜よしゅう｜預習", "追う｜おう｜追趕", "眠い｜ねむい｜想睡"]},
+{"id": 31, "zh": "昨天從圖書館借的小說我已經看完了，所以現在沒事可做。", "ja": "図書館から昨日借りてきた小説をもう読み終えたので、今はすることがない。", "en": "I have already finished reading the novel I borrowed from the library yesterday, so now I have nothing to do.", "eg": ["現在完成式 have already finished｜強調「現在的結果」：已經讀完了；但句中有 yesterday（明確的過去時間），所以 borrowed 用過去式，不能寫 have borrowed。", "finish V-ing｜finish 後面接動名詞。", "the novel (that) I borrowed ...｜省略受詞關係代名詞 that。", "nothing to do｜沒事可做（nothing + to 不定詞）。"], "ev": ["novel｜小說", "borrow｜借入", "library｜圖書館", "finish reading｜讀完", "nothing to do｜沒事可做"], "jg": ["V-てくる｜「借りてきた」＝借來的（動作後把東西帶回來）。", "V-終える｜「読み終えた」＝讀完（複合動詞：動作結束）。", "すること｜「今はすることがない」＝現在沒有事情可做。", "〜ので、〜｜因為…所以…。"], "jv": ["図書館｜としょかん｜圖書館", "借りる｜かりる｜借入", "小説｜しょうせつ｜小說", "読み終える｜よみおえる｜讀完", "もう｜｜已經"]},
+{"id": 32, "zh": "要是當時有吃這個藥、好好躺著休息，大概兩、三天就好了。", "ja": "この薬を飲んで寝ていれば、たぶん2~3日で良くなっていたのに。", "en": "If you had taken this medicine and stayed in bed, you would probably have gotten well in two or three days.", "eg": ["If + had p.p., S + would have p.p.｜與過去事實相反的假設：（當時）要是…就會…了。", "stay in bed｜躺在床上休息。", "get well｜康復；in two or three days＝在兩、三天之內。", "probably｜副詞放在 would 與 have 之間。"], "ev": ["medicine｜藥", "stay in bed｜臥床休息", "get well｜康復", "probably｜大概", "take medicine｜吃藥"], "jg": ["V-ていれば〜のに｜「寝ていれば良くなっていたのに」＝要是有…就好了（可惜沒有）；「のに」表遺憾、與事實相反。", "薬を飲む｜吃藥用「飲む」（原意為喝），不說「食べる」。", "V-て＋V-ていれば｜「飲んで寝ていれば」：兩個動作接續，再加上條件。", "N で｜「2~3日で」＝在兩、三天內（期限）。"], "jv": ["薬｜くすり｜藥", "飲む｜のむ｜服（藥）；喝", "寝る｜ねる｜睡；躺下", "たぶん｜｜大概", "良くなる｜よくなる｜變好、康復"]},
+{"id": 33, "zh": "老師說，如果現在出發，下山途中可能會遇上雷雨，所以最好先在這裡等一會兒。", "ja": "先生は、今出ると、下山途中で雷雨に見舞われる危険があるので、しばらくここで待った方がいいと言っています。", "en": "The teacher says that we should wait here for a while because if we left now, we might get caught in a thunderstorm on the way down.", "eg": ["The teacher says that ...｜轉述現在的說法，says 用現在式。", "we should wait here for a while｜should 表建議；for a while＝一會兒。", "if we left now, we might get caught in ...｜帶假設語氣的條件句：用過去式 left + might，表示「假如現在就出發，可能會…」，比 if we leave 更有「假設」的距離感。", "get caught in + 天氣／交通｜遇上（雷雨、塞車）。"], "ev": ["thunderstorm｜雷雨", "get caught in｜遇上（不幸的事）", "on the way down｜下山途中", "for a while｜一會兒", "wait｜等待"], "jg": ["V-ると〜｜「今出ると」＝一出發的話就會…（自然的結果、條件）。", "N に見舞われる｜遭遇（災害、壞事）：「雷雨に見舞われる」＝遇上雷雨。", "〜危険がある｜有…的危險。", "V-た方がいい｜「待った方がいい」＝最好…；「〜と言っています」＝（他）說…。"], "jv": ["下山｜げざん｜下山", "途中｜とちゅう｜途中", "雷雨｜らいう｜雷雨", "見舞われる｜みまわれる｜遭遇（不好的事）", "危険｜きけん｜危險", "しばらく｜｜暫時、一會兒"]},
+{"id": 34, "zh": "長生不老是人類的夢想。但是，如果真的實現了，地球上會人滿為患。", "ja": "不老不死は人間の夢である。しかし、もしこれが実現したら地球は人であふれてしまう。", "en": "People wish they could live forever and never get older. However, if this came true, there would be too many people on Earth.", "eg": ["wish + 過去式（could）｜wish they could live forever：表示與現實相反的願望（現在做不到）。", "if + 過去式, S + would ...｜與現在事實相反（或不太可能發生）的假設。", "come true｜實現；too many + 可數複數＝太多。"], "ev": ["live forever｜永生", "come true｜實現", "get older｜變老", "on Earth｜地球上", "however｜然而"], "jg": ["N は N である｜書面體的斷定：「夢である」＝是夢想（「である」是「だ」的書面說法）。", "もし〜たら｜「もし…実現したら」＝如果實現的話（假設）。", "N であふれる｜「人であふれる」＝人多到滿出來；「〜てしまう」帶有不樂見的結果。"], "jv": ["不老不死｜ふろうふし｜長生不老", "夢｜ゆめ｜夢想", "実現｜じつげん｜實現", "地球｜ちきゅう｜地球", "あふれる｜｜滿出來、氾濫"]},
+{"id": 35, "zh": "安看起來很開心呢，一定是發生了什麼好事。", "ja": "アンはうれしそうな顔をしているね。何かいいことがあったに違いない。", "en": "Ann looks happy. Something good must have happened to her.", "eg": ["look + 形容詞｜看起來…。", "must have p.p.｜對過去事情的肯定推測：一定曾經…。", "Something good｜修飾不定代詞 something 的形容詞放在後面。", "happen to + 人｜發生在某人身上。"], "ev": ["look happy｜看起來很開心", "must have + p.p.｜（過去）一定是…", "happen｜發生", "something good｜好事"], "jg": ["形容詞語幹＋そうな顔｜「うれしそうな顔」＝看起來很開心的表情；「〜そう」＝看起來。", "〜に違いない｜一定是…（強烈推測）。", "何かいいことがあった｜有什麼好事發生了。", "〜ね｜句尾表示確認、感嘆。"], "jv": ["うれしい｜｜開心的", "顔｜かお｜臉、表情", "違いない｜ちがいない｜一定是", "何か｜なにか｜某些事"]},
+{"id": 36, "zh": "只要去過歐洲古都的人，一定都會被它的美麗所感動。", "ja": "ヨーロッパの古都に行ったことのある人ならば、その美しさに感動したに違いない。", "en": "Anyone who has visited a historic European city must have been moved by its beauty.", "enOrig": "If you have been to a historic European city, you must have been deeply impressed by how beautiful it was.", "eg": ["Anyone who ...｜「凡是…的人」：Anyone who has visited ...（第三人稱單數，用 has）。", "現在完成式 has visited｜表示「曾經去過」的經驗。", "must have p.p.｜對過去的肯定推測：一定曾經被…感動。", "be moved by + N｜被…感動。原書句子較長，這裡改成更簡潔的說法。"], "ev": ["historic city｜歷史悠久的城市（古都）", "be moved by｜被…感動", "beauty｜美麗", "visit｜造訪", "European｜歐洲的"], "jg": ["V-たことのあるN｜「行ったことのある人」＝去過的人（經驗）。", "〜ならば｜如果是…的話（強調條件）。", "N に感動する｜被…感動。", "〜に違いない｜一定…。"], "jv": ["古都｜こと｜古都", "美しさ｜うつくしさ｜美麗（名詞化）", "感動｜かんどう｜感動", "行く｜いく｜去"]},
+{"id": 37, "zh": "如果沒有石油、煤炭等化石燃料，20世紀的歷史一定會完全不同。", "ja": "もし石油や石炭などの化石燃料がなかったら、20世紀の歴史はまったく異なったものになっていたに違いない。", "en": "Without fossil fuels such as oil or coal, the history of the 20th century would have been completely different.", "eg": ["Without + N, S + would have p.p.｜Without ...＝If it had not been for ...，與過去事實相反：要是沒有…就會…了。", "such as ...｜例如…（列舉）。", "completely different｜完全不同。"], "ev": ["fossil fuel｜化石燃料", "oil｜石油", "coal｜煤炭", "the 20th century｜20 世紀", "completely｜完全地", "different｜不同的"], "jg": ["もし〜なかったら〜に違いない｜如果沒有…，一定會…。", "N や N など｜…或…之類（列舉）。", "異なったものになる｜變成不一樣的東西；「異なる」＝不同。", "V-ていた｜「なっていた」＝(當時)已經變成了（過去的推測）。"], "jv": ["石油｜せきゆ｜石油", "石炭｜せきたん｜煤炭", "化石燃料｜かせきねんりょう｜化石燃料", "歴史｜れきし｜歷史", "異なる｜ことなる｜不同", "まったく｜｜完全"]},
+{"id": 38, "zh": "那個新進員工太自來熟了，跟我說話的口氣簡直像在對朋友說話。", "ja": "あの新入社員は馴れ馴れしい。私に対してまるで友達のような口のきき方だ。", "en": "That new employee is overly familiar. He talks to me as if I were his friend.", "enOrig": "That new employee is too friendly. He talks to me as if I were his friend.", "eg": ["as if + 過去式 (were)｜彷彿…（與事實相反的比喻）；were 用於所有人稱。", "overly familiar｜過分熟絡、沒大沒小。原書寫 too friendly，但 friendly 是褒義；日文「馴れ馴れしい」是令人不快的過度親暱，用 overly familiar 更貼切。", "talk to + 人｜對某人說話。"], "ev": ["employee｜員工", "overly｜過度地", "familiar｜過分親暱的；熟悉的", "as if｜彷彿", "new employee｜新進員工"], "jg": ["馴れ馴れしい｜形容詞：過分親暱、不拘禮節（負面）。", "まるで〜のような｜「まるで友達のような」＝簡直像朋友一樣。", "口のきき方｜說話的方式（「口をきく」＝開口說話）。", "N に対して｜針對、對於…（對象）。"], "jv": ["新入社員｜しんにゅうしゃいん｜新進員工", "馴れ馴れしい｜なれなれしい｜過分親暱", "友達｜ともだち｜朋友", "口のきき方｜くちのききかた｜說話的方式"]},
+{"id": 39, "zh": "小時候，我常希望家裡能再大一點。", "ja": "子供の頃、もう少し家が広ければと思ったものでした。", "en": "When I was a child, I used to wish our house were a little bigger.", "enOrig": "When I was a child, I often used to wish my house were a little larger.", "eg": ["used to V｜過去的習慣（現在已不是）：used to wish＝以前常常希望。", "wish + 過去式 (were)｜與現實相反的願望（其實家沒有比較大）；were 用於所有人稱。", "a little + 比較級｜稍微…一點：a little bigger。"], "ev": ["used to｜以前常常", "wish｜希望（不太可能實現）", "a little｜稍微", "bigger｜較大的", "child｜孩子"], "jg": ["〜ば〜と思う｜「家が広ければと思った」＝心想要是家再大一點就好了。", "V-たものでした｜「思ったものでした」＝以前常常想…（回憶過去的習慣）。", "もう少し｜再多一點點。"], "jv": ["子供｜こども｜孩子", "広い｜ひろい｜寬敞", "思う｜おもう｜想", "もう少し｜もうすこし｜再稍微"]},
+{"id": 40, "zh": "我想當志工，幫助洪水、地震等災害的受災者。", "ja": "洪水や地震などの被災者を手助けするボランティアとして活動したい。", "en": "I would like to work as a volunteer helping victims of natural disasters, such as floods or earthquakes.", "eg": ["would like to V｜想要…（比 want to 有禮貌）。", "work as + 職務｜擔任…、以…的身分工作。", "helping victims of ...｜現在分詞後置修飾 volunteer：幫助…受害者的志工；victim of + 災害＝…的受害者。", "such as ...｜例如。"], "ev": ["victim｜受害者", "natural disaster｜天然災害", "flood｜洪水", "volunteer｜志工", "would like to｜想要"], "jg": ["N として｜以…的身分：「ボランティアとして」。", "V-たい｜想要…（說話者的願望）。", "N を手助けする｜幫助…：「被災者を手助けする」。", "N や N など｜…或…等等。"], "jv": ["洪水｜こうずい｜洪水", "被災者｜ひさいしゃ｜受災者", "手助け｜てだすけ｜幫忙", "ボランティア｜｜志工", "活動｜かつどう｜活動"]},
+{"id": 41, "zh": "吉姆有一組很棒的鼓，但他不讓任何人使用。", "ja": "ジムは素晴らしいドラムを持っていますが、誰にも使わせません。", "en": "Jim has a wonderful drum set, but he never lets anyone use it.", "enOrig": "Jim has a nice set of drums, and he never lets anyone play them.", "eg": ["drum set｜鼓組（單數）；原書寫 a nice set of drums ... play them，這裡統一用單數 it。", "let + O + 原形動詞｜讓某人…（允許）：never lets anyone use it。", "but｜對比連接：有…卻不讓別人用（對應日文的「が」）。", "wonderful｜極好的（語氣比 nice 強）。"], "ev": ["drum set｜鼓組", "wonderful｜很棒的", "let｜讓、允許", "never｜從不", "anyone｜任何人"], "jg": ["N を持っていますが〜｜「が」表逆接：有…，但是…。", "誰にも〜ない｜「誰にも＋否定」＝對任何人都不…：「誰にも使わせません」。", "使役 V-させる｜「使わせない」＝不讓（誰）使用。", "素晴らしい｜很棒的（讚美）。"], "jv": ["素晴らしい｜すばらしい｜很棒的", "ドラム｜｜鼓", "持つ｜もつ｜擁有", "誰にも｜だれにも｜對任何人", "使う｜つかう｜使用"]},
+{"id": 42, "zh": "起初我以為大衛只是在開玩笑，後來才知道他是認真的。", "ja": "最初、デビッドは冗談を言っているだけだと思ったが、後で本気だとわかった。", "en": "At first, I thought David was only joking, but later I realized he was serious.", "jaOrig": "最初、ディビットは冗談を言っているだけだと思ったが、後で本気だとわかった。", "eg": ["At first ... but later ...｜先後對比。", "thought (that) David was only joking｜that 可省略；主句是過去式 thought，子句用過去進行式 was joking（時態一致）。", "realize (that) ...｜領悟到（原本沒察覺的事）。", "serious｜認真的（≠ joking）。"], "ev": ["at first｜起初", "joke｜開玩笑", "realize｜領悟", "serious｜認真的", "later｜後來"], "jg": ["〜だけだと思う｜「冗談を言っているだけだと思った」＝以為只是在開玩笑。", "後で〜とわかった｜後來才明白是…：「本気だとわかった」。", "V-ている｜「言っている」＝正在說（進行）。"], "jv": ["最初｜さいしょ｜起初", "冗談｜じょうだん｜玩笑", "本気｜ほんき｜認真", "後で｜あとで｜之後"]},
+{"id": 43, "zh": "上個星期日，我生平第一次嘗試做義大利菜，結果做出來的東西非常好吃。", "ja": "先週の日曜日、生まれて初めてイタリア料理に挑戦してみましたが、とってもおいしいものができました。", "en": "Last Sunday, I tried cooking Italian food for the first time in my life, and it turned out really delicious.", "enOrig": "Last Sunday, I tried cooking some Italian food for the first time, and it was delicious.", "eg": ["for the first time in my life｜有生以來第一次（日文「生まれて初めて」）。", "try V-ing｜試著做做看（看結果如何）；try to V 則是「努力想做」。", "turn out + 形容詞｜（結果）成了…：it turned out really delicious。"], "ev": ["try -ing｜試著做", "Italian food｜義大利菜", "turn out｜結果是", "delicious｜美味的", "for the first time｜第一次"], "jg": ["生まれて初めて｜有生以來第一次。", "V-てみる｜「挑戦してみました」＝試著做做看。", "おいしいものができました｜做出了好吃的東西；「できる」＝完成、做成。"], "jv": ["先週｜せんしゅう｜上週", "日曜日｜にちようび｜星期日", "挑戦｜ちょうせん｜挑戰", "料理｜りょうり｜料理", "とっても｜｜非常（口語）"]},
+{"id": 44, "zh": "有人說他們討厭夏天，因為熱得什麼都不想做。但是，夏天最適合去海裡游泳，所以我喜歡夏天的炎熱。", "ja": "夏は暑くて何をする気にもなれないから嫌いだという人がいます。しかし、夏は海で泳ぐには最適なので、私はその夏の暑さが好きです。", "en": "Some people say that they do not like summer because it is so hot that they do not feel like doing anything. However, I like the heat of summer because it is perfect for swimming in the sea.", "eg": ["so ... that ...｜如此…以致於…：so hot that they do not feel like doing anything。", "feel like V-ing｜想要做…：do not feel like doing anything＝什麼都不想做。", "be perfect for + N / V-ing｜最適合…。", "However｜然而（轉折的副詞，後面加逗號）。"], "ev": ["feel like -ing｜想要…", "perfect｜最適合的、完美的", "heat｜暑熱", "however｜然而", "swim in the sea｜在海裡游泳"], "jg": ["〜という人がいます｜「N という人がいる」＝有人說／有這樣的人。", "何をする気にもなれない｜「〜気になれない」＝提不起勁做…；「何を…気にも」＝什麼都不想做。", "〜には最適だ｜「泳ぐには最適」＝要（做）…的話最合適。", "しかし｜然而（轉折的接續詞）。"], "jv": ["暑い｜あつい｜熱（天氣）", "嫌い｜きらい｜討厭", "最適｜さいてき｜最適合", "泳ぐ｜およぐ｜游泳", "気｜き｜心情、意願"]},
+{"id": 45, "zh": "詹姆士八年前來到日本，不只是因為想逛寺廟，還因為他有個日本女友。", "ja": "ジェームズが8年前日本に来たのは、お寺めぐりがしたかっただけでなく、日本人の彼女がいたからだ。", "en": "James came to Japan eight years ago not only because he wanted to visit temples, but also because he had a Japanese girlfriend.", "eg": ["not only A but also B｜不只 A 還有 B：not only because ..., but also because ...（A、B 是對等的原因子句）。", "eight years ago｜明確的過去時間，用過去式 came。", "visit temples｜參觀寺廟。"], "ev": ["not only ... but also｜不但…而且", "temple｜寺廟", "girlfriend｜女朋友", "ago｜…以前"], "jg": ["〜のは〜からだ｜「日本に来たのは〜からだ」＝來日本是因為…（強調原因的句型）。", "〜だけでなく〜｜不只…還…：「したかっただけでなく、彼女がいたからだ」。", "N めぐり｜「お寺めぐり」＝逛寺廟、巡禮。"], "jv": ["寺｜てら｜寺廟", "巡り｜めぐり｜巡遊", "彼女｜かのじょ｜女朋友；她", "来る｜くる｜來", "日本人｜にほんじん｜日本人"]},
+{"id": 46, "zh": "我反對複製人。因為這可能導致壞人被複製出來。", "ja": "私はヒトクローンに反対します。なぜなら悪い人のクローンが作られることになるかもしれないからです。", "en": "I am against human cloning. That is because it could result in evil people being cloned.", "eg": ["be against + N｜反對…。", "That is because ...｜這是因為…（補述前一句的理由）。", "result in + N / V-ing｜導致…；evil people being cloned＝動名詞被動式，evil people 是它意義上的主詞。", "could｜可能會（表示可能性）。"], "ev": ["human cloning｜複製人", "be against｜反對", "result in｜導致", "evil｜邪惡的", "clone｜複製"], "jg": ["N に反対する｜反對…。", "なぜなら〜からです｜因為…（先下結論再說理由，句尾用「から」呼應）。", "〜ことになる｜結果會變成…；「かもしれない」＝也許。", "V-られる｜「作られる」＝被製造（被動）。"], "jv": ["ヒトクローン｜｜複製人", "反対｜はんたい｜反對", "悪い人｜わるいひと｜壞人", "作る｜つくる｜製造", "なぜなら｜｜因為"]},
+{"id": 47, "zh": "從這張圖表可以看出，日本的出生率自1985年以來持續下降。原因之一是養育孩子要花很多錢。", "ja": "このグラフを見ると、日本における出生率は1985年以降減少している。理由の1つは子育てにお金がかかるからだ。", "en": "The graph shows that Japan's birth rate has been falling since 1985. One reason is that raising children costs a lot of money.", "enOrig": "The graph shows that in Japan the birth rate has been decreasing since 1985. This decrease is partly because it costs a lot of money to raise children.", "eg": ["現在完成進行式 has been falling since 1985｜自 1985 年以來持續下降；since + 過去時間點。", "birth rate｜出生率（rate 用單數）。", "One reason is that ...｜其中一個原因是…（that 子句作補語）。原書的 This decrease is partly because ... 不太自然，改為此句型。", "raising children costs a lot of money｜動名詞片語當主詞（視為單數）。"], "ev": ["graph｜圖表", "birth rate｜出生率", "fall / decrease｜下降", "raise children｜養育孩子", "cost｜花費"], "jg": ["V-ると〜｜「見ると」＝一看就發現…（發現、確認）。", "N における N｜「日本における出生率」＝在日本的出生率（書面）。", "N以降｜自…以後。", "理由の1つは〜からだ｜理由之一是…；「お金がかかる」＝花錢。"], "jv": ["出生率｜しゅっしょうりつ｜出生率", "以降｜いこう｜以後", "減少｜げんしょう｜減少", "子育て｜こそだて｜養育孩子", "理由｜りゆう｜理由", "かかる｜｜（花費）需要"]},
+{"id": 48, "zh": "我為遲到向吉兒道歉，但她沒有原諒我。", "ja": "私はジルに遅刻したことを謝ったが、許してくれなかった。", "en": "Even though I apologized to Jill for being late, she did not forgive me.", "eg": ["Even though + 子句｜即使…（內容是事實）。", "apologize to + 人 + for + V-ing / N｜為…向某人道歉。", "forgive + 人｜原諒某人。", "be late｜遲到。"], "ev": ["apologize｜道歉", "forgive｜原諒", "be late｜遲到", "even though｜即使"], "jg": ["N に〜を謝る｜「ジルに遅刻したことを謝った」＝為遲到向 Jill 道歉；「遅刻したこと」＝遲到這件事。", "〜が、〜｜逆接：雖然…但是…。", "許してくれなかった｜「許す」＝原諒；「〜てくれない」＝（對方）不肯為我做…。"], "jv": ["遅刻｜ちこく｜遲到", "謝る｜あやまる｜道歉", "許す｜ゆるす｜原諒"]},
+{"id": 49, "zh": "三天前，我把手機摔在地上，螢幕碎成了粉末。我後悔沒有買保險。", "ja": "3日前、スマホを落として画面が粉々に割れてしまった。保険に入ってなかったことを後悔した。", "en": "Three days ago, I dropped my smartphone and the screen shattered into pieces. I regretted not having taken out insurance.", "enOrig": "Three days ago, I dropped my smartphone and its screen smashed into thousands of pieces. I regretted not buying insurance for it.", "eg": ["regret + not having p.p.｜後悔當初沒有…：完成式動名詞表示動作比 regretted 更早。", "take out insurance｜投保、買保險。", "shatter｜粉碎（螢幕、玻璃）。", "Three days ago｜明確的過去時間，用過去式。"], "ev": ["drop｜掉落、摔到", "screen｜螢幕", "shatter｜粉碎", "insurance｜保險", "regret｜後悔"], "jg": ["〜てしまった｜「割れてしまった」＝（不小心）碎了，帶有遺憾。", "粉々に｜粉碎地：「粉々に割れる」＝碎成粉末。", "保険に入る｜投保、加入保險。", "V-てなかったことを後悔した｜後悔沒有…（「入ってなかった」＝當時沒有投保）。"], "jv": ["スマホ｜｜智慧型手機（スマートフォン的略稱）", "落とす｜おとす｜弄掉", "画面｜がめん｜螢幕", "保険｜ほけん｜保險", "後悔｜こうかい｜後悔"]},
+{"id": 50, "zh": "我每天忙著做家事，沒有時間去看電影。", "ja": "毎日、家事がとても忙しく、映画を見に行く暇がない。", "en": "I am so busy with the housework every day that I have no time to see a movie.", "eg": ["so + 形容詞 + that + 子句｜太…以致於…（結果）。", "be busy with + N｜忙於…（也可用 be busy V-ing）。", "have no time to V｜沒有時間做…；see a movie＝看電影。", "housework｜家事（不可數）。"], "ev": ["housework｜家事", "be busy with｜忙於", "have no time to｜沒時間去…", "see a movie｜看電影", "every day｜每天"], "jg": ["い形容詞的連用形（〜く）｜「忙しく、暇がない」：用〜く中止，連接前後句。", "V(辞書形)＋暇がない｜「見に行く暇がない」＝沒有時間去看。", "V-に行く｜「映画を見に行く」＝去看電影（目的）。"], "jv": ["毎日｜まいにち｜每天", "家事｜かじ｜家事", "忙しい｜いそがしい｜忙碌", "映画｜えいが｜電影", "暇｜ひま｜空閒時間"]},
+{"id": 51, "zh": "這張木桌太重了，我一個人搬不上二樓。", "ja": "この木の机は重いので私1人では2階まで運べない。", "en": "This wooden desk is too heavy for me to carry upstairs by myself.", "eg": ["too + 形容詞 + for + 人 + to V｜太…而無法…：too heavy for me to carry（to 不定詞的受詞就是主詞 desk，不需再寫 it）。", "by myself｜獨自一人、不靠別人幫忙。", "upstairs｜副詞：到樓上（前面不加 to）。", "wooden｜木製的（wood 的形容詞）。"], "ev": ["wooden｜木製的", "desk｜書桌", "carry｜搬運", "upstairs｜到樓上", "by myself｜我自己一個人"], "jg": ["V(可能形)ない｜「運べない」＝搬不動（可能形：運ぶ → 運べる）。", "〜ので｜因為（客觀理由）。", "1人では〜ない｜「Nでは＋否定」＝光靠…是不行的。", "N まで｜「2階まで」＝到二樓為止。"], "jv": ["木｜き｜木頭", "机｜つくえ｜書桌", "重い｜おもい｜重", "運ぶ｜はこぶ｜搬運", "階｜かい｜…樓"]},
+{"id": 52, "zh": "在歐洲旅行期間，不管去哪個國家都會遇到很多日本觀光客，讓我覺得厭煩透了。", "ja": "ヨーロッパ旅行中、どこの国に行っても多くの日本人旅行者に出会うのでうんざりしました。", "en": "While traveling in Europe, I got sick and tired of seeing so many Japanese tourists wherever I went.", "eg": ["While + V-ing｜While traveling ... ＝ While I was traveling ...（省略與主句相同的主詞和 be）。", "get sick and tired of + N / V-ing｜對…厭煩透頂（比 be tired of 語氣更強）。", "wherever + 子句｜無論到哪裡：wherever I went。", "so many + 可數複數名詞｜這麼多。"], "ev": ["tourist｜觀光客", "sick and tired of｜厭煩透了", "wherever｜無論去哪裡", "so many｜這麼多", "travel｜旅行"], "jg": ["どこの国に行っても｜「疑問詞＋V-ても」＝不管去哪個國家，都…。", "多くの N に出会う｜遇到很多…；「出会う」＝碰見。", "〜ので、うんざりした｜因為…而厭煩；「うんざりする」＝膩了、受夠了。", "ヨーロッパ旅行中｜「N中」＝在…期間。"], "jv": ["旅行者｜りょこうしゃ｜旅客", "出会う｜であう｜遇見", "うんざり｜｜膩了、受夠了", "国｜くに｜國家", "中｜ちゅう｜…期間"]},
+{"id": 53, "zh": "看到母親戴著我送的耳環去上班，我非常開心。", "ja": "私がプレゼントしたイヤリングをして母が会社に行くのを見て、とてもうれしかった。", "en": "I was very happy when I saw my mother leaving for work wearing the earrings I had given her.", "enOrig": "I was very happy when I saw my mother leaving for work wearing the earrings I had bought her.", "eg": ["see + O + V-ing｜看見某人正在…（感官動詞＋現在分詞，強調動作進行中）。", "leave for + 地點｜動身前往…：leave for work＝出門上班。", "wearing the earrings ...｜分詞構句表伴隨狀態：戴著耳環。", "the earrings I had given her｜過去完成式 had given：送禮物發生在「看見」之前；省略關係代名詞 that。日文是「プレゼントした」（送禮），故 bought 改為 given。"], "ev": ["earrings｜耳環", "leave for｜出發前往", "wear｜戴、穿", "give ... as a present｜當禮物送", "be happy｜開心"], "jg": ["N をして｜「イヤリングをして」＝戴著耳環（配戴類的說法）。", "V-るのを見る｜「行くのを見て」＝看到（她）去…（「の」把動詞名詞化）。", "私がプレゼントしたN｜我送的…（連体修飾中，主語用「が」）。"], "jv": ["イヤリング｜｜耳環", "母｜はは｜（我的）母親", "会社｜かいしゃ｜公司", "プレゼント｜｜禮物", "とても｜｜非常"]},
+{"id": 54, "zh": "認為學校只是教人讀書的地方，正是不了解學校角色的證明。", "ja": "学校は勉強だけを教えているところだと思うのは、学校の役割を理解していない証拠です。", "en": "If you think that schools are nothing more than places to study, then this shows that you do not understand what they are for.", "eg": ["nothing more than ...｜不過是…、只不過是…。", "what they are for｜它們（存在）的目的是什麼：介系詞 for 留在句尾。", "this shows that ...｜這顯示出…（證明）。", "If you think that ..., then ...｜條件句；then 讓結論更明確。"], "ev": ["nothing more than｜不過是", "place to study｜讀書的地方", "role｜角色", "show｜顯示", "understand｜理解"], "jg": ["〜と思うのは、〜証拠です｜認為…，正是…的證明（〜のは〜証拠だ）。", "N だけを V｜「勉強だけを教えている」＝只教…。", "理解していない｜尚未理解／不了解（V-ていない）。"], "jv": ["学校｜がっこう｜學校", "役割｜やくわり｜角色", "理解｜りかい｜理解", "証拠｜しょうこ｜證據", "教える｜おしえる｜教"]},
+{"id": 55, "zh": "在新冠疫情期間，大多數人大部分時間都待在家裡工作或讀書。", "ja": "コロナ禍では、ほとんどの人々は、大部分の時間を家の中で仕事したり勉強したりして過ごした。", "en": "During the COVID-19 pandemic, most people spent the majority of their time working or studying at home.", "enOrig": "During the COVID-19 pandemic, most people spent most of their time working or studying indoors.", "eg": ["during + 名詞｜在…期間（後面接名詞；接子句要用 while）。", "spend + 時間 + V-ing｜花時間做…。", "the majority of ...｜大部分的…。原書用 most of their time，與句首 most people 重複，改用 the majority of。", "at home｜在家（日文是「家の中」，比 indoors 更貼切）。"], "ev": ["pandemic｜大流行", "spend｜度過、花費", "the majority of｜大部分的", "work / study｜工作／讀書", "at home｜在家"], "jg": ["N 禍｜「コロナ禍」＝疫情帶來的災難與這段期間（「〜禍」表示災禍）。", "ほとんどの人々は、大部分の時間を〜｜多數人大部分的時間都…。", "V-たりV-たりする｜「仕事したり勉強したり」＝又…又…（列舉動作）。", "過ごす｜度過（時間）。"], "jv": ["コロナ禍｜コロナか｜疫情期間", "大部分｜だいぶぶん｜大部分", "家の中｜いえのなか｜家裡", "仕事｜しごと｜工作", "勉強｜べんきょう｜讀書", "過ごす｜すごす｜度過"]},
+{"id": 56, "zh": "日本人為了不破壞和諧，通常會盡可能間接地表達自己的感受。", "ja": "日本人は、和を乱さないように自分の気持ちはできるだけ間接的に表現するのがふつうだ。", "en": "Japanese people usually express their feelings as indirectly as possible to avoid disturbing the harmony of their group.", "eg": ["as + 副詞 + as possible｜盡可能地…：as indirectly as possible。", "to avoid V-ing｜為了避免…（to 不定詞表目的；avoid 後接動名詞）。", "disturb the harmony｜擾亂和諧。"], "ev": ["express｜表達", "indirectly｜間接地", "as ... as possible｜盡可能", "avoid｜避免", "harmony｜和諧"], "jg": ["和を乱さないように｜「〜ように」＝為了不…（目的）；「和」＝和諧，「乱す」＝擾亂。", "できるだけ〜｜盡可能。", "〜のがふつうだ｜「表現するのがふつうだ」＝通常是…。", "間接的｜間接的（「〜的」使名詞變成な形容詞）。"], "jv": ["和｜わ｜和諧", "乱す｜みだす｜擾亂", "気持ち｜きもち｜心情", "間接的｜かんせつてき｜間接的", "表現｜ひょうげん｜表達"]},
+{"id": 57, "zh": "一所大學是否真正一流，不只取決於教師與學生的能力，也取決於它對社會的貢獻程度。", "ja": "大学が真に一流かどうかは、教員と学生の能力だけでなく、社会の貢献度で決まる。", "en": "Whether a university is truly first-rate depends not only on the abilities of its faculty and students but also on how much it contributes to society.", "enOrig": "Whether or not a university is truly first-rate depends not only on how intelligent its faculty and students are. It also depends on how much it contributes to society.", "eg": ["Whether ... depends on ...｜whether 子句當主詞：是否…取決於…。", "not only A but also B｜不只 A 還有 B：not only on ... but also on ...（兩邊的介系詞 on 都要寫）。", "how much it contributes to society｜名詞子句作 on 的受詞：它對社會貢獻多少。原書拆成兩句，這裡合成一句以呼應日文的「〜だけでなく〜」。", "first-rate｜一流的。"], "ev": ["first-rate｜一流的", "faculty｜全體教職員", "depend on｜取決於", "contribute to｜對…有貢獻", "society｜社會"], "jg": ["〜かどうかは〜で決まる｜是否…取決於…。", "AだけでなくB｜不只 A，B 也…。", "N の貢献度｜貢獻程度（N＋度＝程度）。", "真に｜真正地（書面副詞）。"], "jv": ["大学｜だいがく｜大學", "真に｜しんに｜真正地", "一流｜いちりゅう｜一流", "教員｜きょういん｜教師", "学生｜がくせい｜學生", "貢献｜こうけん｜貢獻", "決まる｜きまる｜被決定"]},
+{"id": 58, "zh": "大氣中二氧化碳的增加與全球暖化密切相關。", "ja": "大気中のCO2の増加は、地球温暖化と密接な関連がある。", "en": "The increase in the amount of CO2 in the atmosphere is closely related to global warming.", "eg": ["the increase in ...｜…的增加（increase in + N）。", "the amount of + 不可數名詞｜…的量（可數名詞用 the number of）。", "be closely related to ...｜與…密切相關。", "in the atmosphere｜在大氣中。"], "ev": ["increase｜增加", "amount｜量", "atmosphere｜大氣", "be related to｜與…有關", "global warming｜全球暖化"], "jg": ["N は N と関連がある｜A 與 B 有關聯。", "密接な N｜密切的…（な形容詞修飾名詞）。", "大気中｜「N中」＝在…之中。", "〜の増加は、〜｜…的增加。"], "jv": ["大気｜たいき｜大氣", "増加｜ぞうか｜增加", "地球温暖化｜ちきゅうおんだんか｜全球暖化", "密接｜みっせつ｜密切", "関連｜かんれん｜關聯"]},
+{"id": 59, "zh": "現代文明越進步，我們就越被迫過夜貓子的生活，睡眠也越不足。", "ja": "現代文明が進めば進むほど、夜型の生活を強いられて睡眠不足になる。", "en": "The more modern civilization advances, the later we are forced to stay up at night, and the less sleep we get.", "eg": ["The + 比較級 ..., the + 比較級 ...｜越…就越…：The more modern civilization advances, the later we ..., and the less sleep we get。", "be forced to V｜被迫…。", "stay up｜熬夜；less sleep（sleep 是不可數名詞，所以用 less）。", "advance｜前進、進步。"], "ev": ["civilization｜文明", "advance｜進步", "be forced to｜被迫", "stay up｜熬夜", "less｜較少"], "jg": ["V-ば V-ほど〜｜「進めば進むほど」＝越…越…。", "強いられる｜被迫（「強いる」的被動）：「夜型の生活を強いられる」＝被迫過夜貓子的生活。", "〜になる｜「睡眠不足になる」＝變成睡眠不足。"], "jv": ["現代｜げんだい｜現代", "文明｜ぶんめい｜文明", "進む｜すすむ｜前進、進步", "夜型｜よるがた｜夜貓子型", "強いる｜しいる｜強迫", "睡眠不足｜すいみんぶそく｜睡眠不足"]},
+{"id": 60, "zh": "醫生和老師的相似之處在於，兩者面對的都不是物品而是人。", "ja": "医師と教師が似ているところは、どちらも物ではなく人を扱うところである。", "en": "Doctors and teachers are alike in that both of them deal not with things but with people.", "eg": ["be alike in that ...｜在…這一點上相似（in that＝在於…）。", "not A but B｜不是 A 而是 B：not with things but with people（介系詞 with 兩邊都要放）。", "deal with ...｜應對、處理。", "both of them｜他們兩者。"], "ev": ["alike｜相似的", "in that｜在於…這一點", "deal with｜應對、處理", "thing｜物品", "people｜人們"], "jg": ["N が似ているところは、〜ところである｜「似ているところは〜ところである」＝相似之處在於…（名詞句）。", "AではなくB｜不是 A 而是 B：「物ではなく人を扱う」。", "どちらも〜｜兩者都…。", "扱う｜對待、處理（人、物）。"], "jv": ["医師｜いし｜醫生", "教師｜きょうし｜老師", "似る｜にる｜相似", "扱う｜あつかう｜對待、處理", "物｜もの｜東西"]},
+{"id": 61, "zh": "音樂演奏，現場看比在YouTube上看好得多。", "ja": "音楽の演奏はYouTubeで見るより生で見た方がはるかにいい。", "en": "It is far better to see a musical performance live than to watch it on YouTube.", "enOrig": "Music performances are far more exciting live than they are on YouTube.", "eg": ["It is far better to A than (to) B｜A 遠比 B 好：far 用來加強比較級（也可用 much、a lot）。原書用 more exciting，日文是「いい」，改成 better 更忠於原意，也更能練習 better ... than 句型。", "see ... live｜看現場表演；live 在這裡是副詞，唸 /laɪv/。", "than 後面的 to｜可省略，但兩邊形式要對等（to see ... than to watch ...）。"], "ev": ["performance｜演出、演奏", "live｜現場地", "far｜遠遠地（加強比較級）", "watch｜觀看", "musical｜音樂的"], "jg": ["V-るより V-た方がいい｜「見るより見た方がいい」＝與其…不如…比較好（比較兩種做法）。", "生で｜「生で見る」＝看現場；「生」讀「なま」，指現場、未經加工。", "はるかに｜遠遠地（加強比較）。", "N で見る｜「YouTubeで見る」＝在 YouTube 上看。"], "jv": ["音楽｜おんがく｜音樂", "演奏｜えんそう｜演奏", "生｜なま｜現場、未加工", "はるかに｜｜遠遠地", "見る｜みる｜看"]},
+{"id": 62, "zh": "這輛機車在英國的價格大約是日本的兩倍。", "ja": "このバイクは、イギリスでは日本のおよそ2倍の値段です。", "en": "This motorcycle is about twice as expensive in the U.K. as it is in Japan.", "eg": ["twice as + 形容詞 + as｜是…的兩倍（倍數 + as ... as）。", "about twice｜大約兩倍；about 修飾倍數。", "as it is in Japan｜比較的是「地點」（英國 vs. 日本），可省略成 as in Japan。"], "ev": ["motorcycle｜機車", "twice as ... as｜是…的兩倍", "expensive｜昂貴的", "the U.K.｜英國", "about｜大約"], "jg": ["N は N の2倍の値段｜「日本のおよそ2倍の値段」＝約日本兩倍的價格。", "およそ｜大約。", "バイク｜機車（日文口語的「バイク」指機車／摩托車）。"], "jv": ["値段｜ねだん｜價格", "倍｜ばい｜…倍", "イギリス｜｜英國", "およそ｜｜大約"]},
+{"id": 63, "zh": "不能因為書讀得比以前少，就說現在的年輕人求知慾降低了。", "ja": "本を読む量が減ったからといって、今の若者の知的欲求が少なくなったと言うことにはならない。", "en": "Just because young people today read less than they used to, this does not mean that they are less eager to learn.", "eg": ["Just because A, (that) does not mean B｜不能因為 A 就說 B（口語常見：Just because ..., it doesn't mean ...）。", "less than they used to (read)｜used to 後面省略前面出現過的動詞 read；less＝比較少。", "be eager to V｜渴望做…；less eager＝比較不渴望。"], "ev": ["eager｜渴望的", "used to｜過去常常", "mean｜意味著", "less｜較少", "read｜閱讀"], "jg": ["〜からといって〜ない｜「減ったからといって、〜ことにはならない」＝不能因為…就說…。", "〜ということにはならない｜並不代表…、不能說…。", "知的欲求｜求知慾。", "本を読む量｜閱讀量（量＝分量）。"], "jv": ["減る｜へる｜減少", "若者｜わかもの｜年輕人", "知的｜ちてき｜知識性的", "欲求｜よっきゅう｜欲求", "量｜りょう｜量"]},
+{"id": 64, "zh": "坦白說，我昨天參加的入學考試比我預期的難得多。", "ja": "率直に言って、私が昨日受けた入学試験は思っていたよりもはるかに難しかった。", "en": "Frankly speaking, the entrance exams I took yesterday were far more difficult than I had expected.", "eg": ["Frankly speaking,｜獨立分詞構句（慣用）：坦白說；同類：strictly speaking、generally speaking。", "the entrance exams (that) I took yesterday｜省略受詞關係代名詞。", "far more difficult than I had expected｜far 加強比較級；過去完成式 had expected：預期發生在考試之前。"], "ev": ["frankly speaking｜坦白說", "entrance exam｜入學考試", "take an exam｜參加考試", "expect｜預期", "difficult｜困難的"], "jg": ["率直に言って｜坦白說。", "思っていたよりも〜｜比原本想的還要…。", "試験を受ける｜參加考試（「受ける」＝接受、參加）。", "はるかに難しい｜難得多。"], "jv": ["率直｜そっちょく｜坦率", "入学試験｜にゅうがくしけん｜入學考試", "受ける｜うける｜參加、接受", "難しい｜むずかしい｜困難"]},
+{"id": 65, "zh": "很多人手機裡有健康應用程式，但知道如何充分運用的人極少。", "ja": "健康アプリをスマホに入れている人は多いが、充分に活用する方法を知っている人は極めて少ない。", "en": "Many people have health apps, but very few of them know how to get the most out of them.", "eg": ["very few of them｜very few 帶否定意味（幾乎沒有）；few of them 後接複數動詞。", "know how to V｜知道如何做…（疑問詞 + to 不定詞）。", "get the most out of ...｜充分利用…。"], "ev": ["health app｜健康應用程式", "very few｜極少數", "get the most out of｜充分利用", "know how to｜知道如何…", "many people｜許多人"], "jg": ["〜が、〜｜逆接：很多人…，但…。", "活用する方法｜運用的方法；「充分に活用する」＝充分運用。", "極めて少ない｜極少（「極めて」＝極其）。", "スマホに入れている｜手機裡裝有（App 等）。"], "jv": ["健康｜けんこう｜健康", "アプリ｜｜應用程式（App）", "活用｜かつよう｜活用", "充分｜じゅうぶん｜充分", "極めて｜きわめて｜極其"]},
+{"id": 66, "zh": "來日本的外國人當中，有很多人抱怨電影票太貴。", "ja": "日本に来る外国人の中には映画のチケットが高すぎると不平を言う人が多い。", "en": "Many visitors to Japan complain that movie tickets are too expensive.", "eg": ["visitors to + 地點｜到某地的訪客。", "complain that ...｜抱怨說…（complain about + 名詞）。", "too expensive｜太貴（too 表示超過合理程度）。"], "ev": ["visitor｜訪客", "complain｜抱怨", "ticket｜票", "expensive｜昂貴的", "too｜太"], "jg": ["N の中には〜人が多い｜「外国人の中には…人が多い」＝外國人當中有很多人…。", "形容詞語幹＋すぎる｜「高すぎる」＝太貴。", "不平を言う｜抱怨、發牢騷（≒ 文句を言う）。"], "jv": ["外国人｜がいこくじん｜外國人", "映画｜えいが｜電影", "高い｜たかい｜貴的", "不平｜ふへい｜不滿、牢騷", "来る｜くる｜來"]},
+{"id": 67, "zh": "世界上有些國家浪費大量糧食，有些國家卻有數萬名兒童正在挨餓。", "ja": "世界には多くの食料が浪費されている国もあれば、何万人もの子供が餓死している国もある。", "en": "In some countries, a great deal of food is wasted, while in others tens of thousands of children are starving.", "eg": ["in some countries ..., while in others ...｜在有些國家…，而在另一些國家…：some ... others 對比，while 表對照。", "a great deal of + 不可數名詞｜大量的…（food 是不可數名詞）。", "tens of thousands of ...｜數以萬計的…。", "be wasted / be starving｜被浪費／正在挨餓。"], "ev": ["a great deal of｜大量的", "waste｜浪費", "starve｜挨餓、餓死", "tens of thousands｜數萬", "while｜然而、而"], "jg": ["〜国もあれば、〜国もある｜有的國家…，也有的國家…（並列對比）。", "何万人もの N｜「何万人もの子供」＝好幾萬名孩子（「も」強調很多）。", "餓死する｜餓死。", "浪費されている｜被浪費著（受身＋ている）。"], "jv": ["食料｜しょくりょう｜糧食", "浪費｜ろうひ｜浪費", "餓死｜がし｜餓死", "子供｜こども｜孩子", "何万｜なんまん｜好幾萬"]},
+{"id": 68, "zh": "睡前一定要關冷氣，不然身體可能會不舒服喔。", "ja": "寝る前に必ずエアコンを消しなさい。さもないと体調を崩すかもしれないよ。", "en": "Don't forget to turn off the air conditioner before you go to bed, or you might come down with something.", "eg": ["Don't forget to V｜別忘了去做…（forget to V＝忘了要做；forget V-ing＝忘了曾經做過）。", "祈使句, or + 子句｜…，否則…：or 引出不照做的後果。", "come down with + 病名｜染上（病）；something 泛指某種小病。", "turn off｜關掉（電器）。"], "ev": ["air conditioner｜冷氣", "turn off｜關掉", "come down with｜染上（病）", "go to bed｜上床睡覺", "forget to｜忘記要…"], "jg": ["V-なさい｜「消しなさい」：動詞連用形＋なさい＝（較溫和的命令）要…。", "さもないと〜｜否則的話…。", "体調を崩す｜身體不舒服、狀況變差。", "〜かもしれないよ｜也許會…喔（「よ」提醒對方）。"], "jv": ["寝る前に｜ねるまえに｜睡前", "必ず｜かならず｜一定", "エアコン｜｜冷氣", "消す｜けす｜關掉", "体調｜たいちょう｜身體狀況", "崩す｜くずす｜弄壞、打亂"]},
+{"id": 69, "zh": "笑容是人與人之間的潤滑劑。", "ja": "笑顔は人間の潤滑油だ。", "en": "A smile is the oil that keeps human relationships running smoothly.", "enOrig": "Smiling helps us build good relationships with those around us.", "eg": ["A smile is the oil that ...｜隱喻：日文「潤滑油」在英文也可以說 oil 或 lubricant。原書用 Smiling helps us build good relationships ...，是意譯；這裡保留比喻，更接近日文。", "keep + O + V-ing｜使…持續保持…：keeps human relationships running smoothly。", "run smoothly｜順利運作。", "關係代名詞 that｜主格關係代名詞，修飾 the oil。"], "ev": ["smile｜微笑", "oil｜油、潤滑油", "relationship｜關係", "run smoothly｜順利運行", "keep + O + V-ing｜使持續…"], "jg": ["N は N だ（比喻）｜「笑顔は潤滑油だ」＝笑容是潤滑油（隱喻）。", "人間の潤滑油｜人際關係的潤滑劑；「人間」在這裡指人與人之間。"], "jv": ["笑顔｜えがお｜笑容", "人間｜にんげん｜人（人與人之間）", "潤滑油｜じゅんかつゆ｜潤滑油"]},
+{"id": 70, "zh": "在社群媒體上，我們可以超越年齡、性別、國籍的差異，與世界各地的人交換意見。", "ja": "SNSでは、世界中の人々と年齢や性別や国籍の違いを超えて意見の交換ができる。", "en": "On social media, we can share thoughts and ideas with people all over the world, regardless of age, gender, or nationality.", "eg": ["regardless of + N｜不論、不管（= irrespective of）。", "share A with B｜與 B 分享 A。", "all over the world｜遍及全世界。", "thoughts and ideas｜想法與點子（兩個近義詞並列，增強語氣）。"], "ev": ["social media｜社群媒體", "share｜分享", "regardless of｜不論", "nationality｜國籍", "gender｜性別", "all over the world｜全世界"], "jg": ["N の違いを超えて｜超越…的差異：「年齢や性別や国籍の違いを超えて」。", "N と意見の交換ができる｜能與…交換意見（可能形：できる）。", "SNS｜社群網路服務（Social Networking Service）。", "世界中｜「N中」＝整個…，世界中＝全世界。"], "jv": ["世界中｜せかいじゅう｜全世界", "年齢｜ねんれい｜年齡", "性別｜せいべつ｜性別", "国籍｜こくせき｜國籍", "超える｜こえる｜超越", "交換｜こうかん｜交換"]},
+{"id": 71, "zh": "不管怎麼運動，如果不計算卡路里就不可能減重喔。", "ja": "いくら運動しても、カロリー計算をしていないと減量は無理だよ。", "en": "No matter how much exercise you get, you will not lose weight unless you count your calories.", "eg": ["No matter how much + 名詞 + S V ...｜無論多少…都…（= However much exercise you get）。", "unless + 子句｜除非…（= if ... not）；unless 子句用現在式。", "get exercise｜做運動（exercise 是不可數名詞）。", "count calories｜計算卡路里。"], "ev": ["exercise｜運動", "lose weight｜減重", "count｜計算", "calorie｜卡路里", "unless｜除非"], "jg": ["いくら V-ても〜｜「いくら運動しても」＝不管怎麼運動…。", "V-ていないと〜｜「計算していないと」＝如果沒有…的話（就…），「と」表條件。", "〜は無理だよ｜…是不可能的喔（口語；「よ」提醒對方）。", "カロリー計算｜卡路里計算。"], "jv": ["運動｜うんどう｜運動", "減量｜げんりょう｜減重", "無理｜むり｜不可能、勉強", "計算｜けいさん｜計算", "いくら｜｜再怎麼…"]},
+{"id": 72, "zh": "即使是自以為知道意思的單字，查字典後還是會有新的發現。", "ja": "意味を知っているつもりの単語でも、辞書で調べてみると新たな発見があるものだ。", "en": "Even when you think you know a word, you can still discover something new by looking it up in a dictionary.", "enOrig": "Although you think that you know a word, there is something new to learn if you look it up in the dictionary.", "eg": ["Even when + 子句｜即使在…的時候；比 Although you think ... 自然。原書的 Although you think that you know a word 讀起來生硬，這裡改寫。", "by V-ing｜藉由…（方法）：by looking it up。", "look up ... in a dictionary｜查字典；代名詞受詞 it 必須放在 look 與 up 中間（look it up）。", "something new｜修飾 something 的形容詞放在後面。"], "ev": ["look up｜查（字典）", "dictionary｜字典", "discover｜發現", "even when｜即使…的時候", "something new｜新的東西"], "jg": ["〜つもり｜「知っているつもり」＝自以為知道（實際上不一定）。", "V-てみると〜｜「調べてみると」＝試著查了之後發現…。", "〜ものだ｜（一般性的道理）總是會…：「新たな発見があるものだ」。", "N でも｜「単語でも」＝即使是…。"], "jv": ["意味｜いみ｜意思", "単語｜たんご｜單字", "辞書｜じしょ｜字典", "調べる｜しらべる｜查、調查", "発見｜はっけん｜發現", "新た｜あらた｜新的"]},
+{"id": 73, "zh": "有些日本觀光客缺乏常識，把大筆現金放在褲子後面的口袋裡帶著走。", "ja": "日本人観光客の中には、非常識にも多額の現金をズボンの後ろポケットに入れて持ち歩く者がいる。", "en": "Some Japanese tourists lack common sense and carry large amounts of cash in their back pockets.", "eg": ["lack + N｜缺乏…（及物動詞，後面不加 of）：lack common sense。", "large amounts of + 不可數名詞｜大量的…（cash 不可數）。", "back pocket｜後口袋。", "Some ... lack ... and carry ...｜兩個動詞共用同一個主詞。"], "ev": ["tourist｜觀光客", "lack｜缺乏", "common sense｜常識", "cash｜現金", "back pocket｜後口袋"], "jg": ["非常識にも〜｜「非常識にも」＝缺乏常識地（副詞用法，帶批評）。", "N の中には〜者がいる｜其中有些人…；「者」＝人（書面）。", "持ち歩く｜隨身攜帶（連用形＋歩く＝到處…）。", "N を N に入れる｜把…放進…。"], "jv": ["観光客｜かんこうきゃく｜觀光客", "非常識｜ひじょうしき｜缺乏常識", "多額｜たがく｜大筆", "現金｜げんきん｜現金", "ズボン｜｜褲子", "後ろ｜うしろ｜後面", "持ち歩く｜もちあるく｜隨身帶著"]},
+{"id": 74, "zh": "保持健康的秘訣，就是均衡飲食並定期運動。", "ja": "健康を維持する秘訣は、バランスの取れた食事をし定期的に運動することです。", "en": "The secret to staying healthy is to eat a balanced diet and exercise regularly.", "enOrig": "In order to stay healthy, you should have a balanced diet and get regular exercise.", "eg": ["The secret to + V-ing｜…的秘訣（這裡的 to 是介系詞，後接動名詞）。", "is to V｜用 to 不定詞當主詞補語：秘訣就是去做…。", "balanced diet｜均衡飲食；regularly＝定期地。", "to eat ... and exercise ...｜兩個動詞並列，共用一個 to。原書用 In order to stay healthy, you should ...，日文是「秘訣は〜ことです」，改為 The secret to ... is to ... 更貼近。"], "ev": ["secret｜秘訣", "balanced diet｜均衡飲食", "exercise regularly｜定期運動", "stay healthy｜保持健康", "maintain｜維持"], "jg": ["N は〜ことです｜「秘訣は〜ことです」＝秘訣是…。", "健康を維持する｜維持健康。", "バランスの取れた N｜均衡的…（「バランスが取れる」＝保持平衡）。", "定期的に｜定期地。"], "jv": ["維持｜いじ｜維持", "秘訣｜ひけつ｜秘訣", "食事｜しょくじ｜飲食、餐點", "定期的｜ていきてき｜定期的", "バランス｜｜平衡"]},
+{"id": 75, "zh": "在開發中國家住上一段時間，是從不同角度重新審視日本的好機會。", "ja": "発展途上国でしばらく暮らしてみることは、日本を違った角度から見直す良い機会になる。", "en": "Living in a developing country for a while is a good opportunity to see Japan from a different perspective.", "enOrig": "If you live in a developing country for a while, you gain an opportunity to look at Japan from a different point of view.", "eg": ["Living ... is ...｜動名詞片語當主詞（視為單數）。", "a good opportunity to V｜做…的好機會（名詞 + to 不定詞）。", "from a different perspective｜從不同的角度（= from a different point of view）。原書寫 you gain an opportunity，這裡改成更自然的說法。", "for a while｜一陣子。"], "ev": ["developing country｜開發中國家", "opportunity｜機會", "perspective｜角度、觀點", "for a while｜一陣子", "different｜不同的"], "jg": ["V-てみる｜「暮らしてみる」＝試著（住）看看。", "〜ことは、〜になる｜「暮らしてみることは、良い機会になる」＝…這件事會成為…。", "違った角度から見直す｜從不同角度重新審視（「見直す」＝重新看）。", "発展途上国｜開發中國家。"], "jv": ["発展途上国｜はってんとじょうこく｜開發中國家", "暮らす｜くらす｜生活", "角度｜かくど｜角度", "見直す｜みなおす｜重新審視", "機会｜きかい｜機會"]},
+{"id": 76, "zh": "直到出國之後，才會注意到日本大城市的霓虹燈有多麼多。", "ja": "外国に行ってはじめて、日本の大都市のネオンの多さに気づく。", "en": "It is not until you go abroad that you realize just how many neon lights there are in big Japanese cities.", "eg": ["It is not until A that B｜直到 A 才 B（強調句型）：直到出國才發現…。", "just how many ...｜究竟有多少…（just 加強語氣）。", "realize how many ... there are｜疑問子句用敘述語序：how many neon lights there are。", "go abroad｜出國。"], "ev": ["abroad｜在國外", "realize｜意識到", "neon light｜霓虹燈", "it is not until ... that｜直到…才", "big city｜大都市"], "jg": ["V-てはじめて〜｜「外国に行ってはじめて」＝直到去了外國才（第一次）…。", "N の多さ｜…之多（形容詞「多い」加「さ」名詞化）。", "気づく｜察覺、注意到。"], "jv": ["大都市｜だいとし｜大都市", "ネオン｜｜霓虹燈", "多さ｜おおさ｜數量之多", "気づく｜きづく｜察覺", "外国｜がいこく｜外國"]},
+{"id": 77, "zh": "很可惜，有許多日本人誤以為只要會說英語就能成為國際人。", "ja": "英語を話せさえすれば国際人になれると勘違いしている日本人が多いのは残念だ。", "en": "It is a pity that many Japanese people mistakenly believe that in order to become global citizens, all they need to do is speak English.", "eg": ["It is a pity that ...｜很可惜…（形式主語 it + that 子句）。", "all they need to do is (to) V｜他們所需要做的就只是…（All + S + need to do + is + 原形／to V）。", "mistakenly believe that ...｜誤以為…。", "in order to V｜為了…。"], "ev": ["pity｜可惜的事", "mistakenly｜錯誤地", "global citizen｜國際人、地球公民", "in order to｜為了", "all they need to do｜他們只需要做的"], "jg": ["〜さえ V-ば〜｜「話せさえすれば」＝只要能說…就…。", "〜と勘違いしている｜誤以為…（V-ている＝持續的狀態）。", "〜のは残念だ｜…是很可惜的。", "国際人｜有國際視野的人。"], "jv": ["国際人｜こくさいじん｜國際人", "勘違い｜かんちがい｜誤會", "残念｜ざんねん｜可惜", "英語｜えいご｜英語", "話す｜はなす｜說"]},
+{"id": 78, "zh": "令人驚訝的是，只要聽得懂意思，許多美國人並不在意對方的英語發音好不好。", "ja": "意味が通じる限り、相手の英語の発音のよしあしを気にしないアメリカ人が多いのは驚きです。", "en": "It is surprising that many Americans do not care how you pronounce English as long as they can understand what you are trying to say.", "eg": ["It is surprising that ...｜令人驚訝的是…（形式主語）。", "as long as ...｜只要…（條件）；子句用現在式。", "care how ...｜在意…如何：care how you pronounce English。", "what you are trying to say｜你想說的話（名詞子句）。"], "ev": ["surprising｜令人驚訝的", "pronounce｜發音", "care｜在意", "as long as｜只要", "try to say｜想說"], "jg": ["〜限り｜「意味が通じる限り」＝只要意思傳達得到（限り＝在…範圍內）。", "発音のよしあし｜發音的好壞（よしあし＝良し悪し）。", "気にしない｜不在意。", "〜のは驚きです｜…是令人驚訝的。"], "jv": ["通じる｜つうじる｜通、傳達", "発音｜はつおん｜發音", "よしあし｜｜好壞", "驚き｜おどろき｜驚訝", "アメリカ人｜アメリカじん｜美國人"]},
+{"id": 79, "zh": "說到為了保護環境所能做的事，也不過是減少垃圾、盡量使用對環境友善的產品罷了。", "ja": "環境を守るためにできることといったら、ゴミを減らして、できるだけ環境に優しい製品を使うことぐらいだ。", "en": "All we can do to protect the environment is to reduce waste and use eco-friendly products as much as possible.", "enOrig": "The best things we can do to protect the environment are to reduce waste and to use eco-friendly products.", "eg": ["All we can do is (to) V｜我們所能做的只有…（All + S + can do + is + 原形／to V）。日文「〜ぐらいだ」有「只不過」的意思，原書的 The best things ... 沒有這層意思。", "to protect the environment｜to 不定詞表目的，修飾 do：為了保護環境所能做的。", "as much as possible｜盡可能。", "eco-friendly｜對環境友善的。"], "ev": ["protect｜保護", "environment｜環境", "reduce｜減少", "waste｜垃圾、廢棄物", "eco-friendly｜環保的"], "jg": ["〜といったら〜ぐらいだ｜「できることといったら…ぐらいだ」＝說到能做的，也就只有…而已。", "できるだけ〜｜盡可能。", "環境に優しい｜對環境友善。", "ゴミを減らす｜減少垃圾。"], "jv": ["環境｜かんきょう｜環境", "守る｜まもる｜保護", "ゴミ｜｜垃圾", "減らす｜へらす｜減少", "製品｜せいひん｜產品", "優しい｜やさしい｜溫和的、友善的"]},
+{"id": 80, "zh": "據說日本年輕人每十個就有七個完全沒有宗教信仰。", "ja": "日本の若者の10人のうち7人は、まったく無宗教だと言われる。", "en": "It is said that seven out of ten young Japanese people do not believe in any religion.", "eg": ["It is said that ...｜據說…（被動 + 形式主語；= People say that ...）。", "seven out of ten｜十個裡面有七個。", "believe in + N｜信仰、相信（其存在）。", "not ... any｜完全沒有（= no）。"], "ev": ["it is said that｜據說", "out of｜在…之中", "religion｜宗教", "believe in｜信仰", "young people｜年輕人"], "jg": ["〜と言われる｜據說…（「言う」的被動）。", "10人のうち7人｜十人當中的七人（「うち」＝其中）。", "まったく無宗教｜完全沒有宗教信仰（無＋N＝沒有）。"], "jv": ["若者｜わかもの｜年輕人", "無宗教｜むしゅうきょう｜無宗教信仰", "まったく｜｜完全", "言われる｜いわれる｜被說", "うち｜｜其中"]},
+{"id": 81, "zh": "打招呼的方式因國家而異，但在日本，鞠躬比握手更常見。", "ja": "あいさつの仕方は国によりさまざまだが、日本では、握手よりお辞儀のほうがふつうだ。", "en": "Social greetings vary from country to country. In Japan, bowing is more common than shaking hands.", "eg": ["vary from A to A｜因…而異：vary from country to country（重複同一名詞，不加冠詞）。", "bowing is more common than shaking hands｜動名詞當主詞並做比較：more common than。", "greeting｜問候、招呼（可數名詞）。"], "ev": ["greeting｜問候", "vary｜因…而不同", "bow｜鞠躬", "shake hands｜握手", "common｜常見的"], "jg": ["〜は国によりさまざまだが｜「N により」＝依…而（不同）；「さまざま」＝各式各樣。", "AよりBのほうがふつうだ｜比起 A，B 更常見。", "お辞儀｜鞠躬。"], "jv": ["あいさつ｜｜問候", "仕方｜しかた｜做法", "さまざま｜｜各式各樣", "握手｜あくしゅ｜握手", "お辞儀｜おじぎ｜鞠躬"]},
+{"id": 82, "zh": "金澤位於以美麗景色與海鮮聞名的能登半島南方。", "ja": "金沢は、美しい景色と海産物で有名な能登半島の南にあります。", "en": "Kanazawa is located south of the Noto Peninsula, which is famous for its beautiful scenery and delicious seafood.", "enOrig": "Kanazawa is located south of Noto Peninsula, which is famous for its beautiful scenery and delicious seafood.", "eg": ["be located + 方位 + of ...｜位於…的某個方位：south of ...（方位詞前面不加 to）。", "which 的非限定用法｜, which is famous for ...：補充說明前面的 the Noto Peninsula。", "be famous for ...｜以…聞名。", "the Noto Peninsula｜半島名稱前要加 the（原書漏掉）。"], "ev": ["be located｜位於", "peninsula｜半島", "scenery｜景色", "seafood｜海鮮", "famous｜有名的"], "jg": ["N は、〜にあります｜「〜の南にあります」＝位於…的南邊。", "AとBで有名な〜｜以 A 和 B 聞名的…（有名＋な）。", "美しい景色と海産物｜美麗的景色與海產。"], "jv": ["金沢｜かなざわ｜金澤", "景色｜けしき｜景色", "海産物｜かいさんぶつ｜海產", "有名｜ゆうめい｜有名", "能登半島｜のとはんとう｜能登半島", "南｜みなみ｜南"]},
+{"id": 83, "zh": "年長女性當中，不乏有人瞧不起那些自己什麼事都做不了、緊黏著妻子不放的丈夫。", "ja": "年配の女性の中には、1人で何もすることができず妻にしがみついて離れない夫を軽蔑する人も少なくない。", "en": "Quite a few elderly women look down on their husbands, who cannot do anything by themselves and cling to their wives.", "enOrig": "Quite a few elderly women look down on their husbands, who cannot do anything by themselves and are overdependent on their wives.", "eg": ["quite a few｜相當多（不是「很少」）；≒ many。", "look down on ...｜瞧不起（反義：look up to 尊敬）。", ", who ...｜非限定關係子句補充說明 husbands；who 後面的兩個動詞 cannot do 與 cling 並列。原書寫 are overdependent on their wives，日文「しがみついて離れない」是「緊黏著不放」，故改為 cling to。", "by oneself｜獨自、靠自己。"], "ev": ["quite a few｜相當多", "look down on｜瞧不起", "cling to｜緊黏、依附", "elderly｜年長的", "by oneself｜獨自"], "jg": ["少なくない｜「〜人も少なくない」＝不在少數（雙重否定＝相當多）。", "V-ず｜「することができず」＝〜ないで／〜なくて（書面的否定連用形）。", "軽蔑する｜輕視、瞧不起。", "妻にしがみつく｜緊抱著妻子不放（比喻極度依賴）。"], "jv": ["年配｜ねんぱい｜年長", "軽蔑｜けいべつ｜輕視", "しがみつく｜｜緊抓不放", "夫｜おっと｜丈夫", "妻｜つま｜妻子", "離れる｜はなれる｜離開"]},
+{"id": 84, "zh": "從這裡走路到那間電影院大約要二十分鐘，但搭地鐵的話五分鐘就到了。", "ja": "その映画館までは徒歩でおよそ20分ですが、地下鉄なら5分で行くことができます。", "en": "It takes about twenty minutes to walk to that movie theater, but only five minutes by subway.", "enOrig": "The movie theater is about a twenty-minute walk from here, but it takes only five minutes to get there by subway.", "eg": ["It takes + 時間 + to V｜花費…時間去做…。", "by subway｜搭地鐵（by + 交通工具，中間不加冠詞）。", "省略｜but (it takes) only five minutes by subway：but 後面省略與前句相同的部分。原書寫 is about a twenty-minute walk from here，日文並沒有「從這裡」，這裡改用 It takes ... 句型。"], "ev": ["it takes ... to｜花費…時間去…", "walk｜走路", "by subway｜搭地鐵", "movie theater｜電影院", "about｜大約"], "jg": ["徒歩で｜步行（「で」表手段）。", "〜なら｜「地下鉄なら」＝如果是搭地鐵的話。", "V-ることができます｜「行くことができます」＝可以到得了。", "およそ20分ですが｜大約二十分鐘，不過…（「が」表逆接）。"], "jv": ["映画館｜えいがかん｜電影院", "徒歩｜とほ｜步行", "地下鉄｜ちかてつ｜地鐵", "分｜ふん／ぷん｜…分鐘", "およそ｜｜大約"]},
+{"id": 85, "zh": "修這輛腳踏車花了我一萬日圓。", "ja": "この自転車を修理してもらうのに1万円かかりました。", "en": "It cost me ten thousand yen to have this bike repaired.", "eg": ["It costs + 人 + 金額 + to V｜某人花了…錢做…（cost 的主詞是 it，人是間接受詞）。", "have + O + p.p.｜請人…（使…被…）：have this bike repaired＝請人修理這輛腳踏車。", "bike｜腳踏車（口語；motorbike 才是機車）。"], "ev": ["cost｜花費（金額）", "have ... repaired｜請人修理", "bike｜腳踏車", "ten thousand yen｜一萬日圓", "repair｜修理"], "jg": ["V-てもらう｜「修理してもらう」＝請（別人）修理。", "〜のに1万円かかりました｜為了…花了一萬日圓（「のに」＝為了…之用）。", "1万円｜一萬日圓（讀作「いちまんえん」）。"], "jv": ["自転車｜じてんしゃ｜腳踏車", "修理｜しゅうり｜修理", "万円｜まんえん｜…萬日圓", "かかる｜｜花費（時間、金錢）", "もらう｜｜得到；請（人）做"]},
+{"id": 86, "zh": "我家有四個人，住在這棟公寓大樓的五樓。", "ja": "うちは4人家族で、このマンションの5階に住んでいます。", "en": "There are four people in my family, and we live on the fifth floor of this apartment building.", "enOrig": "There are four people in my family and our apartment is on the fifth floor of this building.", "eg": ["There are + 複數名詞｜有…（存在句）。", "on the fifth floor｜在五樓（樓層用序數，前面用介系詞 on）。", "live on ...｜住在（某一樓層）。原書寫 our apartment is on the fifth floor，日文是「住んでいます」，故改為 we live on ...。", "apartment building｜公寓大樓（美式；英式 block of flats）。"], "ev": ["apartment building｜公寓大樓", "floor｜樓層", "family｜家庭", "fifth｜第五", "live on｜住在（某樓層）"], "jg": ["うちは4人家族です｜「うち」＝我家；「N人家族」＝N 口之家。", "マンション｜日文的「マンション」指鋼筋混凝土的公寓大樓（不是英文的 mansion 豪宅）。", "5階に住む｜住在五樓。"], "jv": ["うち｜｜我家", "家族｜かぞく｜家人", "マンション｜｜公寓大樓", "住む｜すむ｜居住", "階｜かい｜…樓", "四人｜よにん｜四個人"]},
+{"id": 87, "zh": "年輕人只要是印出來的文字就照單全收的傾向，並不是從現在才開始的。", "ja": "若者が活字なら何でも鵜呑みにしてしまうという傾向は、今に始まったことではない。", "en": "The tendency for young people to blindly believe all printed text is nothing new.", "eg": ["The tendency for + 人 + to V｜…傾向於…的傾向（for 引出不定詞意義上的主詞）。", "is nothing new｜並不新鮮、早已如此。", "blindly believe｜盲目相信；printed text＝印刷出來的文字。"], "ev": ["tendency｜傾向", "blindly｜盲目地", "printed text｜印刷文字", "nothing new｜並不新鮮", "believe｜相信"], "jg": ["鵜呑みにする｜囫圇吞棗地相信（照單全收、不加思考）。", "〜という傾向｜…這種傾向（という＝說明內容）。", "今に始まったことではない｜不是現在才開始的事（早就如此）。", "活字｜印刷文字；「活字なら何でも」＝只要是印出來的東西。"], "jv": ["活字｜かつじ｜印刷文字", "鵜呑み｜うのみ｜囫圇吞棗", "傾向｜けいこう｜傾向", "今｜いま｜現在", "始まる｜はじまる｜開始"]},
+{"id": 88, "zh": "我在巴黎留學的時候，曾經有一次被某家公司的社長請客，在高級餐廳吃了一頓飯。", "ja": "パリに留学していた頃、ある会社社長に一度高級レストランでごちそうしてもらった経験がある。", "en": "When I was studying in Paris, the president of a certain company once bought me a meal at a fancy restaurant.", "eg": ["When I was studying ...｜過去進行式：當時正處於留學期間。", "a certain + 名詞｜某個（不明說的）…。", "buy + 人 + a meal｜請某人吃飯（雙受詞）。", "once｜曾經有一次（副詞放在動詞前）。"], "ev": ["study in Paris｜在巴黎留學", "president｜社長、總裁", "a certain｜某個", "fancy｜高級的", "buy ... a meal｜請客"], "jg": ["V-たことがある｜「ごちそうしてもらった経験がある」＝有過被請客的經驗。", "ごちそうする｜請客；「ごちそうしてもらう」＝被請客。", "留学していた頃｜「〜ていた頃」＝當時正在…的時候。", "ある N｜某個…：「ある会社社長」。"], "jv": ["留学｜りゅうがく｜留學", "社長｜しゃちょう｜社長", "高級｜こうきゅう｜高級", "一度｜いちど｜一次", "ごちそう｜｜請客；豐盛的餐點"]},
+{"id": 89, "zh": "阿姆斯壯犧牲了許多東西，終於實現了成為太空人的夢想。", "ja": "多くのものを犠牲にして、アームストロングはついに宇宙飛行士になるという夢を実現した。", "en": "By sacrificing many things, Armstrong finally realized his dream of becoming an astronaut.", "enOrig": "Armstrong finally realized his dream of becoming an astronaut but only by sacrificing many things.", "eg": ["By V-ing, S V ...｜藉由／透過…（方法）：By sacrificing many things。原書句子 ... but only by sacrificing ... 語意稍繞，這裡改成順序清楚的版本。", "realize one's dream of V-ing｜實現成為…的夢想（realize＝實現；另有「領悟」義）。", "sacrifice｜犧牲。", "finally｜終於。"], "ev": ["sacrifice｜犧牲", "realize a dream｜實現夢想", "astronaut｜太空人", "finally｜終於", "dream of V-ing｜夢想成為…"], "jg": ["N を犠牲にして｜以…為代價、犧牲了…（V-て 表手段、方式）。", "ついに〜｜終於（長期努力之後的結果）。", "〜という夢｜「宇宙飛行士になるという夢」＝成為太空人的夢想。", "夢を実現する｜實現夢想。"], "jv": ["犠牲｜ぎせい｜犧牲", "宇宙飛行士｜うちゅうひこうし｜太空人", "ついに｜｜終於", "夢｜ゆめ｜夢想", "実現｜じつげん｜實現"]},
+{"id": 90, "zh": "想消除都市生活累積的壓力與疲勞，最好的辦法就是在大自然中悠閒放鬆。", "ja": "都会の生活でたまったストレスや疲れをとるには、自然の中でのんびりするのが一番です。", "en": "The best way to relieve the stress and fatigue that build up in city life is to relax in nature.", "enOrig": "If city life is giving you stress and fatigue, it is best to relax in natural surroundings in order to relieve this.", "eg": ["The best way to V is to V｜…的最佳方法就是…。原書的 it is best to relax ... in order to relieve this 語意重複且指代不清（this），這裡改寫。", "that build up in city life｜關係代名詞 that 修飾 stress and fatigue；兩個名詞並列，動詞用複數 build。", "relieve stress｜舒緩壓力。", "in nature｜在大自然中。"], "ev": ["relieve｜舒緩", "stress｜壓力", "fatigue｜疲勞", "build up｜累積", "relax｜放鬆", "nature｜大自然"], "jg": ["都会の生活でたまったN｜在都市生活中累積下來的…；「たまる」＝累積。", "〜には、〜のが一番です｜要…的話，…是最好的：「のんびりするのが一番」＝悠閒放鬆最好。", "ストレスや疲れをとる｜消除壓力與疲勞。", "自然の中で｜在大自然之中。"], "jv": ["都会｜とかい｜都市", "たまる｜｜累積", "疲れ｜つかれ｜疲勞", "のんびり｜｜悠閒地", "自然｜しぜん｜大自然", "一番｜いちばん｜最好、第一"]},
+{"id": 91, "zh": "在日本，女性在生產、育兒之後，回歸職場或升遷時往往處於不利。", "ja": "日本では、女性は出産・育児の後は復職や昇進において不利になることが多い。", "en": "In Japan, women are often at a disadvantage when returning to work or seeking promotion after childbirth and child-rearing.", "enOrig": "In Japan, women often have difficulty returning to their jobs or getting promoted after giving birth and raising their children.", "eg": ["be at a disadvantage｜處於不利地位。原書的 have difficulty returning ... 只點出「回歸有困難」，日文「不利になる」範圍更廣（回歸與升遷皆不利）。", "when returning to work or seeking promotion｜when + V-ing 省略主詞（women）：當…的時候。", "after childbirth and child-rearing｜after + 名詞：生產與育兒之後。", "often｜頻率副詞放在 be 動詞之後。"], "ev": ["disadvantage｜不利", "return to work｜回歸職場", "promotion｜升遷", "childbirth｜生產", "child-rearing｜育兒"], "jg": ["〜において｜在…方面（書面）：「復職や昇進において」。", "不利になる｜變得不利；「〜ことが多い」＝經常…。", "出産・育児｜生產與育兒（中黑點表並列）。", "N の後は｜…之後（以「は」提示主題）。"], "jv": ["出産｜しゅっさん｜生產", "育児｜いくじ｜育兒", "復職｜ふくしょく｜回到原職", "昇進｜しょうしん｜升遷", "不利｜ふり｜不利", "女性｜じょせい｜女性"]},
+{"id": 92, "zh": "在美國，孩子在到達可以自己開車的年齡之前，不管去哪裡都由父母開車接送。", "ja": "アメリカでは、自分で運転できる年齢に達するまで、子供はどこに行くにも親に車で送ってもらう。", "en": "In the U.S., it is not unusual for parents to drive their children everywhere until they are old enough to get a driver's license.", "eg": ["it is not unusual for + 人 + to V｜某人做…並不罕見（for 引出意義上的主詞 parents）。", "old enough to V｜年紀夠大可以…（形容詞 + enough + to V；enough 放在形容詞後面）。", "not unusual｜雙重否定＝相當常見。", "until + 子句｜直到…為止。"], "ev": ["not unusual｜不稀奇", "drive ... everywhere｜開車載…到處去", "old enough to｜年紀夠大可以…", "driver's license｜駕照", "until｜直到"], "jg": ["〜まで、〜｜「自分で運転できる年齢に達するまで」＝到達可以自己開車的年齡為止。", "親に車で送ってもらう｜請父母開車送（V-てもらう）。", "どこに行くにも｜不管去哪裡（疑問詞＋V-るにも）。", "年齢に達する｜達到…年齡。"], "jv": ["年齢｜ねんれい｜年齡", "達する｜たっする｜達到", "送る｜おくる｜接送", "運転｜うんてん｜駕駛", "親｜おや｜父母"]},
+{"id": 93, "zh": "「不好意思，請問到郵局要怎麼走？」\n「在第二個路口左轉，就在右手邊。」", "ja": "「すみませんが、郵便局までどう行ったらいいですか？」\n「2筋目を左です。右にあります」", "en": "\"Excuse me. Could you tell me how to get to the post office?\"\n\"Go straight for two blocks, then turn left. You will find it on your right.\"", "eg": ["Excuse me. Could you tell me how to get to ...?｜禮貌問路：Could you tell me + 疑問詞 + to 不定詞；how to get to ...＝如何到達…。", "Go straight for two blocks, then turn left.｜指路用祈使句：go straight（直走）、turn left（左轉）、for two blocks（走兩個街區）。", "You will find it on your right.｜它在你的右手邊（on your right）。"], "ev": ["post office｜郵局", "block｜街區", "turn left｜左轉", "go straight｜直走", "on your right｜在你的右手邊"], "jg": ["どう行ったらいいですか｜「V-たらいいですか」＝該怎麼…才好？（詢問建議）。", "すみませんが、〜｜向陌生人搭話的開場，「が」緩和語氣。", "2筋目を左です｜「N＋を＋方向＋です」＝在第二條路左轉（省略了「曲がる」）。", "右にあります｜在右邊。"], "jv": ["郵便局｜ゆうびんきょく｜郵局", "筋｜すじ｜（道路的）條", "左｜ひだり｜左", "右｜みぎ｜右", "どう｜｜如何"]},
+{"id": 94, "zh": "「你覺得這次的新老師怎麼樣？」\n「她身上有種說不出的魅力呢。」", "ja": "「今度の先生をどう思う？」\n「どこか魅力的なところがあるよね」", "en": "\"What do you think of our new teacher?\"\n\"There is something quite charming about her.\"", "eg": ["What do you think of ...?｜你覺得…怎麼樣？（詢問看法）。", "There is something + 形容詞 + about + 人／物｜某人身上有某種…的特質：something quite charming about her。", "quite｜相當。"], "ev": ["think of｜對…的看法", "charming｜迷人的", "something about ...｜…身上的某種特質", "new teacher｜新老師", "quite｜相當"], "jg": ["今度の N｜這次的、新的…。", "どこか〜｜總覺得有點…（說不出具體哪裡）：「どこか魅力的なところ」。", "〜よね｜句尾確認語氣：對吧、是吧。", "どう思う｜覺得怎麼樣（口語，省略了「か」）。"], "jv": ["今度｜こんど｜這次、下次", "先生｜せんせい｜老師", "魅力的｜みりょくてき｜有魅力的", "どこか｜｜某處、總覺得"]},
+{"id": 95, "zh": "在擁擠的電車上，看到有人佔了兩個人的座位還若無其事，真的很火大。", "ja": "混雑した電車で、2人分の席を占領して平気な顔をしている人を見ると本当に腹が立つ。", "en": "People who do not feel guilty about taking up two seats on a crowded train really make me angry.", "eg": ["People who ...｜who 引導的關係子句修飾 People。", "feel guilty about V-ing｜對…感到內疚。", "take up two seats｜佔兩個座位（take up＝佔據）。", "make + O + 形容詞｜使…感到…：make me angry。"], "ev": ["guilty｜內疚的", "take up｜佔據", "crowded｜擁擠的", "make ... angry｜令…生氣", "seat｜座位"], "jg": ["平気な顔をしている｜一副若無其事的樣子（V-ている＝持續）。", "〜人を見ると〜｜一看到…的人就…（「と」＝一…就）。", "2人分の席｜兩人份的座位（N分＝份）。", "腹が立つ｜生氣（慣用語；腹＝肚子）。"], "jv": ["混雑｜こんざつ｜擁擠", "占領｜せんりょう｜佔據", "平気｜へいき｜不在乎", "腹が立つ｜はらがたつ｜生氣", "本当に｜ほんとうに｜真的"]},
+{"id": 96, "zh": "每個人生來都擁有某種才能，問題在於能否找到它。", "ja": "人は誰でも生まれながらにして何らかの才能を持っているが、問題はそれを見つけられるかどうかだ。", "en": "Everyone is born with a talent. The question is whether they are able to find it or not.", "eg": ["be born with + N｜天生就有…。", "The question is whether ...｜問題在於是否…；whether ... or not 是名詞子句，作補語。", "be able to V｜能夠…。", "Everyone … they｜Everyone 在口語中常用 they 來指代（單數的 they）。"], "ev": ["be born with｜天生具備", "talent｜才能", "question｜問題", "whether｜是否", "find｜找到"], "jg": ["生まれながらにして｜與生俱來地（書面）。", "何らかの N｜某種…。", "〜かどうかだ｜「見つけられるかどうかだ」＝就看能不能找到（問題在於…）。", "V-られる｜「見つけられる」＝找得到（可能形）。"], "jv": ["才能｜さいのう｜才能", "生まれる｜うまれる｜出生", "何らか｜なんらか｜某種", "問題｜もんだい｜問題", "見つける｜みつける｜找到"]},
+{"id": 97, "zh": "出公司去吃午餐時，碰巧遇到了高中時代的朋友。", "ja": "昼ごはんを食べに会社を出たら、高校時代の友達にばったり出会った。", "en": "When I left the office for lunch, I ran into an old friend from high school.", "enOrig": "When I was out of the office for lunch, I ran into an old friend from high school.", "eg": ["leave + 場所 + for + 目的｜離開…去做…：left the office for lunch。原書的 was out of the office 表示「已經在外面」，日文「出たら」是「一出門就…」，故改為 left。", "run into + 人｜偶然遇見。", "an old friend｜老朋友（old 指交情久，不是年紀大）。", "from high school｜高中時代的。"], "ev": ["run into｜偶然遇到", "old friend｜老朋友", "leave ... for lunch｜出去吃午餐", "high school｜高中", "office｜辦公室"], "jg": ["V-たら〜｜「出たら、ばったり出会った」＝一出去就…（發現、遇到）。", "V-に出る｜「食べに出る」＝為了吃而出去（目的）。", "ばったり｜（偶然）突然碰上。", "高校時代の友達｜高中時代的朋友。"], "jv": ["昼ごはん｜ひるごはん｜午餐", "会社｜かいしゃ｜公司", "ばったり｜｜突然（碰見）", "出会う｜であう｜遇見", "高校時代｜こうこうじだい｜高中時代"]},
+{"id": 98, "zh": "這首音樂值得反覆聽很多遍，你也一定要聽聽看喔。", "ja": "この音楽は何度も繰り返して聴く価値がある。君もぜひ聴いてみたらいいよ。", "en": "This music is worth listening to again and again. You should definitely listen to it, too.", "enOrig": "This music is worth listening to several times. I highly recommend it.", "eg": ["be worth + V-ing｜值得…（worth 後接動名詞，且不需要再加受詞）：worth listening to。", "again and again｜一再地、反覆地。", "should definitely V｜一定要…（should 加 definitely 加強語氣）。原書的 I highly recommend it 沒有對應日文的「君もぜひ〜」，這裡改為直接對聽者說話。", "too｜也；放在句尾，前面加逗號。"], "ev": ["be worth -ing｜值得…", "again and again｜一再", "definitely｜絕對", "recommend｜推薦", "music｜音樂"], "jg": ["V-る価値がある｜值得…：「聴く価値がある」。", "何度も繰り返して｜一再反覆地。", "V-てみたらいいよ｜「聴いてみたらいい」＝（你）聽聽看吧、建議你試試。", "ぜひ｜務必（強烈的建議或希望）。"], "jv": ["音楽｜おんがく｜音樂", "繰り返す｜くりかえす｜重複", "価値｜かち｜價值", "聴く｜きく｜聽", "君｜きみ｜你（親近的說法）", "ぜひ｜｜務必"]},
+{"id": 99, "zh": "牙齒對健康扮演著重要的角色。想要保持健康，就必須每餐飯後刷牙。", "ja": "歯は健康にとって大切な役割を果たしています。健康でいたければ、毎食後に歯磨きをしなければなりません。", "en": "Your teeth play an important part in your health. If you want to stay healthy, you must brush your teeth after every meal.", "eg": ["play an important part in ...｜在…中扮演重要角色（= play an important role in）。", "If you want to stay healthy, you must ...｜條件句；stay + 形容詞＝保持…狀態。", "brush one's teeth｜刷牙；after every meal＝每餐飯後。", "teeth｜tooth 的不規則複數。"], "ev": ["teeth｜牙齒", "play a part｜扮演角色", "stay healthy｜保持健康", "brush one's teeth｜刷牙", "meal｜餐"], "jg": ["健康にとって｜對健康而言（「にとって」＝對…來說）。", "大切な役割を果たす｜扮演重要角色（「役割を果たす」＝盡到職責）。", "V-たければ、〜なければなりません｜「健康でいたければ、〜しなければなりません」＝想要…就必須…。", "毎食後｜每餐飯後。"], "jv": ["歯｜は｜牙齒", "役割｜やくわり｜角色、作用", "果たす｜はたす｜完成、盡到", "毎食後｜まいしょくご｜每餐飯後", "歯磨き｜はみがき｜刷牙"]},
+{"id": 100, "zh": "請記住，只要有幹勁，不管做什麼事都能成功。", "ja": "やる気さえあれば何事においても成功できる、ということを心に留めておきなさい。", "en": "Always keep in mind that as long as you are motivated, you can succeed at anything.", "enOrig": "Always remember that as long as you have passion, you can succeed in anything.", "eg": ["keep in mind that ...｜記住…（≒ remember）；對應日文「心に留める」。", "as long as ...｜只要…；子句用現在式（are motivated）。", "be motivated｜有幹勁的、有動力的。原書用 have passion（有熱情），日文的「やる気」是幹勁、意願，故改為 be motivated。", "succeed at / in anything｜在任何事上成功（succeed in / at + N）。"], "ev": ["keep in mind｜記住", "as long as｜只要", "motivated｜有動力的", "succeed｜成功", "anything｜任何事"], "jg": ["〜さえ V-ば〜｜「やる気さえあれば」＝只要有幹勁就…。", "何事においても｜在任何事情上（書面）。", "〜ということを心に留めておきなさい｜請記在心裡（V-ておく＝事先做好並維持；なさい＝溫和的命令）。", "成功できる｜能夠成功（可能形）。"], "jv": ["やる気｜やるき｜幹勁、意願", "何事｜なにごと｜任何事", "成功｜せいこう｜成功", "心に留める｜こころにとめる｜記在心裡"]}
+];
+
+const LANGS = {
+  zh: { tag: '中', name: '中文', speech: 'zh-TW', html: 'zh-Hant' },
+  ja: { tag: '日', name: '日文', speech: 'ja-JP', html: 'ja' },
+  en: { tag: '英', name: '英文', speech: 'en-US', html: 'en' },
+};
+const ORDER = ['zh', 'ja', 'en'];
+const MIN = 60000, DAY = 86400000;
+const STEPS = [1, 10], RELEARN = [10];
+const LEARN_AHEAD = 20 * MIN;
+const GRAD_IVL = 1, EASY_IVL = 4;
+const NEW_LIMITS = [5, 10, 15, 20, 30, 50, 100];
+const SPEAKER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+const CAN_SPEAK = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const AUDIO_DIR = 'dragon-english-anki-audio/';
+const AUDIO_LANGS = ['ja', 'en'];
+
+/* ---------- storage ---------- */
+const store = (() => {
+  try { const k = '__t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; }
+  catch (e) { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: k => { delete m[k]; } }; }
+})();
+const KEY = 'dragon100.v1.';
+const load = (k, fb) => { try { const v = JSON.parse(store.getItem(KEY + k)); return v == null ? fb : v; } catch (e) { return fb; } };
+const save = (k, v) => { try { store.setItem(KEY + k, JSON.stringify(v)); } catch (e) { /* storage full or blocked */ } };
+
+/* ---------- state ---------- */
+const fresh = () => ({ s: 0, step: 0, ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0 });
+let prog = load('cards', {});
+DECK.forEach(d => { prog[d.id] = Object.assign(fresh(), prog[d.id]); });
+let settings = Object.assign({ front: 'ja', newPerDay: 10, vis: { zh: true, ja: true, en: true } }, load('settings', {}));
+settings.vis = Object.assign({ zh: true, ja: true, en: true }, settings.vis);
+let daily = load('daily', null);
+let tab = 'study', currentId = null, revealed = false;
+const undoStack = [];
+const openNotes = new Set();
+
+/* ---------- time helpers (study day rolls over at 04:00) ---------- */
+function dayStart(now) { const d = new Date(now); d.setHours(4, 0, 0, 0); if (d.getTime() > now) d.setDate(d.getDate() - 1); return d.getTime(); }
+function dayKey(now) { const d = new Date(dayStart(now)); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dueInDays(n, now) { const d = new Date(dayStart(now)); d.setDate(d.getDate() + n); return d.getTime(); }
+function ensureDaily(now) {
+  const k = dayKey(now);
+  if (!daily || daily.day !== k) { daily = { day: k, newDone: 0, extra: 0 }; save('daily', daily); }
+}
+
+/* ---------- scheduler (simplified Anki SM-2) ---------- */
+// s: 0 new, 1 learning, 2 review, 3 relearning
+function schedule(c, r, now) {
+  const n = Object.assign({}, c, { reps: c.reps + 1 });
+  if (c.s !== 2) {
+    const relearn = c.s === 3;
+    const steps = relearn ? RELEARN : STEPS;
+    const s0 = c.s === 0 ? 0 : Math.min(c.step, steps.length - 1);
+    const stay = relearn ? 3 : 1;
+    const learn = (step, mins) => { n.s = stay; n.step = step; n.due = now + mins * MIN; };
+    if (r === 1) learn(0, steps[0]);
+    else if (r === 2) learn(s0, s0 === 0 ? (steps.length > 1 ? (steps[0] + steps[1]) / 2 : steps[0] * 1.5) : steps[s0]);
+    else if (r === 3 && s0 + 1 < steps.length) learn(s0 + 1, steps[s0 + 1]);
+    else {
+      n.s = 2; n.step = 0;
+      n.ivl = relearn ? c.ivl + (r === 4 ? 1 : 0) : (r === 4 ? EASY_IVL : GRAD_IVL);
+      n.due = dueInDays(n.ivl, now);
+    }
+    return n;
+  }
+  if (r === 1) {
+    n.lapses = c.lapses + 1; n.ease = Math.max(1.3, c.ease - 0.2);
+    n.ivl = 1; n.s = 3; n.step = 0; n.due = now + RELEARN[0] * MIN;
+    return n;
+  }
+  const hard = Math.max(c.ivl + 1, Math.round(c.ivl * 1.2));
+  const good = Math.max(hard + 1, Math.round(c.ivl * c.ease));
+  const easy = Math.max(good + 1, Math.round(c.ivl * c.ease * 1.3));
+  n.ivl = r === 2 ? hard : r === 3 ? good : easy;
+  if (r === 2) n.ease = Math.max(1.3, c.ease - 0.15);
+  if (r === 4) n.ease = c.ease + 0.15;
+  n.due = dueInDays(n.ivl, now);
+  return n;
+}
+
+function fmtDays(d) {
+  if (d < 30) return d + '天';
+  if (d < 365) return (Math.round(d / 30 * 10) / 10) + '個月';
+  return (Math.round(d / 365 * 10) / 10) + '年';
+}
+function fmtMin(m) {
+  if (m < 1) return '<1分';
+  if (m < 60) return Math.round(m) + '分';
+  if (m < 1440) return Math.round(m / 60) + '小時';
+  return fmtDays(Math.round(m / 1440));
+}
+function fmtLabel(next, now) { return (next.s === 1 || next.s === 3) ? fmtMin((next.due - now) / MIN) : fmtDays(next.ivl); }
+
+/* ---------- queue ---------- */
+const isLearn = p => p.s === 1 || p.s === 3;
+const stateKey = p => (p.s === 0 ? 'new' : isLearn(p) ? 'learn' : 'review');
+const STATE_TEXT = { 0: '新卡', 1: '學習中', 2: '複習', 3: '重學' };
+const newAllowance = () => Math.max(0, settings.newPerDay + daily.extra - daily.newDone);
+
+function pickNext(now) {
+  let best = null;
+  for (const d of DECK) { const p = prog[d.id]; if (isLearn(p) && p.due <= now && (!best || p.due < prog[best.id].due)) best = d; }
+  if (best) return best;
+  for (const d of DECK) { const p = prog[d.id]; if (p.s === 2 && p.due <= now && (!best || p.due < prog[best.id].due)) best = d; }
+  if (best) return best;
+  if (newAllowance() > 0) { const d = DECK.find(x => prog[x.id].s === 0); if (d) return d; }
+  for (const d of DECK) { const p = prog[d.id]; if (isLearn(p) && p.due <= now + LEARN_AHEAD && (!best || p.due < prog[best.id].due)) best = d; }
+  return best;
+}
+function counts(now) {
+  let n = 0, l = 0, r = 0;
+  for (const d of DECK) { const p = prog[d.id]; if (p.s === 0) n++; else if (isLearn(p)) l++; else if (p.due <= now) r++; }
+  return { newC: Math.min(n, newAllowance()), learn: l, due: r, newTotal: n };
+}
+
+/* ---------- dom helpers ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k === 'html') el.innerHTML = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) el.append(kid);
+  return el;
+}
+function speakFallback(text, lang) {
+  if (!CAN_SPEAK) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/\n/g, ' '));
+  u.lang = lang; u.rate = lang === 'en-US' ? 0.92 : 0.95;
+  speechSynthesis.speak(u);
+}
+const player = new Audio();
+player.preload = 'auto';
+let playingBtn = null;
+function stopPlayback() {
+  player.pause();
+  if (CAN_SPEAK) speechSynthesis.cancel();
+  if (playingBtn) { playingBtn.classList.remove('playing'); playingBtn = null; }
+}
+function playClip(card, lang, btn) {
+  if (playingBtn === btn) { stopPlayback(); return; }
+  stopPlayback();
+  playingBtn = btn; btn.classList.add('playing');
+  const fail = () => { if (playingBtn !== btn) return; stopPlayback(); speakFallback(card[lang], LANGS[lang].speech); };
+  player.onended = stopPlayback;
+  player.onerror = fail;
+  player.src = AUDIO_DIR + lang + '/' + String(card.id).padStart(3, '0') + '.mp3';
+  const pr = player.play();
+  if (pr && pr.catch) pr.catch(err => { if (err && err.name !== 'AbortError') fail(); });
+}
+function gvEl(card, lang) {
+  const isJa = lang === 'ja', L = LANGS[lang];
+  const grammar = card[isJa ? 'jg' : 'eg'] || [], vocab = card[isJa ? 'jv' : 'ev'] || [], orig = card[lang + 'Orig'];
+  const box = h('div', { class: 'gv-panel' });
+  if (orig) box.append(h('h4', { text: '原書寫法（本頁已修改）' }), h('p', { class: 'gv-orig', lang: L.html, text: orig }));
+  if (grammar.length) {
+    box.append(h('h4', { text: '文法' }), h('ul', { class: 'gv-grammar' }, grammar.map(s => {
+      const i = s.indexOf('｜');
+      return h('li', {}, h('b', { lang: L.html, text: s.slice(0, i) }), h('span', { text: s.slice(i + 1) }));
+    })));
+  }
+  if (vocab.length) {
+    box.append(h('h4', { text: '單字' }), h('ul', { class: 'gv-vocab' }, vocab.map(s => {
+      const [word, a, b] = s.split('｜');
+      const reading = isJa && a ? h('span', { class: 'rd', lang: 'ja', text: '（' + a + '）' }) : null;
+      return h('li', {}, h('b', { lang: L.html, text: word }), ' ', reading, ' ', isJa ? b : a);
+    })));
+  }
+  return box;
+}
+function lineEl(card, lang, extra, ctx) {
+  const L = LANGS[lang];
+  const p = h('p', { lang: L.html, text: card[lang], class: extra || null });
+  const main = h('div', { class: 'line-main' }, p);
+  const hasGv = (card[lang === 'ja' ? 'jg' : 'eg'] || []).length > 0;
+  if (hasGv && (lang === 'ja' || lang === 'en')) {
+    const key = ctx + ':' + card.id + ':' + lang;
+    const panel = gvEl(card, lang);
+    const toggle = h('button', { class: 'gv-toggle', type: 'button', 'aria-expanded': 'false', 'data-key': key }, '文法・單字');
+    const sync = () => { const on = openNotes.has(key); toggle.setAttribute('aria-expanded', String(on)); panel.hidden = !on; };
+    toggle.addEventListener('click', e => { e.stopPropagation(); if (openNotes.has(key)) openNotes.delete(key); else openNotes.add(key); sync(); });
+    sync();
+    main.append(toggle, panel);
+  }
+  const kids = [h('span', { class: 'tag', text: L.tag }), main];
+  if (AUDIO_LANGS.includes(lang)) {
+    const b = h('button', { class: 'speak', type: 'button', 'aria-label': '播放' + L.name + '音檔', title: '播放' + L.name + '音檔', html: SPEAKER });
+    b.addEventListener('click', e => { e.stopPropagation(); playClip(card, lang, b); });
+    kids.push(b);
+  }
+  return h('div', { class: 'line' }, kids);
+}
+
+/* ---------- study tab ---------- */
+function renderCounts(now) {
+  const c = counts(now);
+  $('#cNew').textContent = c.newC; $('#cLearn').textContent = c.learn; $('#cDue').textContent = c.due;
+  const cur = currentId != null ? stateKey(prog[currentId]) : null;
+  $('#k-new').classList.toggle('current', cur === 'new');
+  $('#k-learn').classList.toggle('current', cur === 'learn');
+  $('#k-review').classList.toggle('current', cur === 'review');
+  return c;
+}
+function renderStudy() {
+  const now = Date.now();
+  ensureDaily(now);
+  const cnt = renderCounts(now);
+  const has = currentId != null;
+  $('#card').hidden = !has; $('#actions').hidden = !has; $('#done').hidden = has;
+  $('#undoBtn').disabled = undoStack.length === 0;
+  $('#undoBtn2').disabled = undoStack.length === 0;
+  if (!has) { renderDone(now, cnt); return; }
+
+  const card = DECK[currentId - 1], p = prog[currentId];
+  $('#cardNo').textContent = '#' + card.id + ' / ' + DECK.length;
+  const badge = $('#cardBadge');
+  badge.textContent = STATE_TEXT[p.s]; badge.className = 'badge ' + stateKey(p);
+  $('#front').replaceChildren(lineEl(card, settings.front, null, 's'));
+  $('#back').replaceChildren(...ORDER.filter(l => l !== settings.front).map(l => lineEl(card, l, null, 's')));
+  $('#card').classList.toggle('clickable', !revealed);
+  $('#back').hidden = !revealed; $('#divider').hidden = !revealed;
+  $('#showBtn').hidden = revealed; $('#rate').hidden = !revealed;
+  if (revealed) {
+    $$('#rate button').forEach(b => { b.querySelector('.iv').textContent = fmtLabel(schedule(p, +b.dataset.r, now), now); });
+  }
+}
+function fmtWait(ms) {
+  const m = ms / MIN;
+  if (m < 60) return Math.max(1, Math.ceil(m)) + ' 分鐘後';
+  if (m < 1440) return Math.round(m / 60) + ' 小時後';
+  return Math.round(m / 1440) + ' 天後';
+}
+function renderDone(now, cnt) {
+  const started = DECK.length - cnt.newTotal;
+  let next = null;
+  for (const d of DECK) { const p = prog[d.id]; if (p.s !== 0 && p.due > now && (next == null || p.due < next)) next = p.due; }
+  const moreNew = cnt.newTotal > 0;
+  $('#doneTitle').textContent = started === 0 ? '沒有可學習的卡片' : moreNew ? '今天的額度完成了' : '目前沒有要複習的卡片';
+  $('#doneMsg').textContent = moreNew
+    ? '今天的新卡額度（' + (settings.newPerDay + daily.extra) + ' 張）已用完，還有 ' + cnt.newTotal + ' 張新卡沒開始。'
+    : '全部 ' + DECK.length + ' 張都已開始學習。';
+  $('#doneNext').textContent = next != null ? '下一張卡片：' + fmtWait(next - now) + '到期' : '';
+  $('#moreBtn').hidden = !moreNew;
+}
+function closeStudyNotes() { for (const k of Array.from(openNotes)) if (k.startsWith('s:')) openNotes.delete(k); }
+function advance() {
+  stopPlayback();
+  closeStudyNotes();
+  const now = Date.now();
+  ensureDaily(now);
+  const c = pickNext(now);
+  currentId = c ? c.id : null; revealed = false;
+  render();
+}
+function reveal() { if (currentId == null || revealed) return; revealed = true; renderStudy(); }
+function rate(r) {
+  if (currentId == null || !revealed) return;
+  const now = Date.now(); ensureDaily(now);
+  const id = currentId, p = prog[id];
+  undoStack.push({ id, prev: Object.assign({}, p), daily: Object.assign({}, daily) });
+  if (undoStack.length > 30) undoStack.shift();
+  if (p.s === 0) daily.newDone++;
+  prog[id] = schedule(p, r, now);
+  save('cards', prog); save('daily', daily);
+  advance();
+}
+function undo() {
+  const u = undoStack.pop();
+  if (!u) return;
+  stopPlayback();
+  closeStudyNotes();
+  prog[u.id] = u.prev; daily = u.daily;
+  save('cards', prog); save('daily', daily);
+  currentId = u.id; revealed = false;
+  render();
+}
+
+/* ---------- all-entries tab ---------- */
+function renderAll() {
+  const q = $('#q').value.trim().toLowerCase(), f = $('#filter').value;
+  const list = $('#list');
+  list.replaceChildren();
+  let n = 0;
+  for (const c of DECK) {
+    const p = prog[c.id];
+    if (f !== 'all' && stateKey(p) !== f) continue;
+    if (q && !(String(c.id) === q || (c.zh + '\n' + c.ja + '\n' + c.en).toLowerCase().includes(q))) continue;
+    n++;
+    const head = h('div', { class: 'item-head' },
+      h('span', { text: '#' + c.id }),
+      h('span', { class: 'badge ' + stateKey(p), text: p.s === 2 ? '複習・' + fmtDays(p.ivl) : STATE_TEXT[p.s] }));
+    const lines = ORDER.map(l => {
+      const el = lineEl(c, l, settings.vis[l] ? null : 'blur', 'l');
+      const para = el.querySelector('p');
+      const tg = el.querySelector('.gv-toggle'), panel = el.querySelector('.gv-panel');
+      const hideNotes = () => { if (!tg) return; const hid = para.classList.contains('blur'); tg.hidden = hid; panel.hidden = hid || tg.getAttribute('aria-expanded') !== 'true'; };
+      if (!settings.vis[l]) {
+        hideNotes();
+        para.addEventListener('click', () => { para.classList.toggle('blur'); hideNotes(); });
+      }
+      return el;
+    });
+    list.append(h('li', { class: 'item' }, head, lines));
+  }
+  if (n === 0) list.append(h('li', { class: 'empty-hint', text: '沒有符合的詞條' }));
+  $('#allCount').textContent = '顯示 ' + n + ' / ' + DECK.length + ' 條';
+  $$('[data-vis]').forEach(b => b.setAttribute('aria-pressed', String(!!settings.vis[b.dataset.vis])));
+}
+
+/* ---------- settings tab ---------- */
+function renderSettings() {
+  $$('#frontSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.front === settings.front)));
+  $('#newPerDay').value = String(settings.newPerDay);
+  let nw = 0, lr = 0, yg = 0, mt = 0, reps = 0;
+  for (const d of DECK) {
+    const p = prog[d.id]; reps += p.reps;
+    if (p.s === 0) nw++; else if (isLearn(p)) lr++; else if (p.ivl >= 21) mt++; else yg++;
+  }
+  ensureDaily(Date.now());
+  const st = [[DECK.length, '總詞條'], [nw, '新卡'], [lr, '學習中'], [yg, '複習中'], [mt, '已熟悉'], [daily.newDone, '今日新卡'], [reps, '累計作答次數']];
+  $('#stats').replaceChildren(...st.map(([v, l]) => h('div', { class: 'stat' }, h('b', { text: v }), h('span', { text: l }))));
+}
+
+/* ---------- tabs / render ---------- */
+const TABS = ['study', 'all', 'settings'];
+function render() {
+  if (tab === 'study') renderStudy();
+  else if (tab === 'all') renderAll();
+  else renderSettings();
+}
+function setTab(t, focusTab) {
+  if (!TABS.includes(t)) t = 'study';
+  tab = t;
+  stopPlayback();
+  TABS.forEach(k => {
+    const b = $('#t-' + k), on = k === t;
+    b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
+    $('#tab-' + k).hidden = !on;
+    if (on && focusTab) b.focus();
+  });
+  try { history.replaceState(null, '', '#' + t); } catch (e) { /* ignore */ }
+  if (t === 'study' && currentId == null) advance(); else render();
+}
+
+/* ---------- wiring ---------- */
+$$('.tab').forEach(b => {
+  b.addEventListener('click', () => setTab(b.dataset.tab));
+  b.addEventListener('keydown', e => {
+    const i = TABS.indexOf(b.dataset.tab);
+    if (e.key === 'ArrowRight') { e.preventDefault(); setTab(TABS[(i + 1) % TABS.length], true); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); setTab(TABS[(i + TABS.length - 1) % TABS.length], true); }
+  });
+});
+$('#showBtn').addEventListener('click', reveal);
+$('#card').addEventListener('click', e => { if (!revealed && !e.target.closest('button, .gv-panel')) reveal(); });
+$$('#rate button').forEach(b => b.addEventListener('click', () => rate(+b.dataset.r)));
+$('#undoBtn').addEventListener('click', undo);
+$('#undoBtn2').addEventListener('click', undo);
+$('#moreBtn').addEventListener('click', () => { ensureDaily(Date.now()); daily.extra += 10; save('daily', daily); advance(); });
+
+$('#q').addEventListener('input', renderAll);
+$('#filter').addEventListener('change', renderAll);
+$$('[data-vis]').forEach(b => b.addEventListener('click', () => {
+  settings.vis[b.dataset.vis] = !settings.vis[b.dataset.vis]; save('settings', settings); renderAll();
+}));
+
+$$('#frontSeg button').forEach(b => b.addEventListener('click', () => {
+  settings.front = b.dataset.front; save('settings', settings); renderSettings();
+}));
+$('#newPerDay').append(...NEW_LIMITS.map(n => h('option', { value: n, text: n + ' 張' })));
+$('#newPerDay').addEventListener('change', e => {
+  settings.newPerDay = +e.target.value; save('settings', settings); currentId = null; renderSettings();
+});
+$('#resetBtn').addEventListener('click', () => {
+  if (!confirm('確定要清除所有學習進度嗎？此動作無法復原。')) return;
+  prog = {}; DECK.forEach(d => { prog[d.id] = fresh(); });
+  daily = null; undoStack.length = 0; currentId = null; revealed = false;
+  save('cards', prog); store.removeItem(KEY + 'daily');
+  renderSettings();
+});
+
+document.addEventListener('keydown', e => {
+  if (tab !== 'study') return;
+  const t = e.target;
+  if (t.matches && t.matches('input, select, textarea')) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) {
+    if (e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    return;
+  }
+  if (e.key === ' ' || e.key === 'Enter') {
+    if (t.closest && t.closest('button') && !t.closest('.tabs')) return;
+    if (currentId == null) return;
+    e.preventDefault();
+    if (!revealed) reveal(); else rate(3);
+  } else if (/^[1-4]$/.test(e.key)) {
+    rate(+e.key);
+  } else if (e.key.toLowerCase() === 'z') {
+    undo();
+  } else if (e.key.toLowerCase() === 'r') {
+    const b = $$('#card .speak').find(x => x.offsetParent !== null);
+    if (b) b.click();
+  }
+});
+
+setInterval(() => {
+  if (document.hidden || tab !== 'study') return;
+  if (currentId == null) advance(); else renderCounts(Date.now());
+}, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && tab === 'study' && currentId == null) advance(); });
+
+setTab(location.hash.replace('#', ''));
+})();
+</script>
+</body>
+</html>
