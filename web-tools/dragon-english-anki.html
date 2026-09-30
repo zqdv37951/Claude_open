@@ -73,6 +73,7 @@ button { cursor: pointer; }
 .back .line p { font-size: clamp(17px, 4vw, 20px); }
 .speak { flex: none; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); padding: 6px; border-radius: 8px; }
 .speak:hover { background: var(--surface-2); color: var(--text); }
+.speak.playing { color: var(--accent); background: var(--surface-2); }
 .divider { border: 0; border-top: 1px dashed var(--border); margin: 0; }
 
 .actions { margin-top: 14px; }
@@ -232,6 +233,10 @@ input[type="search"], select { border: 1px solid var(--border); background: var(
         <p class="note">「已熟悉」＝複習間隔 21 天以上。進度只存在這個瀏覽器（localStorage）；清除網站資料或換裝置會歸零。</p>
       </div>
       <div class="panel">
+        <h3>朗讀音檔</h3>
+        <p class="note" style="margin-top:0">日文與英文各 100 句都有音檔，點句子旁的喇叭播放（再點一次停止），學習頁可按 <kbd>R</kbd> 重播。音檔是 AI 語音合成（Kokoro-82M，Apache-2.0），不是真人錄音；找不到音檔時會改用瀏覽器內建語音。中文沒有音檔。</p>
+      </div>
+      <div class="panel">
         <h3>重置</h3>
         <button class="btn danger" id="resetBtn" type="button">清除所有學習進度</button>
       </div>
@@ -360,6 +365,8 @@ const GRAD_IVL = 1, EASY_IVL = 4;
 const NEW_LIMITS = [5, 10, 15, 20, 30, 50, 100];
 const SPEAKER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 const CAN_SPEAK = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const AUDIO_DIR = 'dragon-english-anki-audio/';
+const AUDIO_LANGS = ['ja', 'en'];
 
 /* ---------- storage ---------- */
 const store = (() => {
@@ -474,20 +481,39 @@ function h(tag, props, ...kids) {
   for (const kid of kids.flat()) if (kid != null) el.append(kid);
   return el;
 }
-function speak(text, lang) {
+function speakFallback(text, lang) {
   if (!CAN_SPEAK) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/\n/g, ' '));
   u.lang = lang; u.rate = lang === 'en-US' ? 0.92 : 0.95;
   speechSynthesis.speak(u);
 }
+const player = new Audio();
+player.preload = 'auto';
+let playingBtn = null;
+function stopPlayback() {
+  player.pause();
+  if (CAN_SPEAK) speechSynthesis.cancel();
+  if (playingBtn) { playingBtn.classList.remove('playing'); playingBtn = null; }
+}
+function playClip(card, lang, btn) {
+  if (playingBtn === btn) { stopPlayback(); return; }
+  stopPlayback();
+  playingBtn = btn; btn.classList.add('playing');
+  const fail = () => { if (playingBtn !== btn) return; stopPlayback(); speakFallback(card[lang], LANGS[lang].speech); };
+  player.onended = stopPlayback;
+  player.onerror = fail;
+  player.src = AUDIO_DIR + lang + '/' + String(card.id).padStart(3, '0') + '.mp3';
+  const pr = player.play();
+  if (pr && pr.catch) pr.catch(err => { if (err && err.name !== 'AbortError') fail(); });
+}
 function lineEl(card, lang, extra) {
   const L = LANGS[lang];
   const p = h('p', { lang: L.html, text: card[lang], class: extra || null });
   const kids = [h('span', { class: 'tag', text: L.tag }), p];
-  if (CAN_SPEAK) {
-    const b = h('button', { class: 'speak', type: 'button', 'aria-label': '朗讀' + L.name, html: SPEAKER });
-    b.addEventListener('click', e => { e.stopPropagation(); speak(card[lang], L.speech); });
+  if (AUDIO_LANGS.includes(lang)) {
+    const b = h('button', { class: 'speak', type: 'button', 'aria-label': '播放' + L.name + '音檔', title: '播放' + L.name + '音檔', html: SPEAKER });
+    b.addEventListener('click', e => { e.stopPropagation(); playClip(card, lang, b); });
     kids.push(b);
   }
   return h('div', { class: 'line' }, kids);
@@ -545,6 +571,7 @@ function renderDone(now, cnt) {
   $('#moreBtn').hidden = !moreNew;
 }
 function advance() {
+  stopPlayback();
   const now = Date.now();
   ensureDaily(now);
   const c = pickNext(now);
@@ -566,6 +593,7 @@ function rate(r) {
 function undo() {
   const u = undoStack.pop();
   if (!u) return;
+  stopPlayback();
   prog[u.id] = u.prev; daily = u.daily;
   save('cards', prog); save('daily', daily);
   currentId = u.id; revealed = false;
@@ -623,6 +651,7 @@ function render() {
 function setTab(t, focusTab) {
   if (!TABS.includes(t)) t = 'study';
   tab = t;
+  stopPlayback();
   TABS.forEach(k => {
     const b = $('#t-' + k), on = k === t;
     b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
@@ -687,6 +716,9 @@ document.addEventListener('keydown', e => {
     rate(+e.key);
   } else if (e.key.toLowerCase() === 'z') {
     undo();
+  } else if (e.key.toLowerCase() === 'r') {
+    const b = $$('#card .speak').find(x => x.offsetParent !== null);
+    if (b) b.click();
   }
 });
 

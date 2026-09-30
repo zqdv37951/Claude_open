@@ -7,8 +7,13 @@
 | 檔案 | 用途 |
 |---|---|
 | [`gallery-viewer.html`](gallery-viewer.html) | 本機圖片資料夾瀏覽器。用 File System Access API 選取一個本機資料夾(遞迴掃描含子資料夾的圖片),依檔名自然排序後直接在網頁裡瀏覽,支援雙頁模式、章節(子資料夾)導覽、閱讀進度與最近 5 筆閱讀紀錄記憶、圖片寬度調整。僅支援 Chrome / Edge(Safari 不支援 `showDirectoryPicker`)。 |
+| [`dragon-english-anki.html`](dragon-english-anki.html) | 「ドラゴン・イングリッシュ基本英文100」的 Anki 式間隔複習卡片：100 句中／日／英對照，可選正面語言、Again／Hard／Good／Easy 評分與下次複習間隔預覽、每日新卡上限、復原、日文／英文朗讀音檔（見下方說明；中文沒有），另有「全部詞條」頁籤可搜尋、依狀態篩選、模糊遮蓋任一語言自我測驗。進度存在瀏覽器 localStorage。 |
 
-| [`dragon-english-anki.html`](dragon-english-anki.html) | 「ドラゴン・イングリッシュ基本英文100」的 Anki 式間隔複習卡片：100 句中／日／英對照，可選正面語言、Again／Hard／Good／Easy 評分與下次複習間隔預覽、每日新卡上限、復原、日英中朗讀（瀏覽器語音合成），另有「全部詞條」頁籤可搜尋、依狀態篩選、模糊遮蓋任一語言自我測驗。進度存在瀏覽器 localStorage。 |
+### `dragon-english-anki-audio/`
+
+`dragon-english-anki.html` 的朗讀音檔：`ja/001.mp3`～`ja/100.mp3`、`en/001.mp3`～`en/100.mp3`，檔名編號對應詞條編號，共約 7 MB。HTML 與此資料夾必須放在同一層。
+
+音檔是用開源模型 Kokoro-82M（Apache-2.0）合成的 AI 語音，不是真人錄音——日文 `jf_alpha`、英文 `af_heart`，語速 0.95。日文先用 OpenJTalk 對照過數字、量詞與多音字的讀音（例如 2階、20分、日本人、私），有誤的詞在合成前改成假名；再用語音辨識轉回文字比對，日文讀音層級相似度約 99%、英文約 99.5%。找不到音檔時，頁面會退回瀏覽器內建語音。
 
 ## 使用方式
 
