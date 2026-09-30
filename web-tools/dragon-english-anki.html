@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>基本英文100 Anki</title>
+<style>
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eceff4; --text: #1b1f27; --muted: #667085; --border: #dde1e8;
+  --accent: #2f6fed; --accent-ink: #ffffff;
+  --new: #2f6fed; --learn: #d92d20; --review: #12a150;
+  --again: #d92d20; --hard: #a86400; --good: #12a150; --easy: #2f6fed;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 10px 30px rgba(16, 24, 40, .07);
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1218; --surface: #181c24; --surface-2: #222833; --text: #e8ebf0; --muted: #98a2b3; --border: #2c3340;
+    --accent: #6d9bff; --accent-ink: #0b1220;
+    --new: #6d9bff; --learn: #ff7a70; --review: #4cd08a;
+    --again: #ff7a70; --hard: #f0b24a; --good: #4cd08a; --easy: #6d9bff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px rgba(0, 0, 0, .35);
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100dvh;
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "PingFang TC", "Noto Sans TC", "Noto Sans JP", "Microsoft JhengHei", "Yu Gothic", sans-serif;
+}
+[lang="ja"] { font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Meiryo", system-ui, sans-serif; }
+[lang="zh-Hant"] { font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; }
+[lang="en"] { font-family: ui-serif, Georgia, "Times New Roman", serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.app { max-width: 760px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); }
+.top { margin: 4px 0 6px; }
+.top h1 { margin: 0; font-size: 19px; line-height: 1.3; }
+.top p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+
+.tabs-wrap { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0 12px; }
+.tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 12px; }
+.tab { flex: 1; border: 0; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; padding: 9px 6px; border-radius: 9px; white-space: nowrap; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .1); }
+
+.counts { display: flex; justify-content: center; gap: 30px; margin: 2px 0 14px; }
+.count { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: var(--muted); }
+.count b { font-size: 24px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.count.new b { color: var(--new); }
+.count.learn b { color: var(--learn); }
+.count.review b { color: var(--review); }
+.count.current b { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px 18px 20px; min-height: 230px; display: flex; flex-direction: column; gap: 14px;
+}
+.card.clickable { cursor: pointer; }
+.card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+.badge { padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--muted); }
+.badge.new { color: var(--new); }
+.badge.learn { color: var(--learn); }
+.badge.review { color: var(--review); }
+.line { display: flex; gap: 10px; align-items: flex-start; }
+.tag { flex: none; margin-top: .5em; font-size: 11px; font-weight: 700; line-height: 1; padding: 4px 6px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.line p { margin: 0; flex: 1; white-space: pre-line; overflow-wrap: anywhere; }
+.front .line p { font-size: clamp(20px, 4.8vw, 26px); line-height: 1.55; }
+.back { display: flex; flex-direction: column; gap: 12px; }
+.back .line p { font-size: clamp(17px, 4vw, 20px); }
+.speak { flex: none; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); padding: 6px; border-radius: 8px; }
+.speak:hover { background: var(--surface-2); color: var(--text); }
+.divider { border: 0; border-top: 1px dashed var(--border); margin: 0; }
+
+.actions { margin-top: 14px; }
+.btn { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 11px 16px; font-weight: 600; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { width: 100%; padding: 16px; font-size: 16px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.danger { color: var(--learn); }
+.rate { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rate button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 66px; padding: 8px 2px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); }
+.rate button:hover { background: var(--surface-2); }
+.rate .lbl { font-weight: 700; font-size: 15px; }
+.rate .iv { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rate .again .lbl { color: var(--again); }
+.rate .hard .lbl { color: var(--hard); }
+.rate .good .lbl { color: var(--good); }
+.rate .easy .lbl { color: var(--easy); }
+kbd { font: 11px ui-monospace, monospace; padding: 0 5px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; color: var(--muted); background: var(--surface-2); margin-left: 6px; }
+.rate kbd { margin: 2px 0 0; }
+@media (hover: none) { kbd { display: none; } }
+.subactions { display: flex; justify-content: center; margin-top: 12px; }
+.link { border: 0; background: none; color: var(--muted); font-size: 13px; padding: 6px 10px; border-radius: 8px; }
+.link:hover:not(:disabled) { color: var(--text); background: var(--surface-2); }
+.link:disabled { opacity: .4; cursor: default; }
+
+.done { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 36px 20px; }
+.done h2 { margin: 0 0 6px; font-size: 20px; }
+.done p { margin: 4px 0; color: var(--muted); }
+.done .btn { margin-top: 16px; }
+
+.toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+.toolbar input { flex: 1; min-width: 0; }
+input[type="search"], select { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 9px 12px; }
+.vis { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.chip { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 13px; font-size: 13px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.muted { color: var(--muted); font-size: 13px; margin: 6px 0 10px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 14px 12px; }
+.item-head { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.item .line { padding: 2px 0; }
+.item .line p { font-size: 16px; }
+.item .line p.blur { filter: blur(7px); cursor: pointer; user-select: none; }
+.empty-hint { text-align: center; color: var(--muted); padding: 32px 0; }
+
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.panel h3 { margin: 0 0 10px; font-size: 15px; }
+.panel .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.seg { display: inline-flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: 10px; }
+.seg button { border: 0; background: transparent; padding: 7px 14px; border-radius: 8px; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .1); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat span { font-size: 12px; color: var(--muted); }
+.note { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .back { animation: rise .18s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>基本英文100 Anki</h1>
+    <p>ドラゴン・イングリッシュ ｜ 中・日・英 ｜ 間隔複習</p>
+  </header>
+
+  <div class="tabs-wrap">
+    <div class="tabs" role="tablist" aria-label="頁籤">
+      <button class="tab" role="tab" id="t-study" data-tab="study" aria-controls="tab-study">學習</button>
+      <button class="tab" role="tab" id="t-all" data-tab="all" aria-controls="tab-all">全部詞條</button>
+      <button class="tab" role="tab" id="t-settings" data-tab="settings" aria-controls="tab-settings">設定與統計</button>
+    </div>
+  </div>
+
+  <main>
+    <section id="tab-study" role="tabpanel" aria-labelledby="t-study">
+      <div class="counts" aria-label="今日進度">
+        <div class="count new" id="k-new"><b id="cNew">0</b><span>新卡</span></div>
+        <div class="count learn" id="k-learn"><b id="cLearn">0</b><span>學習中</span></div>
+        <div class="count review" id="k-review"><b id="cDue">0</b><span>待複習</span></div>
+      </div>
+
+      <article class="card" id="card">
+        <div class="card-meta"><span id="cardNo"></span><span class="badge" id="cardBadge"></span></div>
+        <div class="front" id="front"></div>
+        <hr class="divider" id="divider" hidden>
+        <div class="back" id="back" hidden></div>
+      </article>
+
+      <div class="actions" id="actions">
+        <button class="btn primary" id="showBtn" type="button">顯示答案<kbd>Space</kbd></button>
+        <div class="rate" id="rate" hidden>
+          <button type="button" class="again" data-r="1"><span class="lbl">重來</span><span class="iv"></span><kbd>1</kbd></button>
+          <button type="button" class="hard" data-r="2"><span class="lbl">困難</span><span class="iv"></span><kbd>2</kbd></button>
+          <button type="button" class="good" data-r="3"><span class="lbl">良好</span><span class="iv"></span><kbd>3</kbd></button>
+          <button type="button" class="easy" data-r="4"><span class="lbl">簡單</span><span class="iv"></span><kbd>4</kbd></button>
+        </div>
+        <div class="subactions"><button class="link" id="undoBtn" type="button">復原上一張 <kbd>Z</kbd></button></div>
+      </div>
+
+      <div class="done" id="done" hidden>
+        <h2 id="doneTitle"></h2>
+        <p id="doneMsg"></p>
+        <p id="doneNext"></p>
+        <button class="btn" id="moreBtn" type="button" hidden>再學 10 張新卡</button>
+        <div class="subactions"><button class="link" id="undoBtn2" type="button">復原上一張</button></div>
+      </div>
+    </section>
+
+    <section id="tab-all" role="tabpanel" aria-labelledby="t-all" hidden>
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="搜尋 中／日／英／編號" aria-label="搜尋詞條">
+        <select id="filter" aria-label="狀態篩選">
+          <option value="all">全部狀態</option>
+          <option value="new">新卡</option>
+          <option value="learn">學習中</option>
+          <option value="review">複習中</option>
+        </select>
+      </div>
+      <div class="vis" role="group" aria-label="顯示語言">
+        <span>顯示</span>
+        <button class="chip" type="button" data-vis="zh" aria-pressed="true">中</button>
+        <button class="chip" type="button" data-vis="ja" aria-pressed="true">日</button>
+        <button class="chip" type="button" data-vis="en" aria-pressed="true">英</button>
+        <span>關閉的語言會模糊，點一下可單獨顯示</span>
+      </div>
+      <p class="muted" id="allCount"></p>
+      <ol class="list" id="list"></ol>
+    </section>
+
+    <section id="tab-settings" role="tabpanel" aria-labelledby="t-settings" hidden>
+      <div class="panel">
+        <h3>卡片正面語言</h3>
+        <div class="row">
+          <div class="seg" id="frontSeg" role="group" aria-label="正面語言">
+            <button type="button" data-front="zh" aria-pressed="false">中文</button>
+            <button type="button" data-front="ja" aria-pressed="false">日文</button>
+            <button type="button" data-front="en" aria-pressed="false">英文</button>
+          </div>
+        </div>
+        <p class="note">正面顯示所選語言，翻面後顯示另外兩種語言。</p>
+      </div>
+      <div class="panel">
+        <h3>每日新卡數</h3>
+        <div class="row">
+          <label for="newPerDay">每天最多學習幾張新卡</label>
+          <select id="newPerDay"></select>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>學習統計</h3>
+        <div class="stats" id="stats"></div>
+        <p class="note">「已熟悉」＝複習間隔 21 天以上。進度只存在這個瀏覽器（localStorage）；清除網站資料或換裝置會歸零。</p>
+      </div>
+      <div class="panel">
+        <h3>重置</h3>
+        <button class="btn danger" id="resetBtn" type="button">清除所有學習進度</button>
+      </div>
+    </section>
+  </main>
+  <noscript><p class="empty-hint">需要啟用 JavaScript 才能使用。</p></noscript>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const DECK = [
+{"id": 1, "zh": "喝了兩瓶威士忌還開車是很危險的。", "ja": "ウィスキーのボトルを2本も空けて車を運転するのは危険だ。", "en": "It would be dangerous to drink two bottles of whiskey and drive a car."},
+{"id": 2, "zh": "在綠燈亮起之前就穿越車流量大的馬路，是非常危險的。", "ja": "交通量の多い通りを、信号が青に変わらないうちに横断することはとても危険です。", "en": "It is very dangerous to cross a busy street before the light turns green."},
+{"id": 3, "zh": "清晨一邊聽著鳥鳴一邊散步，真的很舒服。", "ja": "早朝、鳥のさえずりを聴きながら散歩するのは本当に気持ちがいい。", "en": "It is really pleasant to take a walk early in the morning, listening to birds singing."},
+{"id": 4, "zh": "日本的高中生當中，有些人為了準備大學入學考試而去補習班。", "ja": "日本の高校生の中には、大学入試に備えるため塾に行く。", "en": "Most Japanese high school students go to a cram school to prepare for university entrance exams."},
+{"id": 5, "zh": "日本人在等電梯或紅綠燈時，不到短短三十秒就會開始感到焦躁。", "ja": "日本人は、エレベーターや信号を待っている時、わずか30秒も経たないうちにいらいらし始める。", "en": "When waiting for the elevator to come or the traffic light to change, most Japanese people become irritated within only thirty seconds."},
+{"id": 6, "zh": "坐在我旁邊的老奶奶在火車上問我要去哪裡。", "ja": "列車で隣に座ったおばあさんに、どこまで行くのと尋ねられた。", "en": "An elderly woman sitting next to me on the train asked me where I was going."},
+{"id": 7, "zh": "山姆說，因為大眾運輸不方便，不如租輛車到處逛逛那座城市怎麼樣。", "ja": "公共の交通機関では不便だから、レンタカーを借りてその街をあちこち見てまわるのはどうだろう、とサムは言った。", "en": "Sam suggested that we should rent a car to get around the city because the public transportation was inconvenient."},
+{"id": 8, "zh": "要不要結婚、要不要生孩子，都應該由每個人自由決定。", "ja": "結婚するかどうか、子供を産むか産まないかは、各人の自由な判断によるべきだ。", "en": "Everyone should be free to decide whether to get married and whether to have children."},
+{"id": 9, "zh": "大地震會在何時何地發生，是無法預測的。", "ja": "大地震がいつどこで起きるかは予測不可能だ。", "en": "It is impossible to predict where and when a major earthquake will occur."},
+{"id": 10, "zh": "佛雷德堅持說一切都會順利，但我還是擔心得不得了。", "ja": "フレッドは万事うまくいくと言い張ったが、私は心配で仕方がなかった。", "en": "Fred insisted that everything would be all right, but I could not help feeling worried."},
+{"id": 11, "zh": "我從沒想過自己說的話會傷害到她。", "ja": "僕の発言が彼女を傷つけるなんて思いもしなかった。", "en": "It never occurred to me that my remark might hurt her feelings."},
+{"id": 12, "zh": "「湯姆，開飯囉。」\n「知道了，媽。我馬上過去。」", "ja": "「トム、ごはんですよ」\n「わかった、ママ。すぐ行くよ。」", "en": "\"Tom, dinner is ready.\"\n\"OK, Mom. I'm coming.\""},
+{"id": 13, "zh": "到了成田機場我會打電話給你。", "ja": "成田空港に着いたら電話します。", "en": "I will give you a call when I get to Narita Airport."},
+{"id": 14, "zh": "從這裡搭電車去東京迪士尼樂園的話，需要轉三次車。", "ja": "ここから東京ディズニーランドまで電車で行くなら、3回の乗り換えが必要になります。", "en": "If you take the train from here to Tokyo Disneyland, you have to change trains three times."},
+{"id": 15, "zh": "我已經決定大學畢業後要到國外找工作。", "ja": "大学を卒業したら海外で仕事を探すことに決めている。", "en": "I have decided to work abroad when I graduate from university."},
+{"id": 16, "zh": "這台吹風機不會動耶，好像壞掉了。", "ja": "このドライヤー、動かないわ。壊れたみたい。", "en": "This hair dryer does not work. It seems something is wrong with it."},
+{"id": 17, "zh": "在美國寄宿家庭生活中最開心的事，就是寄宿家庭的父母把我當成親生女兒一樣對待。", "ja": "アメリカでのホームステイで一番うれしかったことは、ホストファミリーの両親が私を自分の娘のように扱ってくれたことです。", "en": "The best thing about my stay with an American family was that the parents treated me just like a daughter."},
+{"id": 18, "zh": "十幾歲的時候，因為父親工作的關係，我曾在加拿大住過三年。", "ja": "10代の頃、父の仕事の関係でカナダに3年間住んだことがある。", "en": "When I was in my teens, I lived in Canada for three years because my father was transferred there."},
+{"id": 19, "zh": "隨著智慧型手機的普及，這幾年無線耳機的銷量快速成長。", "ja": "スマートフォンの普及とともに、ここ数年、ワイヤレスイヤホンの売り上げが急速に伸びている。", "en": "Smartphones are widely used, so sales of wireless earphones have been rapidly increasing over the last few years."},
+{"id": 20, "zh": "我常聽他吹噓自己是游泳高手，卻從沒看過他真的游泳。", "ja": "彼が水泳の名人だと自慢するのをたびたび聞いたことがあるが、実際に泳いでいるところを見たことがない。", "en": "I have often heard him boast that he is very good at swimming, but I have never actually seen him swim."},
+{"id": 21, "zh": "我在便利商店打工才剛滿一個星期，就已經完全習慣這份工作了。", "ja": "コンビニでアルバイトを始めてから1週間にしかならないが、もうすっかり仕事に慣れた。", "en": "It has been only a week since I began working part-time at a convenience store, but I am already used to it."},
+{"id": 22, "zh": "今天早上搭電車時，找不到空位。", "ja": "今朝電車に乗ったとき、空いた席が見つからなかった。", "en": "When I got on the train this morning, I could not find an empty seat."},
+{"id": 23, "zh": "我現在沒戴眼鏡，所以看不清那塊看板上寫了什麼。", "ja": "今はめがねをかけていないので、あの看板に何と書いてあるかわかりません。", "en": "I am not wearing glasses now, so I cannot make out what the sign says."},
+{"id": 24, "zh": "從法國回來已經十年了，我至今仍會不知不覺地用法語思考。", "ja": "フランスから戻って10年も経つのに、いまだに知らず知らずのうちにフランス語で考えている。", "en": "Even ten years after returning from living in France, I still find myself thinking in French."},
+{"id": 25, "zh": "人類到了五、六歲左右，就有了表達自己想法的能力。", "ja": "人間は5~6歳になる頃には、思ったことを表現できる能力を持つようになる。", "en": "By the age of five or six, humans learn to express how they feel."},
+{"id": 26, "zh": "多虧您前幾天告訴我的新路線，我開車去公司只花了平常一半的時間。", "ja": "先日教えていただいた新しい道順のおかげで、いつもの半分の時間で車で職場に行くことができました。", "en": "Thanks to the new route you told me about the other day, I managed to drive to work in half the normal time."},
+{"id": 27, "zh": "去年我請了兩週的假，和家人一起去歐洲旅行。", "ja": "昨年、2週間の休みをとり、家族でヨーロッパ旅行に行きました。", "en": "Last year, I took two weeks off and went on a trip to Europe with my family."},
+{"id": 28, "zh": "鮑伯留了鬍子，所以上次在同學會見到他時，我沒認出他來。", "ja": "ボブはひげを生やしていたので、このまえ同窓会で会ったときに彼だとわからなかった。", "en": "Bob had grown a beard, so when I saw him at a class reunion, I did not recognize him."},
+{"id": 29, "zh": "睽違二十年造訪的故鄉完全變了樣，已找不到昔日的模樣。", "ja": "20年ぶりに訪れた故郷はすっかり変わってしまい、昔の面影をとどめていなかった。", "en": "When I visited my hometown for the first time in twenty years, I found that it was no longer what it used to be."},
+{"id": 30, "zh": "昨晚忙著預習數學熬夜到四點，所以現在非常想睡。", "ja": "昨晩は数学の予習に追われて4時まで起きていたので、とても眠い。", "en": "I stayed up until four last night preparing for the math lesson, so I feel very sleepy."},
+{"id": 31, "zh": "昨天從圖書館借的小說我已經看完了，所以現在沒事可做。", "ja": "図書館から昨日借りてきた小説をもう読み終えたので、今はすることがない。", "en": "I have already finished reading the novel I borrowed from the library yesterday, so now I have nothing to do."},
+{"id": 32, "zh": "如果你當時吃了這個藥並躺著休息，大概兩、三天就好了。", "ja": "この薬を飲んで寝ていれば、たぶん2~3日で良くなっていたのに。", "en": "If you had taken this medicine and stayed in bed, you would probably have gotten well in two or three days."},
+{"id": 33, "zh": "老師說，如果現在出發，下山途中可能會遇上雷雨，所以最好先在這裡等一會兒。", "ja": "先生は、今出ると、下山途中で雷雨に見舞われる危険があるので、しばらくここで待った方がいいと言っています。", "en": "The teacher says that we should wait here for a while because if we left now, we might get caught in a thunderstorm on the way down."},
+{"id": 34, "zh": "長生不老是人類的夢想。但是，如果真的實現了，地球上會人滿為患。", "ja": "不老不死は人間の夢である。しかし、もしこれが実現したら地球は人であふれてしまう。", "en": "People wish they could live forever and never get older. However, if this came true, there would be too many people on Earth."},
+{"id": 35, "zh": "安看起來很開心呢，一定是發生了什麼好事。", "ja": "アンはうれしそうな顔をしているね。何かいいことがあったに違いない。", "en": "Ann looks happy. Something good must have happened to her."},
+{"id": 36, "zh": "只要去過歐洲古都的人，一定都會被它的美麗所感動。", "ja": "ヨーロッパの古都に行ったことのある人ならば、その美しさに感動したに違いない。", "en": "If you have been to a historic European city, you must have been deeply impressed by how beautiful it was."},
+{"id": 37, "zh": "如果沒有石油、煤炭等化石燃料，20世紀的歷史一定會完全不同。", "ja": "もし石油や石炭などの化石燃料がなかったら、20世紀の歴史はまったく異なったものになっていたに違いない。", "en": "Without fossil fuels such as oil or coal, the history of the 20th century would have been completely different."},
+{"id": 38, "zh": "那個新進員工太自來熟了，跟我說話的口氣簡直像在對朋友說話。", "ja": "あの新入社員は馴れ馴れしい。私に対してまるで友達のような口のきき方だ。", "en": "That new employee is too friendly. He talks to me as if I were his friend."},
+{"id": 39, "zh": "小時候，我常希望家裡能再大一點。", "ja": "子供の頃、もう少し家が広ければと思ったものでした。", "en": "When I was a child, I often used to wish my house were a little larger."},
+{"id": 40, "zh": "我想當志工，幫助洪水、地震等災害的受災者。", "ja": "洪水や地震などの被災者を手助けするボランティアとして活動したい。", "en": "I would like to work as a volunteer helping victims of natural disasters, such as floods or earthquakes."},
+{"id": 41, "zh": "吉姆有一組很棒的鼓，但他不讓任何人使用。", "ja": "ジムは素晴らしいドラムを持っていますが、誰にも使わせません。", "en": "Jim has a nice set of drums, and he never lets anyone play them."},
+{"id": 42, "zh": "起初我以為大衛只是在開玩笑，後來才知道他是認真的。", "ja": "最初、ディビットは冗談を言っているだけだと思ったが、後で本気だとわかった。", "en": "At first, I thought David was only joking, but later I realized he was serious."},
+{"id": 43, "zh": "上個星期日，我生平第一次嘗試做義大利菜，結果做出來的東西非常好吃。", "ja": "先週の日曜日、生まれて初めてイタリア料理に挑戦してみましたが、とってもおいしいものができました。", "en": "Last Sunday, I tried cooking some Italian food for the first time, and it was delicious."},
+{"id": 44, "zh": "有人說他們討厭夏天，因為熱得什麼都不想做。但是，夏天最適合去海裡游泳，所以我喜歡夏天的炎熱。", "ja": "夏は暑くて何をする気にもなれないから嫌いだという人がいます。しかし、夏は海で泳ぐには最適なので、私はその夏の暑さが好きです。", "en": "Some people say that they do not like summer because it is so hot that they do not feel like doing anything. However, I like the heat of summer because it is perfect for swimming in the sea."},
+{"id": 45, "zh": "詹姆士八年前來到日本，不只是因為想逛寺廟，還因為他有個日本女友。", "ja": "ジェームズが8年前日本に来たのは、お寺めぐりがしたかっただけでなく、日本人の彼女がいたからだ。", "en": "James came to Japan eight years ago not only because he wanted to visit temples, but also because he had a Japanese girlfriend."},
+{"id": 46, "zh": "我反對複製人。因為這可能導致壞人被複製出來。", "ja": "私はヒトクローンに反対します。なぜなら悪い人のクローンが作られることになるかもしれないからです。", "en": "I am against human cloning. That is because it could result in evil people being cloned."},
+{"id": 47, "zh": "從這張圖表可以看出，日本的出生率自1985年以來持續下降。原因之一是養育孩子要花很多錢。", "ja": "このグラフを見ると、日本における出生率は1985年以降減少している。理由の1つは子育てにお金がかかるからだ。", "en": "The graph shows that in Japan the birth rate has been decreasing since 1985. This decrease is partly because it costs a lot of money to raise children."},
+{"id": 48, "zh": "我為遲到向吉兒道歉，但她沒有原諒我。", "ja": "私はジルに遅刻したことを謝ったが、許してくれなかった。", "en": "Even though I apologized to Jill for being late, she did not forgive me."},
+{"id": 49, "zh": "三天前，我把手機摔在地上，螢幕碎成了粉末。我後悔沒有買保險。", "ja": "3日前、スマホを落として画面が粉々に割れてしまった。保険に入ってなかったことを後悔した。", "en": "Three days ago, I dropped my smartphone and its screen smashed into thousands of pieces. I regretted not buying insurance for it."},
+{"id": 50, "zh": "我每天忙著做家事，沒有時間去看電影。", "ja": "毎日、家事がとても忙しく、映画を見に行く暇がない。", "en": "I am so busy with the housework every day that I have no time to see a movie."},
+{"id": 51, "zh": "這張木桌太重了，我一個人搬不上二樓。", "ja": "この木の机は重いので私1人では2階まで運べない。", "en": "This wooden desk is too heavy for me to carry upstairs by myself."},
+{"id": 52, "zh": "在歐洲旅行期間，不管去哪個國家都會遇到很多日本觀光客，讓我覺得厭煩透了。", "ja": "ヨーロッパ旅行中、どこの国に行っても多くの日本人旅行者に出会うのでうんざりしました。", "en": "While traveling in Europe, I got sick and tired of seeing so many Japanese tourists wherever I went."},
+{"id": 53, "zh": "看到母親戴著我送的耳環去上班，我非常開心。", "ja": "私がプレゼントしたイヤリングをして母が会社に行くのを見て、とてもうれしかった。", "en": "I was very happy when I saw my mother leaving for work wearing the earrings I had bought her."},
+{"id": 54, "zh": "認為學校只是教人讀書的地方，正是不了解學校角色的證明。", "ja": "学校は勉強だけを教えているところだと思うのは、学校の役割を理解していない証拠です。", "en": "If you think that schools are nothing more than places to study, then this shows that you do not understand what they are for."},
+{"id": 55, "zh": "在新冠疫情期間，大多數人大部分時間都待在家裡工作或讀書。", "ja": "コロナ禍では、ほとんどの人々は、大部分の時間を家の中で仕事したり勉強したりして過ごした。", "en": "During the COVID-19 pandemic, most people spent most of their time working or studying indoors."},
+{"id": 56, "zh": "日本人為了不破壞和諧，通常會盡可能間接地表達自己的感受。", "ja": "日本人は、和を乱さないように自分の気持ちはできるだけ間接的に表現するのがふつうだ。", "en": "Japanese people usually express their feelings as indirectly as possible to avoid disturbing the harmony of their group."},
+{"id": 57, "zh": "一所大學是否真正一流，不只取決於教師與學生的能力，也取決於它對社會的貢獻程度。", "ja": "大学が真に一流かどうかは、教員と学生の能力だけでなく、社会の貢献度で決まる。", "en": "Whether or not a university is truly first-rate depends not only on how intelligent its faculty and students are. It also depends on how much it contributes to society."},
+{"id": 58, "zh": "大氣中二氧化碳的增加與全球暖化密切相關。", "ja": "大気中のCO2の増加は、地球温暖化と密接な関連がある。", "en": "The increase in the amount of CO2 in the atmosphere is closely related to global warming."},
+{"id": 59, "zh": "現代文明越進步，我們就越被迫過夜貓子的生活，睡眠也越不足。", "ja": "現代文明が進めば進むほど、夜型の生活を強いられて睡眠不足になる。", "en": "The more modern civilization advances, the later we are forced to stay up at night, and the less sleep we get."},
+{"id": 60, "zh": "醫生和老師的相似之處在於，兩者面對的都不是物品而是人。", "ja": "医師と教師が似ているところは、どちらも物ではなく人を扱うところである。", "en": "Doctors and teachers are alike in that both of them deal not with things but with people."},
+{"id": 61, "zh": "音樂演奏現場看比在YouTube上看要精彩得多。", "ja": "音楽の演奏はYouTubeで見るより生で見た方がはるかにいい。", "en": "Music performances are far more exciting live than they are on YouTube."},
+{"id": 62, "zh": "這輛機車在英國的價格大約是日本的兩倍。", "ja": "このバイクは、イギリスでは日本のおよそ2倍の値段です。", "en": "This motorcycle is about twice as expensive in the U.K. as it is in Japan."},
+{"id": 63, "zh": "不能因為書讀得比以前少，就說現在的年輕人求知慾降低了。", "ja": "本を読む量が減ったからといって、今の若者の知的欲求が少なくなったと言うことにはならない。", "en": "Just because young people today read less than they used to, this does not mean that they are less eager to learn."},
+{"id": 64, "zh": "坦白說，我昨天參加的入學考試比我預期的難得多。", "ja": "率直に言って、私が昨日受けた入学試験は思っていたよりもはるかに難しかった。", "en": "Frankly speaking, the entrance exams I took yesterday were far more difficult than I had expected."},
+{"id": 65, "zh": "很多人手機裡有健康應用程式，但知道如何充分運用的人極少。", "ja": "健康アプリをスマホに入れている人は多いが、充分に活用する方法を知っている人は極めて少ない。", "en": "Many people have health apps, but very few of them know how to get the most out of them."},
+{"id": 66, "zh": "來日本的外國人當中，有很多人抱怨電影票太貴。", "ja": "日本に来る外国人の中には映画のチケットが高すぎると不平を言う人が多い。", "en": "Many visitors to Japan complain that movie tickets are too expensive."},
+{"id": 67, "zh": "世界上有些國家浪費大量糧食，有些國家卻有數萬名兒童正在挨餓。", "ja": "世界には多くの食料が浪費されている国もあれば、何万人もの子供が餓死している国もある。", "en": "In some countries, a great deal of food is wasted, while in others tens of thousands of children are starving."},
+{"id": 68, "zh": "睡前一定要關掉冷氣，不然可能會身體不舒服喔。", "ja": "寝る前に必ずエアコンを消しなさい。さもないと体調を崩すかもしれないよ。", "en": "Don't forget to turn off the air conditioner before you go to bed, or you might come down with something."},
+{"id": 69, "zh": "笑容是人與人之間的潤滑劑。", "ja": "笑顔は人間の潤滑油だ。", "en": "Smiling helps us build good relationships with those around us."},
+{"id": 70, "zh": "在社群媒體上，我們可以超越年齡、性別、國籍的差異，與世界各地的人交換意見。", "ja": "SNSでは、世界中の人々と年齢や性別や国籍の違いを超えて意見の交換ができる。", "en": "On social media, we can share thoughts and ideas with people all over the world, regardless of age, gender, or nationality."},
+{"id": 71, "zh": "不管怎麼運動，如果不計算卡路里就不可能減重喔。", "ja": "いくら運動しても、カロリー計算をしていないと減量は無理だよ。", "en": "No matter how much exercise you get, you will not lose weight unless you count your calories."},
+{"id": 72, "zh": "即使是自以為知道意思的單字，查字典後還是會有新的發現。", "ja": "意味を知っているつもりの単語でも、辞書で調べてみると新たな発見があるものだ。", "en": "Although you think that you know a word, there is something new to learn if you look it up in the dictionary."},
+{"id": 73, "zh": "有些日本觀光客缺乏常識，把大筆現金放在褲子後面的口袋裡帶著走。", "ja": "日本人観光客の中には、非常識にも多額の現金をズボンの後ろポケットに入れて持ち歩く者がいる。", "en": "Some Japanese tourists lack common sense and carry large amounts of cash in their back pockets."},
+{"id": 74, "zh": "保持健康的秘訣，就是均衡飲食並定期運動。", "ja": "健康を維持する秘訣は、バランスの取れた食事をし定期的に運動することです。", "en": "In order to stay healthy, you should have a balanced diet and get regular exercise."},
+{"id": 75, "zh": "在開發中國家住上一段時間，是從不同角度重新審視日本的好機會。", "ja": "発展途上国でしばらく暮らしてみることは、日本を違った角度から見直す良い機会になる。", "en": "If you live in a developing country for a while, you gain an opportunity to look at Japan from a different point of view."},
+{"id": 76, "zh": "直到出國之後，才會注意到日本大城市的霓虹燈有多麼多。", "ja": "外国に行ってはじめて、日本の大都市のネオンの多さに気づく。", "en": "It is not until you go abroad that you realize just how many neon lights there are in big Japanese cities."},
+{"id": 77, "zh": "很可惜，有許多日本人誤以為只要會說英語就能成為國際人。", "ja": "英語を話せさえすれば国際人になれると勘違いしている日本人が多いのは残念だ。", "en": "It is a pity that many Japanese people mistakenly believe that in order to become global citizens, all they need to do is speak English."},
+{"id": 78, "zh": "令人驚訝的是，只要聽得懂意思，許多美國人並不在意對方的英語發音好不好。", "ja": "意味が通じる限り、相手の英語の発音のよしあしを気にしないアメリカ人が多いのは驚きです。", "en": "It is surprising that many Americans do not care how you pronounce English as long as they can understand what you are trying to say."},
+{"id": 79, "zh": "說到為了保護環境所能做的事，也不過是減少垃圾、盡量使用對環境友善的產品罷了。", "ja": "環境を守るためにできることといったら、ゴミを減らして、できるだけ環境に優しい製品を使うことぐらいだ。", "en": "The best things we can do to protect the environment are to reduce waste and to use eco-friendly products."},
+{"id": 80, "zh": "據說日本年輕人每十個就有七個完全沒有宗教信仰。", "ja": "日本の若者の10人のうち7人は、まったく無宗教だと言われる。", "en": "It is said that seven out of ten young Japanese people do not believe in any religion."},
+{"id": 81, "zh": "打招呼的方式因國家而異，但在日本，鞠躬比握手更常見。", "ja": "あいさつの仕方は国によりさまざまだが、日本では、握手よりお辞儀のほうがふつうだ。", "en": "Social greetings vary from country to country. In Japan, bowing is more common than shaking hands."},
+{"id": 82, "zh": "金澤位於以美麗景色與海鮮聞名的能登半島南方。", "ja": "金沢は、美しい景色と海産物で有名な能登半島の南にあります。", "en": "Kanazawa is located south of Noto Peninsula, which is famous for its beautiful scenery and delicious seafood."},
+{"id": 83, "zh": "年長女性當中，不乏有人瞧不起那些自己什麼事都做不了、緊黏著妻子不放的丈夫。", "ja": "年配の女性の中には、1人で何もすることができず妻にしがみついて離れない夫を軽蔑する人も少なくない。", "en": "Quite a few elderly women look down on their husbands, who cannot do anything by themselves and are overdependent on their wives."},
+{"id": 84, "zh": "從這裡走路到那間電影院大約要二十分鐘，但搭地鐵的話五分鐘就到了。", "ja": "その映画館までは徒歩でおよそ20分ですが、地下鉄なら5分で行くことができます。", "en": "The movie theater is about a twenty-minute walk from here, but it takes only five minutes to get there by subway."},
+{"id": 85, "zh": "修這輛腳踏車花了我一萬日圓。", "ja": "この自転車を修理してもらうのに1万円かかりました。", "en": "It cost me ten thousand yen to have this bike repaired."},
+{"id": 86, "zh": "我家有四個人，住在這棟公寓大樓的五樓。", "ja": "うちは4人家族で、このマンションの5階に住んでいます。", "en": "There are four people in my family and our apartment is on the fifth floor of this building."},
+{"id": 87, "zh": "年輕人只要是印出來的文字就照單全收的傾向，並不是從現在才開始的。", "ja": "若者が活字なら何でも鵜呑みにしてしまうという傾向は、今に始まったことではない。", "en": "The tendency for young people to blindly believe all printed text is nothing new."},
+{"id": 88, "zh": "我在巴黎留學的時候，曾經有一次被某家公司的社長請客，在高級餐廳吃了一頓飯。", "ja": "パリに留学していた頃、ある会社社長に一度高級レストランでごちそうしてもらった経験がある。", "en": "When I was studying in Paris, the president of a certain company once bought me a meal at a fancy restaurant."},
+{"id": 89, "zh": "阿姆斯壯犧牲了許多東西，終於實現了成為太空人的夢想。", "ja": "多くのものを犠牲にして、アームストロングはついに宇宙飛行士になるという夢を実現した。", "en": "Armstrong finally realized his dream of becoming an astronaut but only by sacrificing many things."},
+{"id": 90, "zh": "想消除都市生活累積的壓力與疲勞，最好的辦法就是在大自然中悠閒放鬆。", "ja": "都会の生活でたまったストレスや疲れをとるには、自然の中でのんびりするのが一番です。", "en": "If city life is giving you stress and fatigue, it is best to relax in natural surroundings in order to relieve this."},
+{"id": 91, "zh": "在日本，女性在生產、育兒之後，回歸職場或升遷時往往處於不利。", "ja": "日本では、女性は出産・育児の後は復職や昇進において不利になることが多い。", "en": "In Japan, women often have difficulty returning to their jobs or getting promoted after giving birth and raising their children."},
+{"id": 92, "zh": "在美國，孩子在到達可以自己開車的年齡之前，不管去哪裡都由父母開車接送。", "ja": "アメリカでは、自分で運転できる年齢に達するまで、子供はどこに行くにも親に車で送ってもらう。", "en": "In the U.S., it is not unusual for parents to drive their children everywhere until they are old enough to get a driver's license."},
+{"id": 93, "zh": "「不好意思，請問到郵局要怎麼走？」\n「在第二個路口左轉，就在右手邊。」", "ja": "「すみませんが、郵便局までどう行ったらいいですか？」\n「2筋目を左です。右にあります」", "en": "\"Excuse me. Could you tell me how to get to the post office?\"\n\"Go straight for two blocks, then turn left. You will find it on your right.\""},
+{"id": 94, "zh": "「你覺得這次的新老師怎麼樣？」\n「她身上有種說不出的魅力呢。」", "ja": "「今度の先生をどう思う？」\n「どこか魅力的なところがあるよね」", "en": "\"What do you think of our new teacher?\"\n\"There is something quite charming about her.\""},
+{"id": 95, "zh": "在擁擠的電車上，看到有人佔了兩個人的座位還若無其事，真的很火大。", "ja": "混雑した電車で、2人分の席を占領して平気な顔をしている人を見ると本当に腹が立つ。", "en": "People who do not feel guilty about taking up two seats on a crowded train really make me angry."},
+{"id": 96, "zh": "每個人生來都擁有某種才能，問題在於能否找到它。", "ja": "人は誰でも生まれながらにして何らかの才能を持っているが、問題はそれを見つけられるかどうかだ。", "en": "Everyone is born with a talent. The question is whether they are able to find it or not."},
+{"id": 97, "zh": "出公司去吃午餐時，碰巧遇到了高中時代的朋友。", "ja": "昼ごはんを食べに会社を出たら、高校時代の友達にばったり出会った。", "en": "When I was out of the office for lunch, I ran into an old friend from high school."},
+{"id": 98, "zh": "這首音樂值得反覆聽很多遍，你也一定要聽聽看喔。", "ja": "この音楽は何度も繰り返して聴く価値がある。君もぜひ聴いてみたらいいよ。", "en": "This music is worth listening to several times. I highly recommend it."},
+{"id": 99, "zh": "牙齒對健康扮演著重要的角色。想要保持健康，就必須每餐飯後刷牙。", "ja": "歯は健康にとって大切な役割を果たしています。健康でいたければ、毎食後に歯磨きをしなければなりません。", "en": "Your teeth play an important part in your health. If you want to stay healthy, you must brush your teeth after every meal."},
+{"id": 100, "zh": "請記住，只要有幹勁，不管做什麼事都能成功。", "ja": "やる気さえあれば何事においても成功できる、ということを心に留めておきなさい。", "en": "Always remember that as long as you have passion, you can succeed in anything."}
+];
+
+const LANGS = {
+  zh: { tag: '中', name: '中文', speech: 'zh-TW', html: 'zh-Hant' },
+  ja: { tag: '日', name: '日文', speech: 'ja-JP', html: 'ja' },
+  en: { tag: '英', name: '英文', speech: 'en-US', html: 'en' },
+};
+const ORDER = ['zh', 'ja', 'en'];
+const MIN = 60000, DAY = 86400000;
+const STEPS = [1, 10], RELEARN = [10];
+const LEARN_AHEAD = 20 * MIN;
+const GRAD_IVL = 1, EASY_IVL = 4;
+const NEW_LIMITS = [5, 10, 15, 20, 30, 50, 100];
+const SPEAKER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+const CAN_SPEAK = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+/* ---------- storage ---------- */
+const store = (() => {
+  try { const k = '__t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; }
+  catch (e) { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: k => { delete m[k]; } }; }
+})();
+const KEY = 'dragon100.v1.';
+const load = (k, fb) => { try { const v = JSON.parse(store.getItem(KEY + k)); return v == null ? fb : v; } catch (e) { return fb; } };
+const save = (k, v) => { try { store.setItem(KEY + k, JSON.stringify(v)); } catch (e) { /* storage full or blocked */ } };
+
+/* ---------- state ---------- */
+const fresh = () => ({ s: 0, step: 0, ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0 });
+let prog = load('cards', {});
+DECK.forEach(d => { prog[d.id] = Object.assign(fresh(), prog[d.id]); });
+let settings = Object.assign({ front: 'ja', newPerDay: 10, vis: { zh: true, ja: true, en: true } }, load('settings', {}));
+settings.vis = Object.assign({ zh: true, ja: true, en: true }, settings.vis);
+let daily = load('daily', null);
+let tab = 'study', currentId = null, revealed = false;
+const undoStack = [];
+
+/* ---------- time helpers (study day rolls over at 04:00) ---------- */
+function dayStart(now) { const d = new Date(now); d.setHours(4, 0, 0, 0); if (d.getTime() > now) d.setDate(d.getDate() - 1); return d.getTime(); }
+function dayKey(now) { const d = new Date(dayStart(now)); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dueInDays(n, now) { const d = new Date(dayStart(now)); d.setDate(d.getDate() + n); return d.getTime(); }
+function ensureDaily(now) {
+  const k = dayKey(now);
+  if (!daily || daily.day !== k) { daily = { day: k, newDone: 0, extra: 0 }; save('daily', daily); }
+}
+
+/* ---------- scheduler (simplified Anki SM-2) ---------- */
+// s: 0 new, 1 learning, 2 review, 3 relearning
+function schedule(c, r, now) {
+  const n = Object.assign({}, c, { reps: c.reps + 1 });
+  if (c.s !== 2) {
+    const relearn = c.s === 3;
+    const steps = relearn ? RELEARN : STEPS;
+    const s0 = c.s === 0 ? 0 : Math.min(c.step, steps.length - 1);
+    const stay = relearn ? 3 : 1;
+    const learn = (step, mins) => { n.s = stay; n.step = step; n.due = now + mins * MIN; };
+    if (r === 1) learn(0, steps[0]);
+    else if (r === 2) learn(s0, s0 === 0 ? (steps.length > 1 ? (steps[0] + steps[1]) / 2 : steps[0] * 1.5) : steps[s0]);
+    else if (r === 3 && s0 + 1 < steps.length) learn(s0 + 1, steps[s0 + 1]);
+    else {
+      n.s = 2; n.step = 0;
+      n.ivl = relearn ? c.ivl + (r === 4 ? 1 : 0) : (r === 4 ? EASY_IVL : GRAD_IVL);
+      n.due = dueInDays(n.ivl, now);
+    }
+    return n;
+  }
+  if (r === 1) {
+    n.lapses = c.lapses + 1; n.ease = Math.max(1.3, c.ease - 0.2);
+    n.ivl = 1; n.s = 3; n.step = 0; n.due = now + RELEARN[0] * MIN;
+    return n;
+  }
+  const hard = Math.max(c.ivl + 1, Math.round(c.ivl * 1.2));
+  const good = Math.max(hard + 1, Math.round(c.ivl * c.ease));
+  const easy = Math.max(good + 1, Math.round(c.ivl * c.ease * 1.3));
+  n.ivl = r === 2 ? hard : r === 3 ? good : easy;
+  if (r === 2) n.ease = Math.max(1.3, c.ease - 0.15);
+  if (r === 4) n.ease = c.ease + 0.15;
+  n.due = dueInDays(n.ivl, now);
+  return n;
+}
+
+function fmtDays(d) {
+  if (d < 30) return d + '天';
+  if (d < 365) return (Math.round(d / 30 * 10) / 10) + '個月';
+  return (Math.round(d / 365 * 10) / 10) + '年';
+}
+function fmtMin(m) {
+  if (m < 1) return '<1分';
+  if (m < 60) return Math.round(m) + '分';
+  if (m < 1440) return Math.round(m / 60) + '小時';
+  return fmtDays(Math.round(m / 1440));
+}
+function fmtLabel(next, now) { return (next.s === 1 || next.s === 3) ? fmtMin((next.due - now) / MIN) : fmtDays(next.ivl); }
+
+/* ---------- queue ---------- */
+const isLearn = p => p.s === 1 || p.s === 3;
+const stateKey = p => (p.s === 0 ? 'new' : isLearn(p) ? 'learn' : 'review');
+const STATE_TEXT = { 0: '新卡', 1: '學習中', 2: '複習', 3: '重學' };
+const newAllowance = () => Math.max(0, settings.newPerDay + daily.extra - daily.newDone);
+
+function pickNext(now) {
+  let best = null;
+  for (const d of DECK) { const p = prog[d.id]; if (isLearn(p) && p.due <= now && (!best || p.due < prog[best.id].due)) best = d; }
+  if (best) return best;
+  for (const d of DECK) { const p = prog[d.id]; if (p.s === 2 && p.due <= now && (!best || p.due < prog[best.id].due)) best = d; }
+  if (best) return best;
+  if (newAllowance() > 0) { const d = DECK.find(x => prog[x.id].s === 0); if (d) return d; }
+  for (const d of DECK) { const p = prog[d.id]; if (isLearn(p) && p.due <= now + LEARN_AHEAD && (!best || p.due < prog[best.id].due)) best = d; }
+  return best;
+}
+function counts(now) {
+  let n = 0, l = 0, r = 0;
+  for (const d of DECK) { const p = prog[d.id]; if (p.s === 0) n++; else if (isLearn(p)) l++; else if (p.due <= now) r++; }
+  return { newC: Math.min(n, newAllowance()), learn: l, due: r, newTotal: n };
+}
+
+/* ---------- dom helpers ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k === 'html') el.innerHTML = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) el.append(kid);
+  return el;
+}
+function speak(text, lang) {
+  if (!CAN_SPEAK) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/\n/g, ' '));
+  u.lang = lang; u.rate = lang === 'en-US' ? 0.92 : 0.95;
+  speechSynthesis.speak(u);
+}
+function lineEl(card, lang, extra) {
+  const L = LANGS[lang];
+  const p = h('p', { lang: L.html, text: card[lang], class: extra || null });
+  const kids = [h('span', { class: 'tag', text: L.tag }), p];
+  if (CAN_SPEAK) {
+    const b = h('button', { class: 'speak', type: 'button', 'aria-label': '朗讀' + L.name, html: SPEAKER });
+    b.addEventListener('click', e => { e.stopPropagation(); speak(card[lang], L.speech); });
+    kids.push(b);
+  }
+  return h('div', { class: 'line' }, kids);
+}
+
+/* ---------- study tab ---------- */
+function renderCounts(now) {
+  const c = counts(now);
+  $('#cNew').textContent = c.newC; $('#cLearn').textContent = c.learn; $('#cDue').textContent = c.due;
+  const cur = currentId != null ? stateKey(prog[currentId]) : null;
+  $('#k-new').classList.toggle('current', cur === 'new');
+  $('#k-learn').classList.toggle('current', cur === 'learn');
+  $('#k-review').classList.toggle('current', cur === 'review');
+  return c;
+}
+function renderStudy() {
+  const now = Date.now();
+  ensureDaily(now);
+  const cnt = renderCounts(now);
+  const has = currentId != null;
+  $('#card').hidden = !has; $('#actions').hidden = !has; $('#done').hidden = has;
+  $('#undoBtn').disabled = undoStack.length === 0;
+  $('#undoBtn2').disabled = undoStack.length === 0;
+  if (!has) { renderDone(now, cnt); return; }
+
+  const card = DECK[currentId - 1], p = prog[currentId];
+  $('#cardNo').textContent = '#' + card.id + ' / ' + DECK.length;
+  const badge = $('#cardBadge');
+  badge.textContent = STATE_TEXT[p.s]; badge.className = 'badge ' + stateKey(p);
+  $('#front').replaceChildren(lineEl(card, settings.front));
+  $('#back').replaceChildren(...ORDER.filter(l => l !== settings.front).map(l => lineEl(card, l)));
+  $('#card').classList.toggle('clickable', !revealed);
+  $('#back').hidden = !revealed; $('#divider').hidden = !revealed;
+  $('#showBtn').hidden = revealed; $('#rate').hidden = !revealed;
+  if (revealed) {
+    $$('#rate button').forEach(b => { b.querySelector('.iv').textContent = fmtLabel(schedule(p, +b.dataset.r, now), now); });
+  }
+}
+function fmtWait(ms) {
+  const m = ms / MIN;
+  if (m < 60) return Math.max(1, Math.ceil(m)) + ' 分鐘後';
+  if (m < 1440) return Math.round(m / 60) + ' 小時後';
+  return Math.round(m / 1440) + ' 天後';
+}
+function renderDone(now, cnt) {
+  const started = DECK.length - cnt.newTotal;
+  let next = null;
+  for (const d of DECK) { const p = prog[d.id]; if (p.s !== 0 && p.due > now && (next == null || p.due < next)) next = p.due; }
+  const moreNew = cnt.newTotal > 0;
+  $('#doneTitle').textContent = started === 0 ? '沒有可學習的卡片' : moreNew ? '今天的額度完成了' : '目前沒有要複習的卡片';
+  $('#doneMsg').textContent = moreNew
+    ? '今天的新卡額度（' + (settings.newPerDay + daily.extra) + ' 張）已用完，還有 ' + cnt.newTotal + ' 張新卡沒開始。'
+    : '全部 ' + DECK.length + ' 張都已開始學習。';
+  $('#doneNext').textContent = next != null ? '下一張卡片：' + fmtWait(next - now) + '到期' : '';
+  $('#moreBtn').hidden = !moreNew;
+}
+function advance() {
+  const now = Date.now();
+  ensureDaily(now);
+  const c = pickNext(now);
+  currentId = c ? c.id : null; revealed = false;
+  render();
+}
+function reveal() { if (currentId == null || revealed) return; revealed = true; renderStudy(); }
+function rate(r) {
+  if (currentId == null || !revealed) return;
+  const now = Date.now(); ensureDaily(now);
+  const id = currentId, p = prog[id];
+  undoStack.push({ id, prev: Object.assign({}, p), daily: Object.assign({}, daily) });
+  if (undoStack.length > 30) undoStack.shift();
+  if (p.s === 0) daily.newDone++;
+  prog[id] = schedule(p, r, now);
+  save('cards', prog); save('daily', daily);
+  advance();
+}
+function undo() {
+  const u = undoStack.pop();
+  if (!u) return;
+  prog[u.id] = u.prev; daily = u.daily;
+  save('cards', prog); save('daily', daily);
+  currentId = u.id; revealed = false;
+  render();
+}
+
+/* ---------- all-entries tab ---------- */
+function renderAll() {
+  const q = $('#q').value.trim().toLowerCase(), f = $('#filter').value;
+  const list = $('#list');
+  list.replaceChildren();
+  let n = 0;
+  for (const c of DECK) {
+    const p = prog[c.id];
+    if (f !== 'all' && stateKey(p) !== f) continue;
+    if (q && !(String(c.id) === q || (c.zh + '\n' + c.ja + '\n' + c.en).toLowerCase().includes(q))) continue;
+    n++;
+    const head = h('div', { class: 'item-head' },
+      h('span', { text: '#' + c.id }),
+      h('span', { class: 'badge ' + stateKey(p), text: p.s === 2 ? '複習・' + fmtDays(p.ivl) : STATE_TEXT[p.s] }));
+    const lines = ORDER.map(l => {
+      const el = lineEl(c, l, settings.vis[l] ? null : 'blur');
+      const para = el.querySelector('p');
+      para.addEventListener('click', () => { if (!settings.vis[l]) para.classList.toggle('blur'); });
+      return el;
+    });
+    list.append(h('li', { class: 'item' }, head, lines));
+  }
+  if (n === 0) list.append(h('li', { class: 'empty-hint', text: '沒有符合的詞條' }));
+  $('#allCount').textContent = '顯示 ' + n + ' / ' + DECK.length + ' 條';
+  $$('[data-vis]').forEach(b => b.setAttribute('aria-pressed', String(!!settings.vis[b.dataset.vis])));
+}
+
+/* ---------- settings tab ---------- */
+function renderSettings() {
+  $$('#frontSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.front === settings.front)));
+  $('#newPerDay').value = String(settings.newPerDay);
+  let nw = 0, lr = 0, yg = 0, mt = 0, reps = 0;
+  for (const d of DECK) {
+    const p = prog[d.id]; reps += p.reps;
+    if (p.s === 0) nw++; else if (isLearn(p)) lr++; else if (p.ivl >= 21) mt++; else yg++;
+  }
+  ensureDaily(Date.now());
+  const st = [[DECK.length, '總詞條'], [nw, '新卡'], [lr, '學習中'], [yg, '複習中'], [mt, '已熟悉'], [daily.newDone, '今日新卡'], [reps, '累計作答次數']];
+  $('#stats').replaceChildren(...st.map(([v, l]) => h('div', { class: 'stat' }, h('b', { text: v }), h('span', { text: l }))));
+}
+
+/* ---------- tabs / render ---------- */
+const TABS = ['study', 'all', 'settings'];
+function render() {
+  if (tab === 'study') renderStudy();
+  else if (tab === 'all') renderAll();
+  else renderSettings();
+}
+function setTab(t, focusTab) {
+  if (!TABS.includes(t)) t = 'study';
+  tab = t;
+  TABS.forEach(k => {
+    const b = $('#t-' + k), on = k === t;
+    b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
+    $('#tab-' + k).hidden = !on;
+    if (on && focusTab) b.focus();
+  });
+  try { history.replaceState(null, '', '#' + t); } catch (e) { /* ignore */ }
+  if (t === 'study' && currentId == null) advance(); else render();
+}
+
+/* ---------- wiring ---------- */
+$$('.tab').forEach(b => {
+  b.addEventListener('click', () => setTab(b.dataset.tab));
+  b.addEventListener('keydown', e => {
+    const i = TABS.indexOf(b.dataset.tab);
+    if (e.key === 'ArrowRight') { e.preventDefault(); setTab(TABS[(i + 1) % TABS.length], true); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); setTab(TABS[(i + TABS.length - 1) % TABS.length], true); }
+  });
+});
+$('#showBtn').addEventListener('click', reveal);
+$('#card').addEventListener('click', e => { if (!revealed && !e.target.closest('button')) reveal(); });
+$$('#rate button').forEach(b => b.addEventListener('click', () => rate(+b.dataset.r)));
+$('#undoBtn').addEventListener('click', undo);
+$('#undoBtn2').addEventListener('click', undo);
+$('#moreBtn').addEventListener('click', () => { ensureDaily(Date.now()); daily.extra += 10; save('daily', daily); advance(); });
+
+$('#q').addEventListener('input', renderAll);
+$('#filter').addEventListener('change', renderAll);
+$$('[data-vis]').forEach(b => b.addEventListener('click', () => {
+  settings.vis[b.dataset.vis] = !settings.vis[b.dataset.vis]; save('settings', settings); renderAll();
+}));
+
+$$('#frontSeg button').forEach(b => b.addEventListener('click', () => {
+  settings.front = b.dataset.front; save('settings', settings); renderSettings();
+}));
+$('#newPerDay').append(...NEW_LIMITS.map(n => h('option', { value: n, text: n + ' 張' })));
+$('#newPerDay').addEventListener('change', e => {
+  settings.newPerDay = +e.target.value; save('settings', settings); currentId = null; renderSettings();
+});
+$('#resetBtn').addEventListener('click', () => {
+  if (!confirm('確定要清除所有學習進度嗎？此動作無法復原。')) return;
+  prog = {}; DECK.forEach(d => { prog[d.id] = fresh(); });
+  daily = null; undoStack.length = 0; currentId = null; revealed = false;
+  save('cards', prog); store.removeItem(KEY + 'daily');
+  renderSettings();
+});
+
+document.addEventListener('keydown', e => {
+  if (tab !== 'study') return;
+  const t = e.target;
+  if (t.matches && t.matches('input, select, textarea')) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) {
+    if (e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    return;
+  }
+  if (e.key === ' ' || e.key === 'Enter') {
+    if (t.closest && t.closest('button') && !t.closest('.tabs')) return;
+    if (currentId == null) return;
+    e.preventDefault();
+    if (!revealed) reveal(); else rate(3);
+  } else if (/^[1-4]$/.test(e.key)) {
+    rate(+e.key);
+  } else if (e.key.toLowerCase() === 'z') {
+    undo();
+  }
+});
+
+setInterval(() => {
+  if (document.hidden || tab !== 'study') return;
+  if (currentId == null) advance(); else renderCounts(Date.now());
+}, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && tab === 'study' && currentId == null) advance(); });
+
+setTab(location.hash.replace('#', ''));
+})();
+</script>
+</body>
+</html>
