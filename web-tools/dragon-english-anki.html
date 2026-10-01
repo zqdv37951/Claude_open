@@ -148,6 +148,45 @@ input[type="search"], select { border: 1px solid var(--border); background: var(
 .stat span { font-size: 12px; color: var(--muted); }
 .note { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
 
+.progressbar { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
+.progressbar i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.qprompt { margin: 0; font-size: clamp(18px, 4.4vw, 22px); line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+.qlabel { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+.qopts { display: grid; gap: 8px; }
+.qopt { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 12px 14px; line-height: 1.55; overflow-wrap: anywhere; }
+.qopt kbd { margin: 4px 0 0; flex: none; }
+.qopt:hover:not(:disabled) { background: var(--surface-2); }
+.qopt:disabled { cursor: default; color: var(--text); }
+.qopt.ok, .qchip.ok { border-color: var(--good); background: color-mix(in srgb, var(--good) 14%, var(--surface)); }
+.qopt.ng, .qchip.ng { border-color: var(--again); background: color-mix(in srgb, var(--again) 12%, var(--surface)); }
+.qinput { width: 100%; border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 10px 12px; font-size: 17px; line-height: 1.55; font-family: ui-serif, Georgia, serif; resize: vertical; }
+.qblank { display: inline-block; vertical-align: baseline; min-width: 4.5ch; max-width: 100%; border: 0; border-bottom: 2px solid var(--accent); border-radius: 0; background: transparent; padding: 0 4px; text-align: center; font: inherit; color: inherit; }
+.qblank:focus-visible { outline-offset: 3px; }
+.qblank.ok { border-color: var(--good); color: var(--good); }
+.qblank.ng { border-color: var(--again); color: var(--again); text-decoration: line-through; }
+.qans { color: var(--good); font-weight: 700; margin-left: 4px; }
+.qchips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; padding: 8px; border: 1px dashed var(--border); border-radius: 12px; align-content: flex-start; }
+.qchips.answer { background: var(--surface-2); }
+.qchip { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 7px 11px; font: 16px/1.4 ui-serif, Georgia, serif; }
+.qchip:disabled { cursor: default; color: var(--text); }
+.qfb { margin: 0; font-weight: 700; font-size: 16px; }
+.qfb.ok { color: var(--good); }
+.qfb.ng { color: var(--again); }
+.qdiff { margin: 0; font: 16px/1.7 ui-serif, Georgia, serif; overflow-wrap: anywhere; }
+.qdiff .bad { color: var(--again); text-decoration: line-through; }
+.qdiff .miss { color: var(--again); font-weight: 700; text-decoration: underline; }
+.qdiff + .qlabel { margin-top: 10px; }
+.qrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.qrow label { font-size: 14px; }
+input[type="number"] { width: 72px; border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 8px 10px; }
+.qscore { text-align: center; padding: 22px 16px; }
+.qscore b { display: block; font-size: 44px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.qscore span { color: var(--muted); font-size: 14px; }
+.qbtns { display: grid; gap: 8px; margin: 14px 0; }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.hist li { display: flex; justify-content: space-between; gap: 10px; }
+.hist span { color: var(--muted); }
+
 @media (prefers-reduced-motion: no-preference) {
   .back { animation: rise .18s ease-out; }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -165,6 +204,7 @@ input[type="search"], select { border: 1px solid var(--border); background: var(
     <div class="tabs" role="tablist" aria-label="頁籤">
       <button class="tab" role="tab" id="t-study" data-tab="study" aria-controls="tab-study">學習</button>
       <button class="tab" role="tab" id="t-all" data-tab="all" aria-controls="tab-all">全部詞條</button>
+      <button class="tab" role="tab" id="t-quiz" data-tab="quiz" aria-controls="tab-quiz">測驗</button>
       <button class="tab" role="tab" id="t-settings" data-tab="settings" aria-controls="tab-settings">設定與統計</button>
     </div>
   </div>
@@ -212,6 +252,7 @@ input[type="search"], select { border: 1px solid var(--border); background: var(
           <option value="new">新卡</option>
           <option value="learn">學習中</option>
           <option value="review">複習中</option>
+          <option value="weak">測驗答錯過</option>
         </select>
       </div>
       <div class="vis" role="group" aria-label="顯示語言">
@@ -223,6 +264,10 @@ input[type="search"], select { border: 1px solid var(--border); background: var(
       </div>
       <p class="muted" id="allCount"></p>
       <ol class="list" id="list"></ol>
+    </section>
+
+    <section id="tab-quiz" role="tabpanel" aria-labelledby="t-quiz" hidden>
+      <div id="quizBody"></div>
     </section>
 
     <section id="tab-settings" role="tabpanel" aria-labelledby="t-settings" hidden>
@@ -256,6 +301,12 @@ input[type="search"], select { border: 1px solid var(--border); background: var(
       <div class="panel">
         <h3>朗讀音檔</h3>
         <p class="note" style="margin-top:0">日文與英文各 100 句都有音檔，點句子旁的喇叭播放（再點一次停止），學習頁可按 <kbd>R</kbd> 重播。音檔是 AI 語音合成（Kokoro-82M，Apache-2.0），不是真人錄音；找不到音檔時會改用瀏覽器內建語音。中文沒有音檔。</p>
+      </div>
+      <div class="panel">
+        <h3>測驗紀錄</h3>
+        <ul class="hist" id="quizHist"></ul>
+        <p class="note">最近 10 次測驗。測驗預設不會改動上面的學習進度；答錯的卡只有在測驗結果頁按「加入學習」才會進入複習。</p>
+        <button class="btn danger" id="quizClearBtn" type="button" style="margin-top:10px">清除測驗紀錄</button>
       </div>
       <div class="panel">
         <h3>重置</h3>
@@ -524,7 +575,7 @@ const AUDIO_CACHE = 'dragon100-audio-v1';
 const audioUrl = (card, lang) => AUDIO_DIR + lang + '/' + String(card.id).padStart(3, '0') + '.mp3';
 const preloaded = new Map();
 async function preloadAudio() {
-  if (!('caches' in window) || !window.fetch) return;
+  if (!/^https?:$/.test(location.protocol) || !('caches' in window) || !window.fetch) return;
   if (navigator.connection && navigator.connection.saveData) return;
   let cache;
   try { cache = await caches.open(AUDIO_CACHE); } catch (e) { return; }
@@ -697,7 +748,8 @@ function renderAll() {
   let n = 0;
   for (const c of DECK) {
     const p = prog[c.id];
-    if (f !== 'all' && stateKey(p) !== f) continue;
+    if (f === 'weak') { if (!(qstats[c.id] && qstats[c.id].ng > 0)) continue; }
+    else if (f !== 'all' && stateKey(p) !== f) continue;
     if (q && !(String(c.id) === q || (c.zh + '\n' + c.ja + '\n' + c.en).toLowerCase().includes(q))) continue;
     n++;
     const head = h('div', { class: 'item-head' },
@@ -733,13 +785,314 @@ function renderSettings() {
   ensureDaily(Date.now());
   const st = [[DECK.length, '總詞條'], [nw, '新卡'], [lr, '學習中'], [yg, '複習中'], [mt, '已熟悉'], [daily.newDone, '今日新卡'], [reps, '累計作答次數']];
   $('#stats').replaceChildren(...st.map(([v, l]) => h('div', { class: 'stat' }, h('b', { text: v }), h('span', { text: l }))));
+  const fmtT = t => { const d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  $('#quizHist').replaceChildren(...(qhist.length
+    ? qhist.map(r => h('li', {}, h('span', { text: fmtT(r.t) }), h('b', { text: r.ok + ' / ' + r.n + '（' + Math.round(r.ok / r.n * 100) + '%）' }), h('span', { text: fmtSecs(r.secs) })))
+    : [h('li', {}, h('span', { text: '還沒有測驗紀錄' }))]));
 }
 
 /* ---------- tabs / render ---------- */
-const TABS = ['study', 'all', 'settings'];
+
+/* ---------- quiz ---------- */
+const QTYPES = { choice: '選擇題', cloze: '填空', spell: '拼寫', order: '排序' };
+const QORDER = ['choice', 'cloze', 'spell', 'order'];
+const QSCOPES = [['all', '全部詞條'], ['seen', '只考學習中／複習中的卡'], ['wrong', '只考最近答錯的卡'], ['range', '指定編號區間']];
+const QCOUNTS = [[10, '10 題'], [20, '20 題'], [0, '全部']];
+const qcfg = Object.assign({ scope: 'all', count: 10, types: QORDER.slice(), from: 1, to: DECK.length }, load('quizcfg', {}));
+if (!Array.isArray(qcfg.types) || !(qcfg.types = qcfg.types.filter(t => QORDER.includes(t))).length) qcfg.types = QORDER.slice();
+let qstats = load('quizstats', {});   // id -> { ok, ng, last }  last: 1 對 / 0 錯
+let qhist = load('quizhist', []);     // [{ t, n, ok, secs }]
+let quiz = { phase: 'setup' };
+const STOP = new Set('about after again also because before being between both could does doing during each every from have having into just made make more most much must never other over said should since some than that their them then there these they this those through under until very want were what when where which while whom will with would your'.split(' '));
+const WORD_RE = /[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu;
+
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function fmtSecs(n) { return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); }
+function normWords(str) {
+  return str.toLowerCase().replace(/[’‘]/g, "'").replace(/-/g, ' ').replace(/[^\p{L}\p{N}'\s]/gu, ' ')
+    .split(/\s+/).map(w => w.replace(/^'+|'+$/g, '')).filter(Boolean);
+}
+function closeQuizNotes(prefix) { for (const k of Array.from(openNotes)) if (k.startsWith(prefix)) openNotes.delete(k); }
+const cardById = id => DECK.find(c => c.id === id);
+
+function quizPool() {
+  return DECK.filter(c => {
+    if (qcfg.scope === 'seen') return prog[c.id].s !== 0;
+    if (qcfg.scope === 'wrong') return qstats[c.id] && qstats[c.id].last === 0;
+    if (qcfg.scope === 'range') return c.id >= qcfg.from && c.id <= qcfg.to;
+    return true;
+  });
+}
+function startQuiz(ids) {
+  const pool = ids ? ids.map(cardById) : quizPool();
+  const n = ids || !qcfg.count ? pool.length : Math.min(qcfg.count, pool.length);
+  let bag = [];
+  const qs = shuffle(pool).slice(0, n).map(c => { if (!bag.length) bag = shuffle(qcfg.types); return { id: c.id, type: bag.pop() }; });
+  if (!qs.length) return;
+  quiz = { phase: 'run', qs, i: 0, ok: 0, wrong: [], t0: Date.now(), answered: false, cur: null, added: false };
+  renderQuiz();
+}
+function recordAnswer(id, ok) {
+  const st = qstats[id] || { ok: 0, ng: 0, last: 1 };
+  if (ok) st.ok++; else st.ng++;
+  st.last = ok ? 1 : 0;
+  qstats[id] = st; save('quizstats', qstats);
+}
+function finishQuiz() {
+  const secs = Math.round((Date.now() - quiz.t0) / 1000);
+  qhist.unshift({ t: Date.now(), n: quiz.qs.length, ok: quiz.ok, secs });
+  qhist = qhist.slice(0, 10); save('quizhist', qhist);
+  quiz.phase = 'result'; quiz.secs = secs;
+  renderQuiz();
+}
+function addWrongToStudy(ids) {
+  const now = Date.now(); ensureDaily(now);
+  for (const id of ids) {
+    const p = prog[id];
+    if (p.s === 0) daily.newDone++;
+    const nx = schedule(p, 1, now);
+    nx.due = now;
+    prog[id] = nx;
+  }
+  save('cards', prog); save('daily', daily);
+  currentId = null; revealed = false;
+}
+
+/* --- question builders --- */
+function buildChoice(card) {
+  const zh2en = Math.random() < 0.5;
+  const from = zh2en ? 'zh' : 'en', to = zh2en ? 'en' : 'zh';
+  const len = card[to].length;
+  const near = DECK.filter(c => c.id !== card.id)
+    .map(c => ({ c, d: Math.abs(c[to].length - len) + Math.random() * 8 })).sort((a, b) => a.d - b.d).slice(0, 10).map(x => x.c);
+  const opts = shuffle(shuffle(near).slice(0, 3).map(c => ({ text: c[to], ok: false })).concat({ text: card[to], ok: true }));
+  return { from, to, opts };
+}
+function buildCloze(card) {
+  const toks = Array.from(card.en.matchAll(WORD_RE)).map(m => ({ w: m[0], i: m.index }));
+  const head = card.ev.map(v => v.split('｜')[0]).filter(w => /^[A-Za-z]+(?:['’-][A-Za-z]+)*$/.test(w) && w.length >= 3);
+  let cand = toks.filter(t => head.some(w => w.toLowerCase() === t.w.toLowerCase()));
+  if (!cand.length) cand = toks.filter(t => t.w.length >= 5 && !STOP.has(t.w.toLowerCase()));
+  if (!cand.length) cand = toks.filter(t => t.w.length >= 4);
+  const t = pick(cand);
+  return { word: t.w, pre: card.en.slice(0, t.i), post: card.en.slice(t.i + t.w.length) };
+}
+function buildOrder(card) {
+  const words = card.en.split(/\s+/).filter(Boolean);
+  const g = words.length <= 10 ? 1 : Math.ceil(words.length / 10);
+  const chunks = [];
+  for (let i = 0; i < words.length; i += g) chunks.push(words.slice(i, i + g).join(' '));
+  if (chunks.length > 2 && chunks[chunks.length - 1].indexOf(' ') < 0 && g > 1) { const last = chunks.pop(); chunks[chunks.length - 1] += ' ' + last; }
+  const items = chunks.map((text, k) => ({ k, text, used: false }));
+  let bank = shuffle(items);
+  for (let tries = 0; tries < 20 && bank.every((it, k) => it.k === k); tries++) bank = shuffle(items);
+  return { chunks, bank, answer: [] };
+}
+function diffWords(exp, got) {
+  const n = exp.length, m = got.length, dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = exp[i] === got[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const eOk = new Array(n).fill(false), gOk = new Array(m).fill(false);
+  for (let i = 0, j = 0; i < n && j < m;) {
+    if (exp[i] === got[j]) { eOk[i] = gOk[j] = true; i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) i++; else j++;
+  }
+  return { eOk, gOk };
+}
+function diffEl(expected, given) {
+  const toks = str => str.split(/\s+/).filter(Boolean).map(raw => ({ raw, words: normWords(raw) }));
+  const E = toks(expected), G = toks(given);
+  const flat = T => { const w = [], o = []; T.forEach((t, k) => t.words.forEach(x => { w.push(x); o.push(k); })); return { w, o }; };
+  const fe = flat(E), fg = flat(G), d = diffWords(fe.w, fg.w);
+  const badE = new Set(), badG = new Set();
+  d.eOk.forEach((ok, i) => { if (!ok) badE.add(fe.o[i]); });
+  d.gOk.forEach((ok, i) => { if (!ok) badG.add(fg.o[i]); });
+  const line = (T, bad, cls) => h('p', { class: 'qdiff', lang: 'en' }, T.flatMap((t, k) => [h('span', { class: bad.has(k) ? cls : null, text: t.raw }), ' ']));
+  return h('div', {}, h('div', { class: 'qlabel', text: '你的答案' }), line(G, badG, 'bad'), h('div', { class: 'qlabel', text: '正確答案' }), line(E, badE, 'miss'));
+}
+
+/* --- rendering --- */
+function renderQuiz() {
+  stopPlayback();
+  const root = $('#quizBody');
+  root.replaceChildren();
+  if (quiz.phase === 'run') renderQuestion(root);
+  else if (quiz.phase === 'result') renderQuizResult(root);
+  else renderQuizSetup(root);
+}
+function renderQuizSetup(root) {
+  const pool = quizPool(), n = qcfg.count ? Math.min(qcfg.count, pool.length) : pool.length;
+  const redraw = () => { save('quizcfg', qcfg); renderQuizSetup(root); };
+  root.replaceChildren();
+  const scope = h('select', { 'aria-label': '測驗範圍' }, QSCOPES.map(([v, t]) => h('option', { value: v, text: t })));
+  scope.value = qcfg.scope;
+  scope.addEventListener('change', () => { qcfg.scope = scope.value; redraw(); });
+  const range = qcfg.scope !== 'range' ? null : h('div', { class: 'qrow', style: 'margin-top:10px' },
+    h('label', { text: '從 #' }), numInput(qcfg.from, v => { qcfg.from = v; if (qcfg.to < v) qcfg.to = v; redraw(); }),
+    h('label', { text: '到 #' }), numInput(qcfg.to, v => { qcfg.to = v; if (qcfg.from > v) qcfg.from = v; redraw(); }));
+  function numInput(val, on) {
+    const el = h('input', { type: 'number', min: 1, max: DECK.length, value: val, inputmode: 'numeric' });
+    el.addEventListener('change', () => on(Math.min(DECK.length, Math.max(1, Math.round(+el.value) || 1))));
+    return el;
+  }
+  const counts = h('div', { class: 'seg', role: 'group', 'aria-label': '題數' }, QCOUNTS.map(([v, t]) => {
+    const b = h('button', { type: 'button', 'aria-pressed': String(qcfg.count === v), text: t });
+    b.addEventListener('click', () => { qcfg.count = v; redraw(); });
+    return b;
+  }));
+  const types = h('div', { class: 'qrow', role: 'group', 'aria-label': '題型' }, QORDER.map(t => {
+    const on = qcfg.types.includes(t);
+    const b = h('button', { class: 'chip', type: 'button', 'aria-pressed': String(on), text: QTYPES[t] });
+    b.addEventListener('click', () => {
+      if (on && qcfg.types.length === 1) return;
+      qcfg.types = QORDER.filter(x => (x === t ? !on : qcfg.types.includes(x)));
+      redraw();
+    });
+    return b;
+  }));
+  const hint = qcfg.scope === 'wrong' && !pool.length ? '還沒有「最近一次答錯」的紀錄，先用其他範圍測驗幾次。' : '符合條件的詞條：' + pool.length + ' 張，本次出 ' + n + ' 題。';
+  const start = h('button', { class: 'btn primary', type: 'button', text: '開始測驗' });
+  start.disabled = !pool.length;
+  start.addEventListener('click', () => startQuiz());
+  root.append(
+    h('div', { class: 'panel' }, h('h3', { text: '範圍' }), scope, range, h('p', { class: 'note', text: hint })),
+    h('div', { class: 'panel' }, h('h3', { text: '題數' }), counts),
+    h('div', { class: 'panel' }, h('h3', { text: '題型（每題隨機抽一種）' }), types,
+      h('p', { class: 'note', text: '選擇題：中⇄英四選一。填空：補上英文句中的關鍵單字。拼寫：看中文打出整句英文（不分大小寫、忽略標點，單字拼錯算錯）。排序：把打散的英文片段排回正確順序。' })),
+    start,
+    h('p', { class: 'note', text: '測驗不會改動「學習」頁籤的複習進度，除非結束後你按「加入學習」。' }));
+}
+function renderQuestion(root) {
+  const q = quiz.qs[quiz.i], card = cardById(q.id), n = quiz.qs.length;
+  closeQuizNotes('q:');
+  quiz.answered = false;
+  const cur = quiz.cur = { q, card };
+  const body = h('div', { style: 'display:flex;flex-direction:column;gap:12px' });
+  const fb = h('div', { hidden: true });
+  const submit = h('button', { class: 'btn primary', type: 'button', id: 'qSubmit', text: '送出' });
+  const quit = h('button', { class: 'link', type: 'button', text: '結束測驗' });
+  quit.addEventListener('click', () => { if (confirm('結束這次測驗？目前的作答不會記入成績紀錄。')) { quiz = { phase: 'setup' }; renderQuiz(); } });
+
+  const setSubmitLabel = () => { submit.textContent = quiz.i + 1 < n ? '下一題' : '看結果'; submit.hidden = false; submit.disabled = false; };
+  const finishAnswer = (ok, detail) => {
+    quiz.answered = true;
+    if (ok) quiz.ok++; else quiz.wrong.push(card.id);
+    recordAnswer(card.id, ok);
+    fb.replaceChildren(...[
+      h('p', { class: 'qfb ' + (ok ? 'ok' : 'ng'), text: ok ? '答對了' : '答錯了' }),
+      detail,
+      h('hr', { class: 'divider' }),
+      ...ORDER.map(l => lineEl(card, l, null, 'q'))].filter(Boolean));
+    fb.className = 'back'; fb.hidden = false;
+    setSubmitLabel();
+    submit.focus({ preventScroll: true });
+  };
+  const next = () => { stopPlayback(); if (quiz.i + 1 < n) { quiz.i++; renderQuiz(); window.scrollTo(0, 0); } else finishQuiz(); };
+  cur.next = next;
+  submit.addEventListener('click', () => { if (quiz.answered) next(); else if (cur.submit) cur.submit(); });
+
+  if (q.type === 'choice') {
+    const d = buildChoice(card);
+    const opts = d.opts.map((o, i) => {
+      const b = h('button', { class: 'qopt', type: 'button', lang: LANGS[d.to].html }, h('kbd', { text: String(i + 1) }), h('span', { text: o.text }));
+      b.addEventListener('click', () => answer(i));
+      return b;
+    });
+    const answer = i => {
+      if (quiz.answered) return;
+      opts.forEach((b, k) => { b.disabled = true; if (d.opts[k].ok) b.classList.add('ok'); else if (k === i) b.classList.add('ng'); });
+      finishAnswer(d.opts[i].ok, null);
+    };
+    cur.pick = answer;
+    body.append(
+      h('div', { class: 'qlabel', text: (d.from === 'zh' ? '中文' : '英文') + ' → 選出' + (d.to === 'zh' ? '中文' : '英文') }),
+      h('p', { class: 'qprompt', lang: LANGS[d.from].html, text: card[d.from] }),
+      h('div', { class: 'qopts' }, opts));
+    submit.hidden = true;
+  } else if (q.type === 'cloze') {
+    const d = buildCloze(card);
+    const input = h('input', { class: 'qblank', type: 'text', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': '填入空格', style: 'width:' + Math.max(5, d.word.length + 2) + 'ch' });
+    body.append(
+      h('div', { class: 'qlabel', text: '填空：補上空格的英文單字' }),
+      h('p', { class: 'qprompt', lang: 'zh-Hant', text: card.zh }),
+      h('p', { class: 'qprompt', lang: 'en' }, d.pre, input, d.post),
+      h('p', { class: 'note', style: 'margin:0', text: '提示：共 ' + d.word.length + ' 個字母' }));
+    cur.focus = input;
+    cur.submit = () => {
+      if (!input.value.trim()) { input.focus(); return; }
+      const ok = normWords(input.value).join(' ') === normWords(d.word).join(' ');
+      input.disabled = true; input.classList.add(ok ? 'ok' : 'ng');
+      if (!ok) input.after(h('span', { class: 'qans', lang: 'en', text: d.word }));
+      finishAnswer(ok, null);
+    };
+  } else if (q.type === 'spell') {
+    const ta = h('textarea', { class: 'qinput', rows: 3, lang: 'en', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: '輸入英文句子（不分大小寫、忽略標點）', 'aria-label': '英文句子' });
+    body.append(h('div', { class: 'qlabel', text: '拼寫：看中文打出英文句子' }), h('p', { class: 'qprompt', lang: 'zh-Hant', text: card.zh }), ta);
+    cur.focus = ta;
+    cur.submit = () => {
+      if (!ta.value.trim()) { ta.focus(); return; }
+      const ok = normWords(ta.value).join(' ') === normWords(card.en).join(' ');
+      ta.disabled = true;
+      finishAnswer(ok, ok ? null : diffEl(card.en, ta.value));
+    };
+  } else {
+    const d = buildOrder(card);
+    const ansBox = h('div', { class: 'qchips answer', 'aria-label': '你排的順序' }), bankBox = h('div', { class: 'qchips', 'aria-label': '待排序片段' });
+    const draw = () => {
+      ansBox.replaceChildren(...d.answer.map(it => chip(it, () => { it.used = false; d.answer.splice(d.answer.indexOf(it), 1); draw(); })));
+      bankBox.replaceChildren(...d.bank.filter(it => !it.used).map(it => chip(it, () => { it.used = true; d.answer.push(it); draw(); })));
+      submit.disabled = d.answer.length !== d.chunks.length;
+    };
+    const chip = (it, on) => { const b = h('button', { class: 'qchip', type: 'button', lang: 'en', text: it.text }); b.addEventListener('click', on); return b; };
+    body.append(h('div', { class: 'qlabel', text: '排序：點片段排成正確的英文句子（點已排的片段可退回）' }), h('p', { class: 'qprompt', lang: 'zh-Hant', text: card.zh }), ansBox, bankBox);
+    cur.submit = () => {
+      if (d.answer.length !== d.chunks.length) return;
+      const ok = d.answer.every((it, k) => it.text === d.chunks[k]);
+      Array.from(ansBox.children).forEach((b, k) => { b.disabled = true; b.classList.add(d.answer[k].text === d.chunks[k] ? 'ok' : 'ng'); });
+      bankBox.hidden = true;
+      finishAnswer(ok, ok ? null : h('div', {}, h('div', { class: 'qlabel', text: '正確順序' }), h('p', { class: 'qdiff', lang: 'en', text: card.en })));
+    };
+    draw();
+  }
+
+  root.append(
+    h('div', { class: 'progressbar', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': n, 'aria-valuenow': quiz.i }, h('i', { style: 'width:' + (quiz.i / n * 100) + '%' })),
+    h('article', { class: 'card' },
+      h('div', { class: 'card-meta' }, h('span', { text: '第 ' + (quiz.i + 1) + ' / ' + n + ' 題 ・ ' + QTYPES[q.type] }), h('span', { text: '#' + card.id })),
+      body, fb),
+    h('div', { class: 'actions' }, submit, h('div', { class: 'subactions' }, quit)));
+  if (cur.focus) cur.focus.focus({ preventScroll: true });
+}
+function renderQuizResult(root) {
+  const n = quiz.qs.length, pct = Math.round(quiz.ok / n * 100);
+  const wrong = quiz.wrong.slice();
+  const addBtn = h('button', { class: 'btn', type: 'button', text: '把答錯的 ' + wrong.length + ' 張加入學習' });
+  addBtn.addEventListener('click', () => {
+    if (quiz.added) return;
+    addWrongToStudy(wrong); quiz.added = true;
+    addBtn.disabled = true; addBtn.textContent = '已加入 ' + wrong.length + ' 張，到「學習」頁籤即可複習';
+  });
+  const retry = h('button', { class: 'btn', type: 'button', text: '只重考錯題（' + wrong.length + ' 題）' });
+  retry.addEventListener('click', () => startQuiz(wrong));
+  const again = h('button', { class: 'btn primary', type: 'button', text: '回到測驗設定' });
+  again.addEventListener('click', () => { quiz = { phase: 'setup' }; renderQuiz(); });
+  closeQuizNotes('r:');
+  root.append(
+    h('div', { class: 'panel qscore' }, h('b', { text: quiz.ok + ' / ' + n }), h('span', { text: pct + '% ・ 用時 ' + fmtSecs(quiz.secs) })),
+    h('div', { class: 'qbtns' }, wrong.length ? [retry, addBtn] : null, again));
+  if (wrong.length) {
+    root.append(h('p', { class: 'muted', text: '答錯的題目' }),
+      h('ol', { class: 'list' }, wrong.map(id => { const c = cardById(id); return h('li', { class: 'item' }, h('div', { class: 'item-head' }, h('span', { text: '#' + id })), ORDER.map(l => lineEl(c, l, null, 'r'))); })));
+  } else {
+    root.append(h('p', { class: 'empty-hint', text: '全部答對！' }));
+  }
+}
+
+const TABS = ['study', 'all', 'quiz', 'settings'];
 function render() {
   if (tab === 'study') renderStudy();
   else if (tab === 'all') renderAll();
+  else if (tab === 'quiz') { if (quiz.phase === 'setup' || !$('#quizBody').firstChild) renderQuiz(); }
   else renderSettings();
 }
 function setTab(t, focusTab) {
@@ -813,6 +1166,25 @@ document.addEventListener('keydown', e => {
   } else if (e.key.toLowerCase() === 'r') {
     const b = $$('#card .speak').find(x => x.offsetParent !== null);
     if (b) b.click();
+  }
+});
+
+$('#quizClearBtn').addEventListener('click', () => {
+  if (!confirm('確定要清除所有測驗紀錄（成績與答錯統計）嗎？學習進度不受影響。')) return;
+  qstats = {}; qhist = []; store.removeItem(KEY + 'quizstats'); store.removeItem(KEY + 'quizhist');
+  renderSettings();
+});
+document.addEventListener('keydown', e => {
+  if (tab !== 'quiz' || quiz.phase !== 'run' || !quiz.cur || e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target, typing = t.matches && t.matches('input, textarea');
+  if (e.key === 'Enter' && !e.shiftKey) {
+    if (t.closest && t.closest('button')) return;
+    e.preventDefault();
+    if (quiz.answered) quiz.cur.next(); else if (quiz.cur.submit) quiz.cur.submit();
+  } else if (!typing && /^[1-4]$/.test(e.key) && quiz.cur.pick && !quiz.answered) {
+    quiz.cur.pick(+e.key - 1);
+  } else if (!typing && e.key === ' ' && quiz.answered && !(t.closest && t.closest('button'))) {
+    e.preventDefault(); quiz.cur.next();
   }
 });
 
