@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卡爾加里 × 洛磯山脈 12 日行程</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --bg:#f1f4f2; --surface:#ffffff; --surface-2:#e7ece9;
+  --ink:#1b2422; --ink-soft:#4b5751; --ink-faint:#7c8985;
+  --line:#d7ded9;
+  --teal:#146b6b; --teal-ink:#0e4f4f; --teal-soft:#e1f0ee;
+  --amber:#a3701f; --amber-ink:#855c19; --amber-soft:#f5ead2;
+  --shadow:0 1px 2px rgba(20,30,28,.06),0 8px 24px -12px rgba(20,30,28,.18);
+  --font-display:'Iowan Old Style','Palatino Linotype',Georgia,'Noto Serif TC','PingFang TC',serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'PingFang TC','Microsoft JhengHei','Segoe UI',Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101614; --surface:#171f1c; --surface-2:#1f2925;
+  --ink:#e8ece9; --ink-soft:#a9b5af; --ink-faint:#74827c;
+  --line:#2a3630;
+  --teal:#5fc9c4; --teal-ink:#8fdcd8; --teal-soft:#16302e;
+  --amber:#e3ae5c; --amber-ink:#eec078; --amber-soft:#3a2e17;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5);
+}}
+:root[data-theme="dark"]{
+  --bg:#101614; --surface:#171f1c; --surface-2:#1f2925;
+  --ink:#e8ece9; --ink-soft:#a9b5af; --ink-faint:#74827c;
+  --line:#2a3630;
+  --teal:#5fc9c4; --teal-ink:#8fdcd8; --teal-soft:#16302e;
+  --amber:#e3ae5c; --amber-ink:#eec078; --amber-soft:#3a2e17;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-ink);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:3px}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+section{padding:44px 0 6px;scroll-margin-top:58px}
+h1{font-family:var(--font-display);font-size:clamp(30px,6vw,46px);line-height:1.08;margin:10px 0 0;font-weight:600;text-wrap:balance}
+h2{font-family:var(--font-display);font-size:clamp(22px,3.6vw,30px);margin:0 0 4px;font-weight:600;text-wrap:balance}
+h3{font-family:var(--font-display);font-size:20px;margin:30px 0 10px;font-weight:600}
+h4{font-size:15px;margin:0 0 4px;font-weight:600;line-height:1.45}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint)}
+.lede{color:var(--ink-soft);max-width:66ch;margin:10px 0 0}
+.muted{color:var(--ink-faint);font-size:.86rem}
+/* 待確認清單（page-contract.md#unverified）。刻意跟頁頂待辦（.todo-item）長得不一樣：
+   那是「出發前要辦的事」，這是「我沒能替你驗證的事」，兩種責任性質不同。 */
+/* 租車與共享車（page-contract.md#car-plan） */
+/* 當日二選一／三選一（conditional-features.md#alternatives） */
+.alts{display:grid;gap:8px;margin:10px 0 2px}
+.alt{border:1px solid var(--line);border-left:3px solid var(--ink-faint);border-radius:8px;
+  padding:10px 12px;background:var(--surface)}
+.alt.picked{border-left-color:var(--teal);background:var(--teal-soft)}
+.alt-l{font-weight:700;font-size:14px;line-height:1.5}
+.alt.picked .alt-l{color:var(--teal-ink)}
+.alt-s{font-size:13px;color:var(--ink-soft);line-height:1.75;margin-top:4px}
+.alt-h{font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:14px 0 0}
+.car{display:grid;gap:14px;margin-top:4px}
+.car-rec{border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:10px;
+  padding:14px 16px;background:var(--teal-soft)}
+.car-rec .car-choice{font-weight:700;font-size:15.5px;color:var(--teal-ink);line-height:1.5}
+.car-rec .car-total{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:14px;font-weight:700;margin-top:6px}
+.car-why{font-size:13.5px;line-height:1.75;margin-top:6px}
+.car-caution{font-size:13px;line-height:1.7;margin-top:8px;padding:8px 10px;border-radius:6px;
+  background:var(--amber-soft);color:var(--amber-ink)}
+.car-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.car-tbl th,.car-tbl td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+.car-tbl th{font-size:12px;color:var(--ink-soft);font-weight:600;white-space:nowrap}
+.car-tbl td.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.car-tbl tr.rec td{background:var(--teal-soft)}
+.car-wrap{overflow-x:auto;min-width:0;-webkit-overflow-scrolling:touch}
+.car-h{font-size:13px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:14px 0 4px}
+.car-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.car-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.car-item .t{font-weight:600;font-size:14px;line-height:1.5}
+.car-item .d{font-size:13px;color:var(--ink-soft);line-height:1.7;margin-top:3px}
+.car-item .g{font-size:12.5px;line-height:1.7;margin-top:4px;color:var(--amber-ink)}
+.uv{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.uv-item{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:12px 14px;
+  border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;background:var(--surface)}
+.uv-item input{margin-top:3px;accent-color:var(--teal)}
+.uv-t{font-weight:600;font-size:14.5px;line-height:1.5}
+.uv-why{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.6}
+.uv-how{font-size:13px;color:var(--ink);margin-top:4px;line-height:1.6}
+.uv-how b{color:var(--teal-ink)}
+.uv-where{font-size:12px;color:var(--ink-faint);margin-top:4px;font-family:var(--font-mono)}
+.uv-cat{font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:16px 0 2px}
+.uv-cat:first-child{margin-top:0}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+/* nav (page-contract.md#tab-nav) */
+.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:960px;margin:0 auto;padding:0 20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.nav-in::-webkit-scrollbar{display:none}
+.nav a{flex:0 0 auto;padding:11px 12px;font-size:13.5px;color:var(--ink-soft);text-decoration:none;
+  white-space:nowrap;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--teal-ink);border-bottom-color:var(--teal)}
+/* hero */
+.hero{padding:40px 0 34px;border-bottom:1px solid var(--line)}
+.hero h2{font-size:20px;margin-top:26px}
+.factbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:24px}
+.fact{background:var(--surface);padding:14px 16px}
+.fact-k{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+.fact-v{font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums;margin-top:4px}
+.fact-n{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.5}
+/* cards / grids */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}
+.grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px}
+@media(min-width:768px){.grid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
+.alert{border-left:3px solid var(--amber);background:var(--amber-soft);color:var(--ink);
+  padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0}
+.alert b{display:block;margin-bottom:4px}
+.alert p{margin:4px 0 0;font-size:14.5px;line-height:1.62}
+.pill{display:inline-block;font-family:var(--font-mono);font-size:10.5px;padding:2px 7px;border-radius:4px;
+  background:var(--surface-2);color:var(--ink-soft);white-space:nowrap}
+.status{display:inline-block;font-family:var(--font-mono);font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap}
+/* 預訂徽章（reminders.js 的 reminderBadgeHTML）。刻意是這一行裡唯一帶邊框的元素，
+   讀者才分得出「這個可以點」；季末警示已經佔了 amber，這裡走主色系。 */
+.reminder-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:999px;white-space:nowrap;border:1px solid var(--teal);
+  background:var(--teal-soft);color:var(--teal-ink);text-decoration:none}
+a.reminder-badge:hover{background:var(--teal);color:#fff}
+.reminder-badge.ticket{background:var(--teal-soft);color:var(--teal-ink);border-color:var(--teal)}
+.reminder-badge.reserve{background:transparent;color:var(--teal-ink);border-color:var(--teal);border-style:dashed}
+a.reminder-badge.reserve:hover{background:var(--teal-soft);border-style:solid}
+.reminder-badge.permit{border-color:var(--line);background:var(--surface-2);color:var(--ink-soft)}
+a.reminder-badge.permit:hover{border-color:var(--ink-soft);background:var(--surface-2);color:var(--ink)}
+.status.season{background:var(--amber-soft);color:var(--amber-ink)}
+.status.booking{background:var(--teal-soft);color:var(--teal-ink)}
+.status.free{background:var(--surface-2);color:var(--ink-soft)}
+/* plans + timeline */
+.plan-head{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--teal);
+  border-radius:10px;padding:16px 20px;margin:22px 0 4px;box-shadow:var(--shadow)}
+.plan-head.alt{border-left-color:var(--amber)}
+.plan-head h3{margin:0 0 4px}
+.plan-head p{margin:0;font-size:14.5px;color:var(--ink-soft)}
+.badge-rec{font-family:var(--font-mono);font-size:10.5px;padding:2px 8px;border-radius:4px;
+  background:var(--teal-soft);color:var(--teal-ink);margin-left:8px;vertical-align:3px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:14px 0;
+  box-shadow:var(--shadow);overflow:hidden}
+.day-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;padding:14px 20px;
+  border-bottom:1px solid var(--line);background:var(--surface-2)}
+.day-d{font-family:var(--font-mono);font-size:18px;font-weight:600;color:var(--teal-ink);font-variant-numeric:tabular-nums}
+.day-w{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint)}
+.day-t{font-family:var(--font-display);font-size:17px;font-weight:600;flex:1 1 190px}
+.day-b{padding:6px 20px 18px}
+.tl{list-style:none;margin:0;padding:0}
+.tl>li{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line)}
+.tl>li:last-child{border-bottom:none}
+.tl-t{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-faint);font-variant-numeric:tabular-nums;padding-top:3px}
+.routes{display:grid;grid-template-columns:1fr;gap:0;margin-top:6px}
+@media(min-width:768px){.routes{grid-template-columns:1fr 1fr;gap:0 24px}}
+.route{padding:14px 0}
+.route+.route{border-top:1px solid var(--line)}
+@media(min-width:768px){.route+.route{border-top:none;border-left:1px solid var(--line);padding-left:24px}}
+.route-h{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.route-h.easy{color:var(--teal-ink)} .route-h.mid{color:var(--amber-ink)}
+.route ol{list-style:none;margin:0;padding:0}
+.route li{display:grid;grid-template-columns:56px 1fr;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.route li:last-child{border-bottom:none}
+.route .rt{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);padding-top:2px}
+.route .rn{font-weight:600;font-size:14.5px;line-height:1.45}
+.route .rd{font-size:13px;color:var(--ink-soft);line-height:1.55;margin-top:2px}
+.wx{margin-top:12px;padding:11px 14px;background:var(--surface-2);border-radius:8px;font-size:13.5px;
+  line-height:1.6;color:var(--ink-soft)}
+.wx b{color:var(--ink)}
+.daytip{margin-top:10px;font-size:13.5px;color:var(--ink-soft);border-left:2px solid var(--amber);
+  padding-left:12px;line-height:1.6}
+/* nearby (engine-contract.md#nearby-panel) */
+.nearby-toggle{display:inline-flex;align-items:center;margin:14px 0 0;padding:8px 14px;
+  font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--teal-ink);
+  background:var(--teal-soft);border:1px solid transparent;border-radius:8px;cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s}
+.nearby-toggle:hover{border-color:var(--teal)}
+.nearby-toggle[aria-expanded="true"]{background:var(--surface-2);color:var(--ink-soft)}
+.nearby-panel{margin:12px 0 2px;padding:14px 16px 6px;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:10px}
+.nearby-panel[hidden]{display:none}   /* 蓋過 class 選擇器，確保預設收合（engine-contract.md#nearby-panel 的踩坑記錄） */
+.nb-cat{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);margin:14px 0 6px}
+.nb-cat:first-child{margin-top:2px}
+/* POI 卡片牆（engine-contract.md#poi-wall：2 列 × 橫向捲動） */
+/* grid/flex 子項預設 min-width:auto，會被寬卡片牆撐開而不是讓它內部捲動——
+   這幾條 min-width:0 是讓 .poi-grid 的 overflow-x 真正生效的前提，不要拿掉 */
+.tl>li>div,.route li>div,.day-b,.nearby-panel,#regions-body{min-width:0}
+.poi-grid{max-width:100%;display:grid;grid-template-rows:repeat(2, auto);grid-auto-flow:column;
+  grid-auto-columns:minmax(220px,1fr);gap:10px 16px;overflow-x:auto;padding-bottom:8px;
+  scroll-snap-type:x proximity}
+.poi-card{scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:12px 14px}
+.poi-card h4{margin:4px 0 0}
+.poi-card p{margin:5px 0 0;font-size:13px;color:var(--ink-soft);line-height:1.55}
+.poi-card .hl-shop{color:var(--ink-faint);font-size:12.5px}
+.poi-scroll-hint{margin:0 0 .4rem;font-size:.72rem;color:var(--ink-faint);font-family:var(--font-mono)}
+.source-tag{display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;
+  padding:1px 6px;border-radius:4px}
+.source-tag.highlight{background:var(--teal-soft);color:var(--teal-ink)}
+.source-tag.transit{background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line)}
+.dist-tag{font-family:var(--font-mono);font-size:10.5px;color:var(--amber-ink);
+  background:var(--amber-soft);padding:1px 6px;border-radius:4px;margin-left:6px;white-space:nowrap}
+.poi-maplink{margin:7px 0 0!important;font-size:11.5px!important}
+.tl h4{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* 時間軸的地圖編號徽章：外觀刻意跟 .route-pin 一致（同色實心圓 + 半透明光暈），
+   讀者才會意識到這兩個數字是同一套。改其中一邊的顏色時另一邊要一起改。 */
+.tl-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:50%;background:var(--teal);color:#fff;font-family:var(--font-mono);
+  font-size:11.5px;font-weight:700;flex:0 0 auto;font-variant-numeric:tabular-nums;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 22%,transparent)}
+.poi-maplink--inline{margin:0!important;font-size:11px!important;display:inline-flex;gap:0;align-items:center}
+.poi-maplink--inline a{margin-right:0}
+.poi-maplink a{font-family:var(--font-mono);font-size:11px;margin-right:10px;color:var(--ink-faint);text-decoration:none;border-bottom:1px solid var(--line)}
+.poi-maplink a:hover{color:var(--teal-ink);border-bottom-color:var(--teal)}
+/* map */
+#map{height:440px;border-radius:10px;border:1px solid var(--line);margin-top:16px;background:var(--surface-2)}
+@media(max-width:640px){#map{height:340px}}
+/* tables */
+.tw{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px}
+th{text-align:left;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:500;padding:10px 13px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+td{padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+/* glossary */
+dl.gl{margin:0;display:grid;gap:0}
+dl.gl div{display:grid;grid-template-columns:1fr;gap:2px;padding:11px 0;border-bottom:1px solid var(--line)}
+@media(min-width:768px){dl.gl div{grid-template-columns:230px 150px 1fr;gap:14px;align-items:baseline}}
+dl.gl div:last-child{border-bottom:none}
+dl.gl dt{font-family:var(--font-display);font-weight:600;font-size:15px}
+dl.gl .zh{font-size:14px;color:var(--ink)}
+dl.gl dd{margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.6}
+img{max-width:100%;display:block;object-fit:cover}
+footer{margin-top:50px;padding:26px 0 50px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-faint);line-height:1.7}
+hr.rule{border:none;border-top:1px solid var(--line);margin:38px 0 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- 引擎產生的 class ----------
+   map.js / reminders.js / poi.js 只輸出語意 class，樣式一律由頁面負責。
+   漏寫這一段的後果：地圖標記變成透明 div（38 個點全部看不見）、頁頂待辦清單完全沒樣式。 */
+.route-pin{background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 35%,transparent)}
+.route-pin__num{color:#fff;font-weight:700;font-size:.78rem;font-family:var(--font-mono)}
+.pretrip-todo{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.todo-item{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;
+  display:flex;gap:10px;align-items:baseline;font-size:14.5px;line-height:1.55}
+.todo-item input{accent-color:var(--teal);flex:0 0 auto}
+.todo-deadline{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:11.5px;
+  color:var(--teal-ink);background:var(--teal-soft);border-radius:4px;padding:2px 7px;white-space:nowrap;flex:0 0 auto}
+.todo-text{color:var(--ink-soft)}
+.reminder-badge{display:inline-block;font-family:var(--font-mono);font-size:10.5px;padding:2px 7px;
+  border-radius:4px;background:var(--amber-soft);color:var(--amber-ink);white-space:nowrap}
+.hl-card h4{font-family:var(--font-body);font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.hl-card h4 a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+.hl-card h4 a:hover{border-bottom-color:var(--teal);color:var(--teal-ink)}
+.leaflet-popup-content a{color:var(--teal-ink);font-family:var(--font-mono);font-size:12px;margin-right:6px}
+/* ---------- 主題切換 ---------- */
+.theme-btn{flex:0 0 auto;margin-left:auto;align-self:center;background:none;border:1px solid var(--line);
+  color:var(--ink-soft);border-radius:6px;cursor:pointer;font-size:13px;padding:5px 10px;line-height:1;
+  font-family:var(--font-body)}
+.theme-btn:hover{color:var(--teal-ink);border-color:var(--teal)}
+
+/* ---------- 列印 ----------
+   旅遊行程會被印出來帶著走。最關鍵的一條：橫捲軌道在紙上捲不動，
+   若維持 grid-auto-flow:column，每軌只會印出可視的前兩欄，其餘卡片完全看不到
+   （150 項總覽在紙上只剩約 30 項）。列印時必須改成自動換行的網格。 */
+@media print {
+  .nav, .theme-btn { display: none !important; }
+  #map, #map-sec { display: none !important; }          /* 圖磚不會列印，留白框沒有意義 */
+  body { background: #fff !important; color: #000 !important; }
+  .card, .day, .poi-card, .tw, .plan-head, .nearby-panel {
+    box-shadow: none !important; background: #fff !important;
+  }
+  /* 橫捲 → 換行網格，讓所有卡片都印得到 */
+  .poi-grid {
+    display: grid !important;
+    grid-template-rows: none !important;
+    grid-auto-flow: row !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    overflow: visible !important;
+  }
+  .poi-scroll-hint { display: none !important; }
+  /* 紙上捲不動：橫捲的表格容器要放開，讓表格自己換行縮排（page-contract.md#print） */
+  .tw, .car-wrap { overflow: visible !important; }
+  .tw table, .car-tbl { table-layout: fixed !important; width: 100% !important; font-size: 10.5px !important; }
+  .tw td, .tw th, .car-tbl td, .car-tbl th { word-break: break-word !important; white-space: normal !important; padding: 4px 5px !important; }
+  /* 長網址（Airbnb 訂房連結）被 a::after 印出來時不能斷行，會把表格撐爆 */
+  .tw a::after, .car-tbl a::after { overflow-wrap: anywhere !important; word-break: break-all !important; }
+  .tw td, .car-tbl td { overflow-wrap: anywhere !important; }
+  /* 訂房徽章預設 nowrap，列印時 a::after 把網址接上去會把儲存格撐爆 */
+  .tw .reminder-badge, .car-tbl .reminder-badge {
+    white-space: normal !important; display: inline !important;
+    overflow-wrap: anywhere !important; word-break: break-all !important; }   /* 紙上滑不動，提示是誤導 */
+  .tl-num { box-shadow: none !important; }         /* 紙上不需要光暈，但編號要留著對照 */
+  /* 不要把一天、一張卡、一個表格切成兩頁 */
+  .day, .poi-card, .plan-head, .car-rec, .car-item, table { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+  a { text-decoration: none; color: #000 !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9px; color: #555; word-break: break-all; }
+}
+</style>
+</head><body>
+
+<nav class="nav"><div class="nav-in" id="nav-in"></div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">2026 · 10 · 01 — 10 · 12　/　TOKYO → CALGARY → BANFF　/　三人同行</div>
+  <h1>卡爾加里 × 洛磯山脈 12 日行程</h1>
+  <p class="lede">這趟旅程落在洛磯山夏季設施的<b>最後一週</b>——夢蓮湖聯外道路、露易絲湖纜車、哥倫比亞冰原都在 10/12（回程日）當天結束當季營運。全部行程按此排定，並附感恩節「錯開」與「過節」兩套方案。</p>
+  <div class="factbar">
+    <div class="fact"><div class="fact-k">Outbound · 10/01 Thu</div><div class="fact-v">WS81　18:30 → 12:40</div><div class="fact-n">成田 NRT → 卡加利 YYC・9h10m・同日抵達</div></div>
+    <div class="fact"><div class="fact-k">Return · 10/12 Mon</div><div class="fact-v">WS80　14:50 → 16:20⁺¹</div><div class="fact-n">卡加利 YYC → 成田 NRT・10h30m・10/13 抵達</div></div>
+    <div class="fact"><div class="fact-k">Base</div><div class="fact-v">卡加利・朋友家</div><div class="fact-n">班夫段住宿待訂（見住宿片區建議）</div></div>
+  </div>
+  <h2>出發前待辦清單</h2>
+  <div id="checklist"></div>
+</div></header>
+
+<div class="wrap">
+  <section id="pretrip"><h2>行前總覽</h2><div id="pretrip-body"></div>
+    <div class="alert"><b>⚠️ 這趟旅程最重要的一件事：10 月 12 日是洛磯山的「季末日」</b>
+      <p>2026 年，夢蓮湖聯外道路、露易絲湖纜車、哥倫比亞冰原冰川探險與天空步道、Roam 8X 訂位系統全部在 10/12 結束當季營運。同一天也是加拿大感恩節。你的回程班機正是那天下午——所有山區重點都必須排在 <b>10/11 之前</b>完成，沒有往後挪的餘裕。</p></div>
+  </section>
+  <hr class="rule">
+  <section id="transport"><h2>航班・住宿・免責聲明</h2><div id="transport-body"></div></section>
+  <hr class="rule">
+  <section id="plans" data-timeline><h2>逐日行程・兩套方案</h2>
+    <p class="lede">每一天各給<b>輕鬆</b>與<b>中等</b>兩條路線，再加雨雪備案。時間軸上的錨點站點可展開「附近推薦」，依實際座標距離排序。</p>
+    <div id="plans-body"></div></section>
+  <hr class="rule">
+  <section id="map-sec"><h2>路線地圖</h2><p class="muted" id="map-note"></p><div id="map"></div></section>
+  <hr class="rule">
+  <section id="regions"><h2>五大地區・各 30 選（景點 / 美食小物 / 店家）</h2>
+    <p class="lede">以下皆<b>不與逐日行程重複</b>，是行程之外的備選庫。卡片標題連向官網或地圖搜尋；總覽項目刻意不帶座標（避免填入未查證的點位），精確定位請點標題連結。</p>
+    <div id="regions-body"></div></section>
+  <hr class="rule">
+  <section id="verify"><h2>出發前要自己確認的事</h2>
+    <p class="lede">下面每一條都是這份行程<strong>建置時驗不了</strong>的東西——不是沒查，是查不到或在建置環境打不開。
+      一句籠統的免責宣告沒有用，所以把具體項目列出來讓你逐條勾掉。</p>
+    <div id="verify-body"></div></section>
+  <section id="tips"><h2>全程實用貼士</h2><div id="tips-body"></div></section>
+  <hr class="rule">
+  <section id="glossary"><h2>英文—繁體中文對照表</h2><div id="glossary-body"></div></section>
+  <footer>
+    <p><b>資料查證時間：2026 年 8 月。</b>所有季節性營運日期（夢蓮湖道路、露易絲湖纜車、哥倫比亞冰原、Yoho Valley Road、Heritage Park）以官方公布之 2026 年度為準，但可能因天氣提前結束。出發前一週請再確認：
+      <a href="https://parks.canada.ca/pn-np/ab/banff/securite-safety" target="_blank" rel="noopener">班夫園區狀況</a>・
+      <a href="https://511.alberta.ca/" target="_blank" rel="noopener">Alberta 511</a>・
+      <a href="https://drivebc.ca/" target="_blank" rel="noopener">DriveBC</a>。</p>
+    <p>本版整合兩個來源：既有頁面的座標／地圖／提醒引擎，加上重新查證後的季末營運日期、五大地區各 30 選總覽、雙方案 A/B 與每日輕鬆／中等雙路線。總覽卡片刻意不帶座標（避免填入未查證的點位），定位請點卡片標題的地圖搜尋連結；每站「附近推薦」面板則使用已驗證座標的候選池。</p>
+  </footer>
+</div>
+
+<script id="trip-data" type="application/json">{"title":"卡爾加里 × 洛磯山脈 12 日行程","startDate":"2026-10-01","colorScheme":"teal-amber-fixed（design-guidelines.md#palette 固定色票）","note":"本版整合兩個來源：既有頁面的座標／地圖／提醒引擎，加上重新查證後的季末營運日期、五大地區各 30 選總覽、雙方案 A/B 與每日輕鬆／中等雙路線。總覽卡片刻意不帶座標（避免填入未查證的點位），定位請點卡片標題的地圖搜尋連結；每站「附近推薦」面板則使用已驗證座標的候選池。","preTrip":{"weather":{"summary":"10 月洛磯山區日間均溫約 5–10°C，夜間常低於 0°C，冰原公路沿線更冷、可能降雪；卡爾加里市區相對溫和但早晚溫差大。","typhoon":"10 月初日落約 19:15（山區再晚 5–10 分），10/12 約 18:50，山區行程建議把握上午時段；9–10 月為麋鹿發情季，Bow Valley Parkway 清晨黃昏易有動物出沒，山路可能提早出現初雪，租車不必為 10 月加價升級四驅，但取車時務必確認胎壁有 M+S 字樣、胎紋足夠，隨時關注 511 Alberta 路況。"},"packing":"洋蔥式穿法，備妥防水登山鞋、手套與毛帽；市區活動輕便外套即可，山區與冰原公路務必加防風保暖層。","payment":"加拿大信用卡／感應式支付（Tap to Pay）普及，多數店家可直接刷卡；餐廳小費約 15–20%，另備少量現金以防萬一。","apps":["511 Alberta（即時路況）","Parks Canada App（國家公園資訊／通行證）","Roam Transit App（班夫接駁車班次）","AllTrails（步道即時開放狀況，含 Grassi Lakes 等封閉公告）"],"ticketTip":"國家公園許可（Discovery Pass 或每日票）建議出發前於 Parks Canada 官網購買；Moraine Lake 接駁車、Columbia Icefield 的 Ice Explorer／Glacier Skywalk 等熱門項目建議提前一週以上上網預約，避免現場排隊或額滿。"},"flights":{"booked":[{"label":"去程","code":"WS081 · WestJet · NRT → YYC","time":"10/1（四）18:30 出發 → 10/1 12:40 抵達"},{"label":"回程","code":"WS080 · WestJet · YYC → NRT","time":"10/12（一）14:50 出發 → 10/13 16:20 抵達"}],"candidates":[]},"disclaimer":"本頁全部資訊（天氣、航班、景點、餐廳、門票、營業時間、步道開放狀況等）均為 AI 基於公開資料整理的參考建議，可能不準確或已過時，不保證與實時情況一致；請務必在官方管道／訂票訂房／地圖等 App 上核實後再做決定或前往。","hotelAreas":[{"area":"卡加利・Peace Bridge 一帶（10/1–10/4、10/9–10/11，共 7 晚）","reason":"住朋友家。市區全程 CTrain 與走路，不用車。10/03 你自己安排去爬 Sentinel Pass。","options":[{"tier":"已定","name":"朋友家","priceRange":"CA$0","note":""}]},{"area":"✅ Harvie Heights（10/5–10/7，3 晚）— 已訂 Airbnb","reason":"1000 Harvie Heights Road, AB T1W 2W2。就在坎摩爾西邊、班夫國家公園東閘口外，到班夫鎮 36 分、露易絲湖 1.5 小時。在園區界線外，所以停在住處不需要國家公園通行證。","options":[{"tier":"✅ 已訂","name":"Airbnb・1000 Harvie Heights Road","priceRange":"你自己的訂房","note":"⚠️ 下面那個連結是你個人的訂房記錄頁，要登入 Airbnb 帳號才打得開，不是公開房源頁。Harvie Heights 手機訊號較弱，出發前把離線地圖下載好。","bookingUrl":"https://www.airbnb.ca/trips/v1/1779084351011962864/ro/RESERVATION2_CHECKIN/HM5X4PCNH8","bookingKind":"reserve","leadDays":0}]},{"area":"✅ Jasper（10/8，1 晚）— 已訂 Airbnb","reason":"838 Geikie Street, Jasper, AB T0E 0A8，在 Jasper 鎮上。10/8 從 Harvie Heights 沿冰原大道北上 306 km／4.6 小時（不含停留），冰原中心正好在中途。","options":[{"tier":"✅ 已訂","name":"Airbnb・838 Geikie Street, Jasper","priceRange":"你自己的訂房","note":"⚠️ Jasper 2024 年大火後仍在重建：25+ 旅館與 70+ 餐廳已營運、遊客量回到災前 95%，但 Maligne Canyon 與 Cavell Road 整個 2026 年季節持續關閉——那是 Jasper 的兩大招牌，不要排進行程。","bookingUrl":"https://zh-t.airbnb.com/rooms/1675535512645460488","bookingKind":"reserve","leadDays":0}]}],"tips":["Moraine Lake 交通 — 私家車自 2023 年起禁止進入，僅能透過 Parks Canada 接駁車、Roam Transit #10 或健行／單車前往，接駁服務約在感恩節（10/12）前後停駛，務必出發前確認官網最新班次與是否需要預約。","Columbia Icefield 營運季 — Ice Explorer 雪車與 Glacier Skywalk 10 月中旬起會轉為冬季縮短時段，建議出發前一週再次確認開放時間。","氣候與穿著 — 10 月洛磯山區日間均溫約 5–10°C，夜間常低於 0°C，冰原公路沿線更冷、可能降雪，建議洋蔥式穿法，備妥防水登山鞋、手套與毛帽。","日照時間 — 10 月初日落約 19:15（卡加利 10/1 19:13、坎摩爾 10/7 19:05、班夫 10/9 19:02），10/12 約 18:50。亞伯達 11/1 才結束日光節約，整趟都還在 MDT。山區行程仍建議把握上午，但傍晚的餘裕比想像中多。","國家公園通行證 — 這趟 10/04–10/10 連續 7 天都在 Banff／Yoho 界內。團體／車輛日票 CA$24.50 × 7 = CA$171.50，比 Discovery Pass 家庭／團體年票 CA$167.50 還貴，所以買年票。年票在公園入口、遊客中心或 Parks Canada 官網都能買，掛在後視鏡上。（票價每年微調，出發前對一次官網現價。）","野生動物與路況 — 9–10 月是麋鹿發情季，Bow Valley Parkway 清晨、黃昏易有動物出沒；山區道路可能提早出現初雪，租車建議選配四驅或雪胎，並隨時關注 511 Alberta 路況。","時差與作息 — 東京與卡爾加里時差 15 小時（卡爾加里較慢），抵達首兩天行程建議放輕鬆，以利調整時差。","感恩節假日 — 10/12 賦歸日恰逢加拿大感恩節，部分商店景點為假日營業時段，市區與機場交通可能較忙碌，建議提早出發。","季末日 10/12 — 2026 年夢蓮湖聯外道路、露易絲湖纜車、哥倫比亞冰原冰川探險與天空步道、Roam 8X 訂位系統全部在 10/12 結束當季營運，正好是回程日。所有山區重點都必須排在 10/11 之前完成，沒有往後挪的餘裕。","夢蓮湖禁私家車 — 2023 年起僅能搭 Parks Canada 接駁、Roam Transit #10 或授權導覽團，務必提前於 reservation.pc.gc.ca 訂位；2026 年這條路 10/12 就封閉到明年 6/1。","雪胎法規 — 國家公園內強制雪胎或雪鏈的期間是 11/1–3/31，十月初尚未強制；但山區隨時可能降雪，租車時仍建議要求四驅或全天候胎，並確認車上有雪刷與刮冰器。","熊噴霧不可上飛機 — 託運也不行。離境前送給旅館櫃檯或其他旅客；日本海關另禁止攜入肉製品（野牛肉乾、麋鹿香腸一律不能帶回）。"],"reminders":[{"item":"⚠️ 國際駕照 IDP —— 每一位可能開車的人都要各自辦。日本：運転免許試験場當日核發 ¥2,250（一般警察署要兩週）；台灣：監理站 NT$250，英文拼音必須與護照一致","leadDays":45},{"item":"River Cafe 晚餐訂位","leadDays":30},{"item":"申請 eTA 電子旅行證（台灣與日本護照皆需，官網 CAD $7，多數 12 小時內核發）","leadDays":30},{"item":"租車預訂（三人分攤下比巴士划算；需國際駕照或駕照譯本）","leadDays":30},{"item":"市區 Avis（S50）訂車：10/5 取、10/9 還，中型 SUV。訂前用同車型同日期跑「市區取還／市區取機場還／機場取還」三組報價比對 Estimated Total","leadDays":30},{"item":"Deane House 感恩節晚餐訂位（10/12 是感恩節，長週末位子最緊）","leadDays":21},{"item":"卡加利火焰隊主場賽門票（先確認 10/1–10/12 有無主場賽）（總覽備選，未排進逐日行程——決定要去再訂）","leadDays":21},{"item":"翡翠湖山莊用餐：Mount Burgess 主餐廳只服務住宿房客，非住客請先電話確認能否訂位（(403) 609-6150）（總覽備選，未排進逐日行程——決定要去再訂）","leadDays":21},{"item":"Communauto 註冊（只有打算在卡加利市區用共享車才需要）—— 要加拿大地址（朋友家）+ 護照 + IDP，人工審核數個工作天，落地後才辦會來不及","leadDays":21},{"item":"Parks Canada 國家公園 Discovery Pass／日票","leadDays":14},{"item":"Grizzly House 訂位（感恩節長週末）（總覽備選，未排進逐日行程——決定要去再訂）","leadDays":14},{"item":"露易絲湖纜車 Lake Louise 門票（2026 年 10/11 為最後營運日）","leadDays":10},{"item":"哥倫比亞冰原 Columbia Icefield 的 Ice Explorer／Glacier Skywalk 門票（已改到 10/08 北上 Jasper 那天，雪車末班 16:00）","leadDays":7},{"item":"班夫纜車・硫磺山 Banff Gondola（Sulphur Mountain）門票","leadDays":7},{"item":"National on 17th 訂位（總覽備選，未排進逐日行程——決定要去再訂）","leadDays":7},{"item":"The Bison Restaurant 訂位","leadDays":7},{"item":"卡納納斯基斯保育通行證 Kananaskis Conservation Pass（與 Discovery Pass 不通用，進 K-Country 停車必備）","leadDays":7},{"item":"Ten Foot Henry 訂位（10/02 晚餐；OpenTable 或電 403-475-5537）","leadDays":7},{"item":"Truffle Pigs Bistro 訂位（10/06 Yoho 的 Field 鎮，全鎮唯一的餐廳；官網明寫沒有線上訂位，只能電 (250) 343-6303）","leadDays":5},{"item":"致電確認 The Trough（Canmore）是否仍營業（(403) 678-2820）（總覽備選，未排進逐日行程——決定要去再訂）","leadDays":3},{"item":"傳統公園歷史村門票（10/03 週六；10 月只開週末，10/12（感恩節週一）是 2026 年最後開放日）","leadDays":3},{"item":"⚠️ Jasper 行前查一次：Maligne Canyon 與 Cavell Road 2026 整季關閉，其餘 25+ 旅館與 70+ 餐廳營運中。冰原大道 511 Alberta 路況也一併看","leadDays":3},{"item":"Moraine Lake 夢蓮湖／露易絲湖接駁預約（對應時間軸的「露易絲湖轉乘停車場」「夢蓮湖・岩堆觀景步道」「夢蓮湖・湖畔平路」「落葉松谷步道」）——40% 名額 4/15 開賣多半已滿；其餘 60% 在出發前 2 天 08:00 MDT 整點釋出，要準時搶","leadDays":2},{"item":"⚠️ 10/03 Sentinel Pass：夢蓮湖接駁要預約（出發前 2 天 08:00 MDT 整點釋出），而且 Larch Valley 落葉松季有強制「4 人成團」熊管理規定——三個人可能被擋，出發前查 Parks Canada area closures","leadDays":2},{"item":"✅ 山區住宿已訂：Harvie Heights 10/5–10/7（3 晚）+ Jasper 10/8（1 晚），兩間都是 Airbnb","leadDays":1}],"glossary":{"title":"英文—繁體中文對照表","note":"按使用場景分成七類。第七類整理的是加拿大特有說法——教科書上沒有、但天天會遇到。","groups":[{"category":"機場與入境","items":[{"term":"Purpose of visit?","zh":"此行目的?","note":"海關必問。回答 \"Tourism\" 或 \"Visiting a friend\" 即可。"},{"term":"How long will you be staying?","zh":"你會待多久?","note":"回答 \"Eleven days\"。"},{"term":"Where are you staying?","zh":"你住哪裡?","note":"先把朋友家地址寫在手機備忘錄,直接念出來最快。"},{"term":"Do you have anything to declare?","zh":"有需要申報的物品嗎?","note":"帶了食品就說 \"Yes, some snacks and chocolate\",誠實申報幾乎不會有事。"},{"term":"Are you carrying any food, plants, or animal products?","zh":"是否攜帶食品、植物或動物製品?","note":"餅乾糖果算食品,要說有。肉類一律不要帶。"},{"term":"Baggage claim","zh":"行李提領處","note":"跟著指標走。"},{"term":"Carousel","zh":"行李轉盤","note":"螢幕上會顯示航班對應的轉盤號碼。"},{"term":"Customs / Border Services","zh":"海關 / 邊境服務署","note":"加拿大的海關叫 CBSA。"},{"term":"Connecting flight","zh":"轉機班機","note":"這次是直飛,用不到但值得知道。"},{"term":"Boarding pass","zh":"登機證","note":"WestJet 建議用 App 電子登機證。"},{"term":"Check-in counter","zh":"報到櫃檯","note":"回程 YYC 的國際線在同一航廈。"},{"term":"Departure gate","zh":"登機門","note":"YYC 國際線登機門通常在 A/B 區。"},{"term":"Overweight baggage fee","zh":"行李超重費","note":"WestJet 超重費很貴,出發前先秤。"},{"term":"eTA (Electronic Travel Authorization)","zh":"電子旅行證","note":"台灣與日本護照入境加拿大都需要。"}]},{"category":"租車與駕駛","items":[{"term":"Rental agreement","zh":"租車合約","note":"取車時簽的文件,注意油量政策與里程限制。"},{"term":"Collision Damage Waiver (CDW)","zh":"碰撞損害免責險","note":"強烈建議購買。山區修車與拖吊極貴。"},{"term":"Additional driver","zh":"加保駕駛人","note":"三人輪流開必須登記,沒登記出事保險不理賠。"},{"term":"Full-to-full fuel policy","zh":"滿油取車、滿油還車","note":"最常見也最划算的政策。還車前記得加滿。"},{"term":"Ice scraper / Snow brush","zh":"刮冰器 / 雪刷","note":"取車時就要確認車上有。十月早晨擋風玻璃會結霜。"},{"term":"All-season / Winter tires","zh":"四季胎 / 雪胎","note":"11/1 起國家公園內強制,你們去的十月尚未強制,但可主動詢問。"},{"term":"Fill it up, please.","zh":"請幫我加滿。","note":"加拿大多為自助加油,需先進店預付或刷卡。"},{"term":"Regular / Premium","zh":"普通汽油 / 高級汽油","note":"租來的車幾乎都用 Regular(87)就好。"},{"term":"Speed limit 90 km/h","zh":"速限每小時 90 公里","note":"加拿大用公里,不是英里。園區內普遍 90,鎮上 50。"},{"term":"Wildlife crossing","zh":"野生動物穿越區","note":"看到這個標誌就減速,尤其黃昏。"},{"term":"Pull over","zh":"靠邊停車","note":"觀景時務必完全停進停車格,不要停在路肩。"},{"term":"Road closed / Chain up","zh":"道路封閉 / 加裝雪鏈","note":"山區電子看板常見。看到就照做。"},{"term":"Park Pass on the rear-view mirror","zh":"園區通行證掛在後照鏡","note":"買了票要掛出來,巡查員會看。"},{"term":"Parking is by permit only.","zh":"此處僅限持證停車。","note":"班夫鎮上許多區域如此,違停會被拖吊。"}]},{"category":"餐廳與點餐","items":[{"term":"Do you have a reservation?","zh":"請問有訂位嗎?","note":"進門第一句。沒訂位就說 \"No, table for three, please.\""},{"term":"Table for three, please.","zh":"三位,謝謝。","note":"最常用的一句。"},{"term":"How long is the wait?","zh":"要等多久?","note":"熱門店會給你一個叫號器或收手機號碼傳簡訊。"},{"term":"Can we sit by the window?","zh":"可以坐窗邊嗎?","note":"山區餐廳值得問一句,窗景差很多。"},{"term":"What do you recommend?","zh":"有什麼推薦的?","note":"服務生通常很樂意講,而且會講得很詳細。"},{"term":"We'll share.","zh":"我們要分著吃。","note":"加拿大份量大,三人點兩份主菜加前菜通常就夠。"},{"term":"Is this dish spicy / gluten-free / vegetarian?","zh":"這道菜會辣嗎 / 無麩質嗎 / 是素食嗎?","note":"加拿大餐廳對飲食需求非常習慣,問了不會失禮。"},{"term":"How would you like your steak?","zh":"牛排要幾分熟?","note":"由生到熟:Rare 三分・Medium Rare 五分・Medium 七分・Well Done 全熟。Alberta 牛建議 Medium Rare。"},{"term":"Still or sparkling?","zh":"要一般水還是氣泡水?","note":"想要免費的自來水就說 \"Tap water, please.\""},{"term":"Can I get a to-go box?","zh":"可以打包嗎?","note":"完全正常,不會被覺得失禮。"},{"term":"Separate bills, please.","zh":"請分開結帳。","note":"三人 AA 很常見,服務生會直接分刷。"},{"term":"Does that include tip?","zh":"這有含小費嗎?","note":"通常不含。刷卡機會另外問。"},{"term":"18% is fine, thanks.","zh":"18% 就好,謝謝。","note":"刷卡機跳出小費選項時的標準回應。"},{"term":"Last call","zh":"最後點餐時間","note":"酒吧打烊前 30 分鐘會喊。"},{"term":"Patio","zh":"戶外露台座位","note":"山區餐廳的露台通常有暖爐,十月仍可坐。"}]},{"category":"健行與野生動物安全","items":[{"term":"Trailhead","zh":"登山口","note":"導航目的地通常設在這裡。"},{"term":"Out-and-back / Loop","zh":"原路折返 / 環狀路線","note":"看步道說明時的基本分類。"},{"term":"Elevation gain","zh":"累計爬升","note":"比距離更能反映難度。500 m 以上就算有份量。"},{"term":"Switchbacks","zh":"之字形上坡","note":"陡坡的標準修法,看到就知道要爬了。"},{"term":"Scramble","zh":"需手腳並用的地形","note":"看到這個字表示不是一般健行,要評估能力。"},{"term":"Bear spray","zh":"熊噴霧","note":"拿在手上、不要放背包裡。不可帶上飛機。"},{"term":"Bear in the area / Trail closed","zh":"本區有熊出沒 / 步道關閉","note":"登山口告示牌。看到就換一條路,不要僥倖。"},{"term":"Group of four required","zh":"須四人以上結伴","note":"秋季護熊規定。三人請在登山口與他人併團。"},{"term":"Make noise / Hey bear!","zh":"製造聲響 / 「嘿,熊!」","note":"視線不佳處要出聲。當地人真的會邊走邊喊 \"Hey bear\"。"},{"term":"Keep your distance","zh":"保持距離","note":"熊與狼 100 m、麋鹿與大角羊 30 m。"},{"term":"Stay on the trail","zh":"請勿離開步道","note":"高山植被極脆弱,踩壞要幾十年恢復。"},{"term":"Leave No Trace","zh":"無痕山林","note":"垃圾自己帶下山,包含果皮。"},{"term":"Post-holing","zh":"踩進深雪陷落","note":"十月的高海拔步道常見。有簡易冰爪會好很多。"},{"term":"Whiteout","zh":"白矇天(能見度歸零)","note":"山區降雪時的危險狀況。遇到請立刻原路折返。"},{"term":"Avalanche terrain","zh":"雪崩地形","note":"十月中之後高海拔開始有風險,不要進入標示區域。"}]},{"category":"購物與住宿","items":[{"term":"Just browsing, thanks.","zh":"我隨便看看,謝謝。","note":"店員問 \"Can I help you?\" 時的萬用回答。"},{"term":"Do you have this in a size medium?","zh":"這件有 M 號嗎?","note":"買外套或毛衣時。"},{"term":"Can I try it on?","zh":"可以試穿嗎?","note":"試衣間叫 fitting room。"},{"term":"GST 5%","zh":"聯邦銷售稅 5%","note":"Alberta 沒有省稅,總稅率只有 5%,全加拿大最低。標價都不含稅。"},{"term":"Debit or credit?","zh":"簽帳卡還是信用卡?","note":"刷卡時會問,回答 \"Credit\"。"},{"term":"Tap / Insert / Swipe","zh":"感應 / 插卡 / 刷卡","note":"刷卡機的三種指示。"},{"term":"Do you have a bag?","zh":"有袋子嗎?","note":"加拿大多數商店已不提供塑膠袋,紙袋可能要收費。自備環保袋。"},{"term":"Check-in / Check-out","zh":"入住 / 退房","note":"山區旅館通常 16:00 入住、11:00 退房。"},{"term":"Can we get a late check-out?","zh":"可以延後退房嗎?","note":"淡季通常願意通融一兩小時。"},{"term":"Rollaway bed / Cot","zh":"加床","note":"三人入住兩人房時很實用的一句,通常加收 CAD $20–30。"},{"term":"Is breakfast included?","zh":"有含早餐嗎?","note":"山區旅館常不含,先確認。"},{"term":"Housekeeping","zh":"房務","note":"每晚放 CAD $3–5 小費在枕頭上。"},{"term":"Front desk","zh":"櫃檯","note":"寄放行李、要冰塊、問路都找它。"},{"term":"Non-refundable rate","zh":"不可退款的房價","note":"訂房時看清楚,山區天氣多變,建議選可取消的方案。"}]},{"category":"緊急與醫療","items":[{"term":"Call 911!","zh":"快打 911!","note":"火警、警察、救護車共用一個號碼。"},{"term":"I need an ambulance.","zh":"我需要救護車。","note":"接線生會問地點,先講最近的地標或步道名稱。"},{"term":"Emergency room (ER)","zh":"急診室","note":"班夫有 Mineral Springs Hospital,坎摩爾有 Canmore General。"},{"term":"Walk-in clinic","zh":"免預約門診","note":"小病痛去這裡,比急診快也便宜。"},{"term":"Pharmacy / Drugstore","zh":"藥局","note":"Shoppers Drug Mart、London Drugs 最常見。"},{"term":"Over-the-counter medicine","zh":"成藥(免處方)","note":"止痛、感冒藥都能直接買。"},{"term":"I have travel insurance.","zh":"我有旅遊平安險。","note":"就醫時第一句就說,並要求收據與診斷書正本。"},{"term":"I'm allergic to…","zh":"我對……過敏","note":"就醫與點餐都用得到。"},{"term":"I lost my passport.","zh":"我的護照遺失了。","note":"先報警取得報案紀錄,再聯絡代表處或領事館。"},{"term":"Police report","zh":"報案證明","note":"保險理賠與補辦證件都需要。"},{"term":"My car broke down.","zh":"我的車拋錨了。","note":"打租車公司的 24 小時道路救援專線,號碼在合約上,先拍照存起來。"},{"term":"Roadside assistance","zh":"道路救援","note":"租車保險通常含,取車時確認。"},{"term":"Search and rescue","zh":"山難搜救","note":"國家公園內請打 403-762-4506。"},{"term":"Is there cell service here?","zh":"這裡有手機訊號嗎?","note":"問當地人比看地圖準。"}]},{"category":"加拿大特有說法與日常寒暄","items":[{"term":"Toque","zh":"毛帽","note":"發音「圖克」。加拿大人不說 beanie,只說 toque。"},{"term":"Loonie / Toonie","zh":"1 元 / 2 元硬幣","note":"1 元硬幣上有潛鳥(loon)故名。停車繳費常用。"},{"term":"Double-double","zh":"兩份糖兩份奶的咖啡","note":"Tim Hortons 的國民點法,已收入加拿大辭典。"},{"term":"Timmies","zh":"Tim Hortons 咖啡店","note":"加拿大的國民咖啡連鎖,到處都是。"},{"term":"Washroom","zh":"洗手間","note":"加拿大不太說 restroom 或 toilet,問路請用 washroom。"},{"term":"Runners","zh":"運動鞋","note":"不說 sneakers。"},{"term":"Chinook","zh":"欽諾克焚風","note":"卡加利特有的暖風,一天內可讓氣溫上升 20 度。當地人會說 \"A chinook is coming.\""},{"term":"The Rockies","zh":"落磯山脈","note":"當地人的簡稱。"},{"term":"Out east / Out west","zh":"東部 / 西部","note":"加拿大人講方位習慣加 out。"},{"term":"Eh?","zh":"對吧?/ 是不是?","note":"句尾語助詞,加拿大最有名的標誌。不用刻意學,聽懂就好。"},{"term":"Sorry","zh":"不好意思","note":"加拿大人一天說幾十次,多半不代表道歉,只是禮貌的潤滑劑。"},{"term":"How's it going?","zh":"你好嗎?","note":"等同於 hello,不是真的在問你的近況,回 \"Good, you?\" 就好。"},{"term":"You bet. / For sure.","zh":"沒問題 / 當然","note":"比 \"You're welcome\" 更常聽到的回應。"},{"term":"Beauty!","zh":"太棒了!","note":"Alberta 鄉間常用的讚嘆詞。"},{"term":"Thank you, driver!","zh":"謝謝司機!","note":"下公車時的加拿大慣例。Roam 巴士上會聽到每個人都這樣說。"},{"term":"Treaty 7 Territory","zh":"條約七號領域","note":"卡加利與班夫所在的原住民傳統土地,正式場合會被提及。"}]}]},"highlights":{"regionsTitle":"五大地區・各 30 選（景點 / 美食小物 / 店家）","regions":[{"key":"calgary","name":"卡加利","spots":[{"name":"新月高地觀景公園","note":"拍卡加利天際線最好的免費地點,就在馬路邊。黃昏時整片玻璃帷幕反射夕陽。開車 5 分鐘可到。","url":"https://www.google.com/maps/search/?api=1&query=Crescent+Heights+Viewpoint+Calgary","category":"Crescent Heights Lookout","status":{"label":"免費","kind":"free"}},{"name":"洛希德古宅","note":"1891 年的砂岩豪宅與維多利亞式花園,國家歷史遺址。前 Alberta 省長家族的宅邸,秋天花園很美。","url":"https://lougheedhouse.com/","category":"Lougheed House"},{"name":"讀者岩石花園","note":"1913 年市府園藝師的實驗花園,國家歷史遺址。層層石階與四千多種植物,是市區最安靜的角落之一。","url":"https://www.google.com/maps/search/?api=1&query=Reader+Rock+Garden+Calgary","category":"Reader Rock Garden","status":{"label":"免費","kind":"free"}},{"name":"中國城與中華文化中心","note":"圓頂仿天壇的文化中心是卡加利地標之一。中國城不大但有真材實料的粵菜與港式茶餐廳,想家的時候很好用。","url":"https://www.culturalcentre.ca/","category":"Chinatown & Cultural Centre"},{"name":"Inglewood 鳥類保護區","note":"弓河畔的濕地保護區,已記錄 270 種鳥。十月是候鳥南遷季,平坦步道 2 km,適合放空的半天。","url":"https://www.google.com/maps/search/?api=1&query=Inglewood+Bird+Sanctuary+Calgary","category":"Inglewood Bird Sanctuary","status":{"label":"免費","kind":"free"}},{"name":"Edworthy 公園與花旗松步道","note":"市內少見的原始花旗松林,步道沿河崖起伏 5–7 km。秋色是卡加利市內最好的。","url":"https://www.google.com/maps/search/?api=1&query=Edworthy+Park+Douglas+Fir+Trail+Calgary","category":"Edworthy Park","status":{"label":"免費","kind":"free"}},{"name":"WinSport 加拿大奧林匹克公園","note":"1988 冬奧場地。跳台滑雪塔可以上去看城市全景,還有雪橇體驗與山地自行車。十月是換季期,先查開放項目。","url":"https://www.winsport.ca/","category":"Canada Olympic Park"},{"name":"機庫飛行博物館","note":"二戰時期的真機庫,展出加拿大西部航空史與數十架飛機。全室內,是雨雪天的好去處。","url":"https://www.thehangarmuseum.ca/","category":"Hangar Flight Museum"},{"name":"Cochrane 小鎮與 MacKay's 冰淇淋","note":"往班夫路上的西部風小鎮,MacKay's 是 1948 年開到今天的傳奇冰淇淋店,Alberta 人會專程開車來吃。可當進山日的順路停點。","url":"https://www.google.com/maps/search/?api=1&query=Cochrane+Alberta+MacKay%27s+Ice+Cream","category":"Cochrane & MacKay's"},{"name":"Okotoks 巨石","note":"世界最大的冰川漂礫之一,重達 1.65 萬噸,被冰河從 400 km 外搬到草原正中央。黑腳族的聖地,有原住民傳說解說牌。","url":"https://www.google.com/maps/search/?api=1&query=Okotoks+Erratic+Big+Rock+Alberta","category":"Big Rock / Okotoks Erratic","status":{"label":"免費","kind":"free"}}],"food":[{"name":"薑汁牛肉","note":"1975 年在卡加利發明,現在是全加拿大中餐館的標準菜。酥炸牛肉條裹上薑味甜辣醬——在發源地吃有特別的意義。","url":"https://www.google.com/maps/search/?api=1&query=ginger+beef+Calgary","category":"Ginger Beef"},{"name":"凱撒調酒","note":"1969 年誕生於卡加利,加拿大的國民調酒。蛤蜊番茄汁 + 伏特加 + 芹菜鹽,杯口插滿醃菜與培根。台日都喝不到。","url":"https://www.google.com/maps/search/?api=1&query=Caesar+cocktail+Calgary","category":"Caesar"},{"name":"Alberta AAA 牛排","note":"Alberta 是加拿大的牛肉之鄉,草飼穀養的 AAA 級是這裡的驕傲。在卡加利吃牛排,價格是東京的六成而品質更好。","url":"https://www.google.com/maps/search/?api=1&query=Alberta+beef+steakhouse+Calgary","category":"Alberta AAA Beef"},{"name":"沙斯卡通莓","note":"草原地帶特有的野莓,味道介於藍莓與杏仁之間。果醬、派、糖漿在農夫市集都買得到,是最有地方感的伴手禮。","url":"https://www.google.com/maps/search/?api=1&query=Saskatoon+berry+jam+Calgary","category":"Saskatoon Berry"},{"name":"Smithbilt 白色牛仔帽","note":"1946 年起,白色牛仔帽就是卡加利的城市象徵,市府用它迎接貴賓。本地工廠手工製作,可以參觀。","url":"https://smithbilthats.com/","category":"Smithbilt White Hat"},{"name":"Lammle's 西部服飾","note":"Alberta 起家的西部服飾連鎖。牛仔靴、格紋襯衫、皮帶扣。就算不穿,買一雙好靴子是很實在的紀念。","url":"https://www.lammles.com/","category":"Lammle's"},{"name":"Alberta 蜂蜜","note":"Alberta 是加拿大最大的蜂蜜產區,苜蓿與野花蜜色淺味清。農夫市集買生蜜(raw honey),比超市貨等級高很多。","url":"https://www.google.com/maps/search/?api=1&query=Alberta+honey+Calgary+farmers+market","category":"Alberta Honey"},{"name":"Eau Claire 手工蒸餾廠","note":"Alberta 第一家農場到酒瓶的手工蒸餾廠,用自家種的大麥。Parlour Gin 與單一麥芽是很好的送禮選擇。","url":"https://eauclairedistillery.ca/","category":"Eau Claire Distillery"},{"name":"Big Rock 精釀啤酒","note":"1985 年創立,加拿大西部精釀的開山祖。Traditional Ale 與 Grasshopper 是經典款,超市就買得到。","url":"https://bigrockbeer.com/","category":"Big Rock Brewery"},{"name":"Village 手工冰淇淋","note":"卡加利人排隊也要吃的手工冰淇淋。Earl Grey 與 Salted Caramel 是招牌。十月天冷照樣有人排。","url":"https://www.google.com/maps/search/?api=1&query=Village+Ice+Cream+Calgary","category":"Village Ice Cream"}],"shops":[{"name":"Eight","note":"加拿大百大第 9 名、全卡加利最高排名。主廚 Darren MacLean 的 8 席無菜單,融合原住民、華人與法式傳統。","url":"https://canadas100best.com/list/2026/eight-2026/","category":"Eight","status":{"label":"必須提前訂","kind":"booking"}},{"name":"DOPO","note":"加拿大百大第 28 名。手工義大利麵與拿波里風,小店面、常客制,氣氛親密。","url":"https://www.google.com/maps/search/?api=1&query=DOPO+Restaurant+Calgary","category":["DOPO","$$$"]},{"name":"Bar Gigi","note":"百大第 65 名。只有幾張桌子,料理認真、服務是全城公認最好。訂位是必要條件而非建議。","url":"https://www.google.com/maps/search/?api=1&query=Bar+Gigi+Calgary","category":"Bar Gigi","status":{"label":"必須提前訂","kind":"booking"}},{"name":"Gatsby's","note":"百大第 74 名。爵士年代氛圍的酒吧餐廳,雞尾酒單很強,適合當夜晚的第二攤。","url":"https://www.google.com/maps/search/?api=1&query=Gatsby%27s+Restaurant+Calgary","category":["Gatsby's","$$$"]},{"name":"Nupo","note":"百大第 75 名。現代亞洲小盤與生食,擺盤精緻。三人分食的形式剛好。","url":"https://www.google.com/maps/search/?api=1&query=Nupo+Restaurant+Calgary","category":["Nupo","$$$"]},{"name":"Model Milk","note":"17 街上由舊牛奶廠改建的老牌名店,開了十幾年仍然一位難求。份量大、氣氛熱鬧。","url":"https://www.google.com/maps/search/?api=1&query=Model+Milk+Calgary","category":"Model Milk"},{"name":"Major Tom","note":"40 樓高的復古太空風餐廳酒吧,市中心最好的落地窗景。傍晚去喝一杯看夕陽最划算。","url":"https://www.google.com/maps/search/?api=1&query=Major+Tom+Calgary","category":"Major Tom"},{"name":"Alumni Sandwiches","note":"白天是三明治店、晚上變酒吧。份量大、價格合理,是市中心最實在的午餐選擇之一。","url":"https://www.google.com/maps/search/?api=1&query=Alumni+Sandwiches+Calgary","category":["Alumni","$"]},{"name":"Spolumbo's 義式熟食","note":"三位前 CFL 職業球員在 Inglewood 開的義式香腸店與三明治吧,1992 年至今的地方傳奇。香腸可以真空包買回去。","url":"https://www.google.com/maps/search/?api=1&query=Spolumbo%27s+Fine+Foods+Calgary","category":["Spolumbo's","$"]},{"name":"Blackfoot 卡車休息站餐館","note":"1958 年開到今天的 24 小時老餐館。時差醒得太早、或想吃真正的加拿大式早餐時,答案就是這裡。","url":"https://www.google.com/maps/search/?api=1&query=Blackfoot+Truckstop+Diner+Calgary","category":["Blackfoot Diner","$"]}]},{"key":"banff","name":"班夫鎮","spots":[{"name":"芬蘭沼澤步道","note":"2 km 平坦環線,穿過雲杉沼澤林,離鎮中心走路 10 分鐘。清晨常有麋鹿,是最容易的一條「真正走進森林」步道。","url":"https://www.google.com/maps/search/?api=1&query=Fenland+Trail+Banff","category":"Fenland Trail","status":{"label":"免費","kind":"free"}},{"name":"瀑布池","note":"有小木橋與野餐區的人工湖,背景是瀑布山。當地家庭的野餐地點,遊客很少。開車 10 分鐘可到。","url":"https://www.google.com/maps/search/?api=1&query=Cascade+Ponds+Banff","category":"Cascade Ponds","status":{"label":"免費","kind":"free"}},{"name":"強森湖","note":"3 km 環湖平路,倒映瀑布山。比明尼汪卡湖安靜十倍,是傍晚散步的好地方。","url":"https://www.google.com/maps/search/?api=1&query=Johnson+Lake+Banff","category":"Johnson Lake","status":{"label":"免費","kind":"free"}},{"name":"班克海德煤礦鬼鎮","note":"1904–1922 年的煤礦城遺址,曾住過上千人。1.1 km 自導覽步道穿過廢墟與生鏽機具,有種安靜的荒涼感。","url":"https://www.google.com/maps/search/?api=1&query=Lower+Bankhead+Banff","category":"Bankhead Ghost Town","status":{"label":"免費","kind":"free"}},{"name":"班夫惡地石柱觀景台","note":"停車場走 2 分鐘,看弓河谷與尖塔狀岩柱。是拍倫多山最開闊的角度之一。","url":"https://www.google.com/maps/search/?api=1&query=Banff+Hoodoos+Viewpoint","category":"Banff Hoodoos","status":{"label":"免費","kind":"free"}},{"name":"費爾蒙班夫溫泉城堡飯店","note":"1888 年的「落磯山城堡」。不用住也可以進去逛大廳、拱廊與中庭,建築本身就是國家歷史遺址。下午茶需訂位。","url":"https://www.fairmont.com/banff-springs/","category":"Fairmont Banff Springs"},{"name":"時光瀑布花園","note":"班夫大街盡頭、行政大樓前的階梯式花園,正對整條大街與瀑布山。是拍班夫最經典明信片照的位置。","url":"https://www.google.com/maps/search/?api=1&query=Cascade+of+Time+Garden+Banff","category":"Cascade of Time Garden","status":{"label":"免費","kind":"free"}},{"name":"野牛民族博物館","note":"仿木寨建築,展示平原原住民的生活、獵野牛文化與提比帳篷。規模不大但角度誠懇,雨天的好選擇。","url":"https://www.google.com/maps/search/?api=1&query=Buffalo+Nations+Luxton+Museum+Banff","category":"Buffalo Nations Luxton Museum"},{"name":"諾奎山觀景台","note":"開車上山 6 km,途中的觀景彎道可以俯瞰整個班夫鎮與弓河谷。日落時最好,而且完全不用走路。","url":"https://www.google.com/maps/search/?api=1&query=Mount+Norquay+Viewpoint+Banff","category":"Mt. Norquay Viewpoint","status":{"label":"免費","kind":"free"}},{"name":"班夫遺產自行車道","note":"全長 26 km 的柏油自行車道,從班夫沿 1 號公路通到坎摩爾。可以租車騎其中一段,秋天沿途金黃。","url":"https://www.google.com/maps/search/?api=1&query=Banff+Legacy+Trail","category":"Banff Legacy Trail","status":{"label":"免費","kind":"free"}}],"food":[{"name":"麋鹿與野牛肉","note":"落磯山最具代表性的野味。野牛脂肪少、鐵味重;麋鹿更細緻近似鹿肉。幾乎每家中高價位餐廳都有,是這裡才吃得到的。","url":"https://www.google.com/maps/search/?api=1&query=elk+bison+restaurant+Banff","category":"Elk & Bison"},{"name":"楓糖漿","note":"加拿大伴手禮之王。等級看顏色:Golden 最清淡、Amber 最均衡(推薦)、Dark 適合料理。買玻璃瓶裝要託運並用衣物包好。","url":"https://www.google.com/maps/search/?api=1&query=maple+syrup+shop+Banff","category":"Maple Syrup"},{"name":"海狸尾巴炸麵餅","note":"加拿大國民甜點,手拉成海狸尾巴形狀的炸麵團,撒肉桂糖或抹 Nutella。冷天在街上邊走邊吃最對味。","url":"https://www.google.com/maps/search/?api=1&query=BeaverTails+Banff","category":"BeaverTails"},{"name":"COWS 冰淇淋","note":"來自愛德華王子島的品牌,曾被評為世界最佳冰淇淋店之一。牛主題的 T 恤與周邊很有梗,是好笑又好帶的伴手禮。","url":"https://www.google.com/maps/search/?api=1&query=COWS+Ice+Cream+Banff","category":"COWS Creamery"},{"name":"洛磯山巧克力・焦糖蘋果","note":"班夫大街上永遠有人在櫥窗前看師傅做焦糖蘋果。整顆蘋果裹焦糖再滾堅果,大到三個人分才吃得完。","url":"https://www.google.com/maps/search/?api=1&query=Rocky+Mountain+Chocolate+Banff","category":"Caramel Apple"},{"name":"肉汁乳酪薯條","note":"魁北克發明、全加拿大共有的靈魂食物。薯條 + 乳酪凝塊 + 熱肉汁。山區版本常加野牛肉醬或培根,冷天吃特別療癒。","url":"https://www.google.com/maps/search/?api=1&query=poutine+Banff","category":"Poutine"},{"name":"洛磯山手工皂","note":"坎摩爾起家的天然保養品牌,全植物成分。護手霜與唇膏在乾冷的落磯山真的很需要,買來自用兼送人。","url":"https://www.rockymountainsoap.com/","category":"Rocky Mountain Soap Co."},{"name":"班夫大道精釀啤酒","note":"鎮上的自釀酒吧,可以買 Growler 帶回旅館。Reservoir Red 與各季節限定是招牌。","url":"https://www.google.com/maps/search/?api=1&query=Banff+Ave+Brewing+Company","category":"Banff Ave Brewing"},{"name":"冰川水手工烈酒","note":"Park Distillery 用班夫的冰川水蒸餾。Alpine Dry Gin 帶松針與野花香,瓶身設計好看,是很體面的伴手禮。","url":"https://www.google.com/maps/search/?api=1&query=Park+Distillery+bottle+shop+Banff","category":"Glacier-Water Spirits"},{"name":"因紐特石堆與原住民藝品","note":"Inukshuk 是因紐特人的指路石堆,加拿大的文化符號。請在有標明藝術家姓名的正規藝廊購買,避免買到量產仿製品。","url":"https://www.google.com/maps/search/?api=1&query=Indigenous+art+gallery+Banff","category":"Inukshuk & Indigenous Art"}],"shops":[{"name":"Eden(Rimrock 度假酒店)","note":"班夫最高規格的用餐體驗,山谷全景落地窗,季節性套餐大量使用野生食材與本地獵物。","url":"https://www.google.com/maps/search/?api=1&query=Eden+Restaurant+Rimrock+Resort+Banff","category":"Eden","status":{"label":"必須提前訂","kind":"booking"}},{"name":"Sky Bistro(纜車山頂)","note":"硫磺山頂 2281 m 的餐廳。買「纜車+用餐」套票通常比分開買划算,而且黃昏時段的窗邊位是全班夫最好的座位。","url":"https://www.banffjaspercollection.com/dining/sky-bistro/","category":"Sky Bistro","status":{"label":"須訂位","kind":"booking"}},{"name":"Three Ravens(班夫藝術中心)","note":"藝術中心四樓,view 極好但知道的遊客少。價格比同級景觀餐廳合理得多,是在地人的口袋名單。","url":"https://www.google.com/maps/search/?api=1&query=Three+Ravens+Restaurant+Banff+Centre","category":"Three Ravens"},{"name":"Chuck's Steakhouse","note":"專做 Alberta 牛的乾式熟成牛排館,牧場來源全部標明。想在落磯山吃一次好牛排,就是這裡。","url":"https://www.google.com/maps/search/?api=1&query=Chuck%27s+Steakhouse+Banff","category":["Chuck's","$$$"]},{"name":"Park Distillery","note":"班夫大街上的餐廳兼蒸餾廠,用冰川水做伏特加與琴酒。營火烤肉風料理,氣氛熱鬧適合三人。","url":"https://parkdistillery.com/","category":"Park Distillery"},{"name":"Block Kitchen + Bar","note":"小盤分享式料理,亞洲與地中海混血,價格是班夫中心少見的合理。三人點五六道剛好。","url":"https://www.google.com/maps/search/?api=1&query=Block+Kitchen+Bar+Banff","category":"Block"},{"name":"Nourish Bistro","note":"全植物性料理,份量扎實不像素食。連續吃了幾天牛排與野味之後,身體會很感謝這一餐。","url":"https://www.google.com/maps/search/?api=1&query=Nourish+Bistro+Banff","category":["Nourish","純素"]},{"name":"Whitebark 咖啡","note":"Lynx 街上的小咖啡館,班夫最好的義式濃縮與烘焙。當地人早上的第一站,7 點就開。","url":"https://www.google.com/maps/search/?api=1&query=Whitebark+Cafe+Banff","category":["Whitebark Café","$"]},{"name":"Bear Street Tavern","note":"班夫最有名的披薩與精釀啤酒,蜂蜜辣醬配 pizza 是招牌吃法。健行完的最佳去處。","url":"https://www.google.com/maps/search/?api=1&query=Bear+Street+Tavern+Banff","category":"Bear Street Tavern"},{"name":"Tooloulou's","note":"紐奧良風早午餐,班夫最強的班尼迪克蛋與 gumbo。週末會排很久,平日去。","url":"https://www.google.com/maps/search/?api=1&query=Tooloulou%27s+Banff","category":"Tooloulou's"}]},{"key":"louise","name":"露易絲湖與夢蓮湖","spots":[{"name":"費爾維觀景台步道","note":"2 km 來回、上升 100 m,只要 40 分鐘。從高處俯瞰整片露易絲湖與城堡飯店,是投報率最高的短程步道。","url":"https://www.google.com/maps/search/?api=1&query=Fairview+Lookout+Trail+Lake+Louise","category":["Fairview Lookout","輕鬆"]},{"name":"鏡湖","note":"阿格尼絲湖步道的中途點,2.4 km 就到。正下方就是大蜂巢岩壁,體力有限時走到這裡折返也很值得。","url":"https://www.google.com/maps/search/?api=1&query=Mirror+Lake+Lake+Louise","category":["Mirror Lake","中等"]},{"name":"大蜂巢","note":"10.3 km 來回、上升 520 m。從正上方 500 公尺處俯瞰露易絲湖,山頂有座木造涼亭。這是露易絲湖最經典的全景。","url":"https://www.google.com/maps/search/?api=1&query=Big+Beehive+Trail+Lake+Louise","category":["Big Beehive","中等偏難"]},{"name":"天堂谷","note":"18 km 環線的大健行,或走到 Giant Steps 瀑布折返。人極少、落葉松極多。⚠️ 秋季常有結伴人數規定。","url":"https://www.google.com/maps/search/?api=1&query=Paradise+Valley+Trail+Lake+Louise","category":["Paradise Valley","須查護熊規定"]},{"name":"鞍背埡口","note":"7.4 km 來回、上升 600 m。正對天普山的落葉松坡,是十月金黃季的替代選擇——而且不用搭接駁。","url":"https://www.google.com/maps/search/?api=1&query=Saddleback+Pass+Trail+Lake+Louise","category":["Saddleback Pass","中等"]},{"name":"弓河環線步道","note":"村子裡的 7 km 平坦河邊環線,穿過白楊林。不想開車、只想散步的傍晚就走這條。","url":"https://www.google.com/maps/search/?api=1&query=Bow+River+Loop+Trail+Lake+Louise","category":["Bow River Loop","輕鬆"]},{"name":"舊纜車道步道","note":"1912–1930 年的觀光小火車舊路基,坡度極緩的 4.5 km。可以從村子一路走到露易絲湖,不用開車搶車位。","url":"https://www.google.com/maps/search/?api=1&query=Tramline+Trail+Lake+Louise","category":["Tramline Trail","輕鬆"]},{"name":"露易絲湖獨木舟","note":"城堡飯店前的碼頭租船,划到湖心回望城堡與冰川。⚠️ 通常九月底至十月初就收攤,十月中幾乎確定已停租——去之前先問。","url":"https://www.google.com/maps/search/?api=1&query=Lake+Louise+canoe+rental","category":"Lake Louise Canoe","status":{"label":"十月可能已停","kind":"season"}},{"name":"夢蓮湖獨木舟","note":"在那個藍到不真實的湖面上划船。同樣是十月初收季,而且湖面可能已開始結冰。若還開著,這會是整趟最難忘的 30 分鐘。","url":"https://www.google.com/maps/search/?api=1&query=Moraine+Lake+canoe+rental","category":"Moraine Lake Canoe","status":{"label":"十月可能已停","kind":"season"}},{"name":"灰熊解說中心(纜車山頂)","note":"纜車山頂的野生動物解說站,有 Parks Canada 人員講解灰熊生態。露易絲湖滑雪場一帶是灰熊密度極高的區域,從纜車上看最安全。","url":"https://www.google.com/maps/search/?api=1&query=Wildlife+Interpretive+Centre+Lake+Louise+Gondola","category":"Wildlife Interpretive Centre","status":{"label":"隨纜車 10 月中收季","kind":"season"}}],"food":[{"name":"瑞士起司鍋","note":"落磯山的瑞士連結來自 1899 年 CPR 請來的瑞士嚮導。在海拔 1750 m 的木屋裡吃起司鍋,是有歷史根據的體驗。","url":"https://www.google.com/maps/search/?api=1&query=fondue+Lake+Louise","category":"Fondue"},{"name":"城堡飯店下午茶","note":"1890 年代 CPR 山莊傳統延續至今。三層點心塔、司康配 Devonshire 奶油,窗外是冰川湖。","url":"https://www.google.com/maps/search/?api=1&query=afternoon+tea+Chateau+Lake+Louise","category":"Chateau Afternoon Tea","status":{"label":"須訂位","kind":"booking"}},{"name":"野牛肉乾","note":"高蛋白、低脂、耐放。是登山行動糧,也是最好帶回國的肉類替代品之一——但日本禁止攜入肉製品,只能在當地吃完。","url":"https://www.google.com/maps/search/?api=1&query=bison+jerky+Lake+Louise","category":["Bison Jerky","不可帶回日本"]},{"name":"楓糖夾心餅乾","note":"加拿大超市裡最不起眼卻最受歡迎的伴手禮。便宜、好帶、一盒可以分很多人。楓葉形狀的最經典。","url":"https://www.google.com/maps/search/?api=1&query=maple+cream+cookies+Canada","category":"Maple Cream Cookies"},{"name":"Parks Canada 紅椅周邊","note":"紅色 Adirondack 椅是加拿大國家公園的標誌,散布在各園區的絕景點。明信片、磁鐵、鑰匙圈都很有辨識度。","url":"https://www.google.com/maps/search/?api=1&query=Parks+Canada+red+chair+souvenir","category":"Red Chair Merchandise"},{"name":"羊毛襪與加拿大毛帽","note":"「Toque」是加拿大人對毛帽的說法。好的羊毛襪在十月的落磯山是必需品不是紀念品,買了當場就穿。","url":"https://www.google.com/maps/search/?api=1&query=wool+socks+toque+Lake+Louise","category":"Wool Socks & Toque"},{"name":"山區熱可可","note":"走完步道、手指凍僵時的一杯熱可可,是這趟旅程會記得很久的味道。幾乎每家咖啡館都有加棉花糖的版本。","url":"https://www.google.com/maps/search/?api=1&query=hot+chocolate+Lake+Louise","category":"Mountain Hot Chocolate"},{"name":"聖誕吊飾","note":"落磯山的紀念品店幾乎都有木刻或玻璃吊飾。體積小、不怕壓、每年掛上去都會想起這趟旅行——是最耐久的紀念品類型。","url":"https://www.google.com/maps/search/?api=1&query=Christmas+ornament+shop+Lake+Louise","category":"Christmas Ornament"},{"name":"明信片與當地郵戳","note":"在露易絲湖寄一張明信片回日本,郵戳上會有這個地名。國際郵資約 CAD $3,大約兩到三週會到。","url":"https://www.google.com/maps/search/?api=1&query=Lake+Louise+post+office","category":"Postcard & Postmark"},{"name":"冰川石粉主題商品","note":"湖水那種不真實的藍綠色,來自冰川磨出的極細岩粉懸浮在水中。當地有以此為主題的礦物顏料、玻璃飾品與攝影集。","url":"https://www.google.com/maps/search/?api=1&query=glacier+rock+flour+souvenir+Banff","category":"Rock Flour Souvenirs"}],"shops":[{"name":"Post Hotel 餐廳","note":"露易絲湖最好的餐廳,酒窖藏有兩萬瓶。Relais & Châteaux 成員,是這一帶唯一稱得上精緻餐飲的地方。","url":"https://www.google.com/maps/search/?api=1&query=Post+Hotel+Dining+Room+Lake+Louise","category":"Post Hotel Dining Room","status":{"label":"必須提前訂","kind":"booking"}},{"name":"Walliser Stube 瑞士餐廳","note":"城堡飯店裡的瑞士木屋餐廳,起司鍋與巧克力鍋是招牌。三人圍著一鍋起司,是冷天最好的儀式。","url":"https://www.google.com/maps/search/?api=1&query=Walliser+Stube+Chateau+Lake+Louise","category":"Walliser Stube","status":{"label":"須訂位","kind":"booking"}},{"name":"Fairview Bar & Restaurant","note":"城堡飯店的主餐廳,正對露易絲湖與維多利亞冰川。坐窗邊吃飯,窗外就是明信片。","url":"https://www.google.com/maps/search/?api=1&query=Fairview+Bar+and+Restaurant+Chateau+Lake+Louise","category":["Fairview","$$$"]},{"name":"Lakeview Lounge 下午茶","note":"城堡飯店的下午茶,三層點心塔配湖景。不住這裡也可以訂,是最划算的「進城堡」方式。","url":"https://www.google.com/maps/search/?api=1&query=Lakeview+Lounge+Chateau+Lake+Louise","category":"Lakeview Lounge","status":{"label":"須訂位","kind":"booking"}},{"name":"Bill Peyto's Café","note":"青年旅館附設的餐廳,是露易絲湖唯一價格正常的正餐。份量大、有素食選項,登山客的大本營。","url":"https://www.google.com/maps/search/?api=1&query=Bill+Peyto%27s+Cafe+Lake+Louise","category":["Bill Peyto's Café","$"]},{"name":"Trailhead Café","note":"村中心的三明治與捲餅店,登山前買一份帶上山最實際。咖啡也不錯。","url":"https://www.google.com/maps/search/?api=1&query=Trailhead+Cafe+Lake+Louise","category":["Trailhead Café","$"]},{"name":"Baker Creek Bistro","note":"弓河谷公園道旁的小木屋餐廳,離村子 15 分鐘車程。氣氛極好、常客滿,是往返班夫途中最值得的一停。","url":"https://www.google.com/maps/search/?api=1&query=Baker+Creek+Bistro+Alberta","category":"Baker Creek Bistro","status":{"label":"須訂位","kind":"booking"}},{"name":"Whitehorn Bistro(纜車中站)","note":"纜車半山腰的餐廳,正對維多利亞冰川全景。「纜車+午餐」套票通常划算。2026 年隨纜車在 10 月中一起收季。","url":"https://www.google.com/maps/search/?api=1&query=Whitehorn+Bistro+Lake+Louise+Gondola","category":"Whitehorn Bistro","status":{"label":"10/11–12 季末","kind":"season"}},{"name":"Northface Pizza","note":"Lake Louise Inn 裡的披薩店,可以外帶回房間。健行完不想再出門時的解答。","url":"https://www.google.com/maps/search/?api=1&query=Northface+Pizza+Lake+Louise","category":["Northface Pizza","$"]},{"name":"Village Market 超市熟食","note":"村裡唯一的超市,有熟食櫃與現做三明治。買隔天早餐與行動糧就靠它——但價格是卡加利的一倍半。","url":"https://www.google.com/maps/search/?api=1&query=Village+Market+Lake+Louise","category":["Village Market & Deli","$"]}]},{"key":"canmore","name":"坎摩爾","spots":[{"name":"採石場湖公園","note":"舊礦坑積水而成的小湖,三姊妹峰倒影的最佳角度。環湖平路 15 分鐘,旁邊是狗狗放養公園,氣氛很好。","url":"https://www.google.com/maps/search/?api=1&query=Quarry+Lake+Park+Canmore","category":"Quarry Lake Park","status":{"label":"免費","kind":"free"}},{"name":"哈玲峰","note":"7.4 km 來回、上升 810 m。以 1896 年打賭在 5 小時內登頂的華人廚師哈玲命名。山頂可俯瞰整個弓河谷,是坎摩爾的成年禮。 ⚠️ 2026/6/1 落石後 Hwy 742 封閉、Grassi Lakes 一帶步道全封，登山口進不去（要繞 Hwy 40 多兩小時）。出發前查 albertaparks.ca。","url":"https://www.google.com/maps/search/?api=1&query=Ha+Ling+Peak+Trail+Canmore","category":["Ha Ling Peak","高強度"],"status":{"label":"步道封閉中","kind":"season"}},{"name":"三姊妹峰觀景台","note":"1 號公路旁的路邊觀景點,不用下車就能拍到坎摩爾的招牌畫面。清晨與黃昏光線最好。","url":"https://www.google.com/maps/search/?api=1&query=Three+Sisters+Viewpoint+Canmore","category":"Three Sisters Viewpoint","status":{"label":"免費","kind":"free"}},{"name":"坎摩爾北歐中心省立公園","note":"1988 冬奧越野滑雪場地,現在是 65 km 的健行與登山車路網。十月可租登山車,路況好、坡度緩。","url":"https://www.albertaparks.ca/parks/kananaskis/canmore-nordic-centre-pp/","category":"Canmore Nordic Centre"},{"name":"Elevation Place 運動中心","note":"市立的室內攀岩館、泳池與圖書館。下雨下雪時最好的室內活動,單次入場約 CAD $15。","url":"https://www.google.com/maps/search/?api=1&query=Elevation+Place+Canmore","category":["Elevation Place","雨天首選"]},{"name":"坎摩爾博物館","note":"講述這裡從煤礦城變成戶外之都的過程。規模小、一小時看完,但能理解為什麼這一帶的老房子長那個樣子。","url":"https://www.google.com/maps/search/?api=1&query=Canmore+Museum","category":"Canmore Museum"},{"name":"巨頭雕塑","note":"主街上一顆巨大的青銅頭像,坎摩爾最著名的公共藝術。當地人約碰面的地標。","url":"https://www.google.com/maps/search/?api=1&query=Big+Head+sculpture+Canmore","category":"The Big Head","status":{"label":"免費","kind":"free"}},{"name":"美洲獅溪步道","note":"走在乾涸的礫石溪床上往山裡去,距離隨你走多遠都可以折返。地形開闊、方向感好,是很自由的一條路。","url":"https://www.google.com/maps/search/?api=1&query=Cougar+Creek+Trail+Canmore","category":"Cougar Creek","status":{"label":"免費","kind":"free"}},{"name":"弓河谷省立公園","note":"坎摩爾東邊 20 分鐘,低海拔、地形平緩、遊客極少。當高山下雪封路時,這裡通常還是好天氣。","url":"https://www.google.com/maps/search/?api=1&query=Bow+Valley+Provincial+Park+Alberta","category":["Bow Valley Provincial Park","壞天備案"]},{"name":"心溪步道","note":"4.4 km 來回、幾乎無坡,來回跨過小溪七次的木橋。1 號公路旁最方便的一條家庭級步道,終點有小瀑布。","url":"https://www.google.com/maps/search/?api=1&query=Heart+Creek+Trail+Alberta","category":["Heart Creek Trail","輕鬆"]}],"food":[{"name":"灰熊掌手工汽水","note":"自家製的沙士、薑汁汽水與奶油蘇打,不喝酒的人在山區最好的選擇。玻璃瓶裝好看,可以買整箱。","url":"https://thegrizzlypaw.com/","category":"Grizzly Paw Soda"},{"name":"Valbella 精品肉舖","note":"1978 年瑞士家族創立,班夫與卡加利的高級餐廳都跟他們買肉。煙燻野牛、麋鹿香腸、火腿是名產——但只能在當地吃。","url":"https://www.google.com/maps/search/?api=1&query=Valbella+Gourmet+Foods+Canmore","category":["Valbella Gourmet Foods","不可帶回日本"]},{"name":"洛磯山手工皂本店","note":"品牌的發源地與旗艦店就在坎摩爾主街,品項比班夫分店齊全,還能看到製作區。","url":"https://www.rockymountainsoap.com/","category":"Rocky Mountain Soap Co."},{"name":"坎摩爾釀酒廠","note":"小型在地精釀,可以現場試飲再買 Growler。Ha Ling Pale Ale 以鎮上的山命名。 ⚠️ 2026/6/1 落石後 Hwy 742 封閉、Grassi Lakes 一帶步道全封，登山口進不去（要繞 Hwy 40 多兩小時）。出發前查 albertaparks.ca。","url":"https://www.google.com/maps/search/?api=1&query=Canmore+Brewing+Company","category":"Canmore Brewing Co.","status":{"label":"步道封閉中","kind":"season"}},{"name":"沙斯卡通莓果醬與派","note":"草原野莓做的果醬,玻璃罐裝、耐放、日本買不到。主街的雜貨店與農產店都有。","url":"https://www.google.com/maps/search/?api=1&query=saskatoon+berry+jam+Canmore","category":"Saskatoon Berry Jam"},{"name":"三姊妹峰主題商品","note":"三座並排的山峰是坎摩爾的圖騰,T 恤、印刷版畫、木刻明信片都以它為主題,設計品質普遍比班夫的觀光紀念品好。","url":"https://www.google.com/maps/search/?api=1&query=Three+Sisters+Canmore+gift+shop","category":"Three Sisters Merchandise"},{"name":"原住民手工藝","note":"Stoney Nakoda 族的串珠、鹿皮製品與畫作。請認明有藝術家署名或部落認證的店家,支持真正的創作者。","url":"https://www.google.com/maps/search/?api=1&query=Indigenous+art+Canmore","category":"Indigenous Crafts"},{"name":"野花蜜","note":"弓河谷的野花蜜,風味比商業苜蓿蜜複雜。小罐裝適合分送同事。","url":"https://www.google.com/maps/search/?api=1&query=wildflower+honey+Canmore","category":"Wildflower Honey"},{"name":"戶外裝備與登山地圖","note":"主街上有幾家很好的戶外店。Gem Trek 的防水地形圖是這一帶最好的紙本地圖,在無訊號山區比手機可靠。","url":"https://www.google.com/maps/search/?api=1&query=Canmore+outdoor+gear+shop","category":"Outdoor Gear & Maps"},{"name":"羊毛毯與毛織品","note":"加拿大的羊毛毯傳統來自哈德遜灣公司的條紋毯(綠黃紅藍)。體積大但一輩子用得到,是有份量的紀念品。","url":"https://www.google.com/maps/search/?api=1&query=Alberta+wool+blanket+Canmore","category":"Wool Blankets"}],"shops":[{"name":"Iron Goat 鐵山羊酒館","note":"三層樓的木構酒館,露台正對三姊妹峰。招牌是野牛、麋鹿與羊肉混合的野味肉餅。","url":"https://www.google.com/maps/search/?api=1&query=The+Iron+Goat+Pub+and+Grill+Canmore","category":"The Iron Goat"},{"name":"Communitea 茶café","note":"80 多種散裝茶,加上泰式麵碗、飯碗與捲餅。健康、便宜、有大量素食選項,是坎摩爾的社區客廳。","url":"https://www.google.com/maps/search/?api=1&query=Communitea+Cafe+Canmore","category":["Communitea Café","$"]},{"name":"Sauvage","note":"近年坎摩爾最受矚目的餐廳,野生食材與現代法式技法。座位少,要訂。","url":"https://www.google.com/maps/search/?api=1&query=Sauvage+Restaurant+Canmore","category":"Sauvage","status":{"label":"須訂位","kind":"booking"}},{"name":"Blake","note":"主街上的釀酒廠兼餐廳,自家精釀與烈酒。裝潢俐落、氣氛年輕,適合晚餐後續攤。","url":"https://www.google.com/maps/search/?api=1&query=Blake+Canmore","category":"Blake"},{"name":"The Wood 木屋餐廳","note":"壁爐、大露台、扎實的加拿大式主菜。坎摩爾最舒服的「就是想好好吃一頓」選擇。","url":"https://www.google.com/maps/search/?api=1&query=The+Wood+Restaurant+Canmore","category":"The Wood"},{"name":"JK Bakery 德式烘焙","note":"德國師傅的正統酸種麵包、椒鹽卷餅與蛋糕。買隔天早餐與登山三明治的首選。","url":"https://www.google.com/maps/search/?api=1&query=JK+Bakery+Canmore","category":["JK Bakery","$"]},{"name":"Le Fournil 法式烘焙","note":"道地法式可頌與長棍。清晨出發健行前買一袋,是這一帶最好的早餐。","url":"https://www.google.com/maps/search/?api=1&query=Le+Fournil+Bakery+Canmore","category":["Le Fournil","$"]},{"name":"Rocky Mountain Flatbread","note":"柴燒窯烤薄餅,有機在地食材。親子友善、份量適合分食,價格是山區少見的公道。","url":"https://www.google.com/maps/search/?api=1&query=Rocky+Mountain+Flatbread+Canmore","category":["Rocky Mountain Flatbread","$$"]},{"name":"Stirling Grill & Lounge","note":"Malcolm 酒店裡的高級餐廳,窗外是警察溪與三姊妹峰。坎摩爾最適合慶祝的地方。","url":"https://www.google.com/maps/search/?api=1&query=The+Stirling+Grill+Lounge+Malcolm+Hotel+Canmore","category":["The Stirling","$$$"]},{"name":"PD3 雙層巴士餐廳","note":"一輛 1960 年代的英國雙層巴士改成的餐廳與酒吧。坐在二樓吃飯很有意思,漢堡與炸物都好。","url":"https://www.google.com/maps/search/?api=1&query=PD3+by+Blake+Canmore","category":["PD3 by Blake","$$"]}]},{"key":"parkway","name":"冰原大道與 Yoho","spots":[{"name":"烏鴉腳冰川觀景台","note":"路邊觀景台,懸掛在崖壁上的冰川因為形狀像烏鴉的腳趾而得名。第三根「腳趾」在 1940 年代融化消失了——氣候變遷最直觀的一課。","url":"https://www.google.com/maps/search/?api=1&query=Crowfoot+Glacier+Viewpoint+Icefields+Parkway","category":["Crowfoot Glacier","零體力"]},{"name":"赫克托湖觀景台","note":"冰原大道上最大的湖,但因為觀景台不顯眼,幾乎所有人都開過去了。清晨無風時的倒影極好。","url":"https://www.google.com/maps/search/?api=1&query=Hector+Lake+Viewpoint+Icefields+Parkway","category":["Hector Lake Viewpoint","零體力"]},{"name":"哭牆","note":"100 公尺高的岩壁,融水從整面崖上滲流而下。十月開始會結成冰柱,是冬季冰攀的名場地。路邊即可觀看。","url":"https://www.google.com/maps/search/?api=1&query=Weeping+Wall+Icefields+Parkway","category":["Weeping Wall","零體力"]},{"name":"大彎道觀景點","note":"公路在此爬升 400 公尺的大 U 型彎。停在彎頂回望,整條北薩斯卡其萬河谷在腳下展開,是這條路最壯闊的一個角度。","url":"https://www.google.com/maps/search/?api=1&query=Big+Bend+Icefields+Parkway","category":["The Big Bend","零體力"]},{"name":"豹瀑布與新娘面紗瀑布","note":"從大彎道停車場下切 500 公尺的小徑,可以走到 66 公尺高瀑布的正後方。知道的人極少,是冰原大道上最好的隱藏版。","url":"https://www.google.com/maps/search/?api=1&query=Panther+Falls+Bridal+Veil+Falls+Icefields+Parkway","category":["Panther & Bridal Veil Falls","短程但陡"]},{"name":"糾結溪瀑布","note":"就在路邊,層層階梯狀的瀑布。停車三分鐘就能拍到很好的照片,適合當長途駕駛的伸展停點。","url":"https://www.google.com/maps/search/?api=1&query=Tangle+Creek+Falls+Icefields+Parkway","category":["Tangle Creek Falls","零體力"]},{"name":"桑瓦普塔瀑布","note":"河水衝進狹窄石灰岩峽谷形成的漏斗狀瀑布,有橋可以站在正上方。上瀑布停車場走 2 分鐘就到。","url":"https://www.google.com/maps/search/?api=1&query=Sunwapta+Falls+Jasper","category":["Sunwapta Falls","零體力"]},{"name":"阿薩巴斯卡瀑布","note":"落差不高但水量驚人,整條阿薩巴斯卡河擠過一道石縫,聲音大到要吼才聽得見。多層觀景平台,全程無障礙。","url":"https://www.google.com/maps/search/?api=1&query=Athabasca+Falls+Jasper","category":["Athabasca Falls","零體力"]},{"name":"奧哈拉湖","note":"很多人認為是整個落磯山最美的地方。為了保護環境,每天只放行少量遊客,巴士採抽籤制。⚠️ 巴士季通常十月初結束,你這次幾乎確定進不去——但值得知道它的存在。","url":"https://parks.canada.ca/pn-np/bc/yoho/activ/randonnee-hiking/ohara","category":"Lake O'Hara","status":{"label":"十月已收季","kind":"season"}},{"name":"舍布魯克湖步道","note":"6.2 km 來回、上升 165 m。從 Great Divide 附近的登山口出發,是 Yoho 最容易到達又最安靜的高山湖。適合當塔卡考瀑布封路時的替代。","url":"https://www.google.com/maps/search/?api=1&query=Sherbrooke+Lake+Trail+Yoho","category":["Sherbrooke Lake","中等"]}],"food":[{"name":"Kicking Horse 咖啡豆","note":"深焙的 Kick Ass 與 454 Horse Power 是招牌。包裝設計好看、重量輕、日本不好買,是這一區最實在的伴手禮。","url":"https://www.google.com/maps/search/?api=1&query=Kicking+Horse+Coffee+beans+Canada","category":"Kicking Horse Coffee Beans"},{"name":"伯吉斯頁岩化石主題品","note":"Yoho 的伯吉斯頁岩是世界最重要的寒武紀化石床(UNESCO 世界遺產)。Field 的遊客中心有相關書籍、複製標本與圖鑑。","url":"https://www.google.com/maps/search/?api=1&query=Burgess+Shale+fossil+Yoho+Field+BC","category":"Burgess Shale"},{"name":"Gem Trek 防水地形圖","note":"這一區手機大範圍沒訊號,紙本地圖是真正的保險。Gem Trek 的落磯山系列標示清楚、防水耐撕,也是很好的紀念品。","url":"https://www.google.com/maps/search/?api=1&query=Gem+Trek+maps+Banff","category":["Gem Trek Maps","建議必備"]},{"name":"熊噴霧","note":"約 CAD $50,可租可買。Parker Ridge、Wilcox Pass、Yoho 各步道都在熊活動範圍內。⚠️ 絕對不可帶上飛機,離境前務必處理掉或送人。","url":"https://www.google.com/maps/search/?api=1&query=bear+spray+Banff+outdoor+store","category":["Bear Spray","不可攜帶上機"]},{"name":"保溫瓶與熱飲","note":"在 2000 公尺的觀景台喝一杯自己帶的熱茶,是這條路上最好的享受之一。山區水溫降得極快,一般水壺不夠用。","url":"https://www.google.com/maps/search/?api=1&query=thermos+outdoor+store+Banff","category":"Thermos"},{"name":"行動糧與能量棒","note":"加拿大超市的堅果乾果綜合包種類極多且便宜。低溫下身體消耗熱量比平常快,一定要多帶。","url":"https://www.google.com/maps/search/?api=1&query=trail+mix+energy+bar+Banff+grocery","category":"Trail Mix & Energy Bars"},{"name":"楓糖太妃","note":"把滾燙楓糖漿澆在雪上,冷卻後用木棒捲起來吃。加拿大人的童年記憶,在遊客中心的紀念品店常有盒裝版。","url":"https://www.google.com/maps/search/?api=1&query=maple+taffy+Canada","category":"Maple Taffy / Tire d'érable"},{"name":"Parks Canada 紀念徽章","note":"每個國家公園都有專屬徽章與貼紙。便宜、輕、可以貼在背包或水壺上,是收集起來很有成就感的紀念品。","url":"https://www.google.com/maps/search/?api=1&query=Parks+Canada+souvenir+shop+Columbia+Icefield","category":"Parks Canada Pins"},{"name":"簡易冰爪","note":"約 CAD $40–70。十月的 Parker Ridge、Wilcox Pass、落葉松谷步道極可能有結冰路段。這一樣東西可能決定你走不走得完。","url":"https://www.google.com/maps/search/?api=1&query=microspikes+outdoor+store+Banff","category":["Microspikes","十月強烈建議"]},{"name":"冰川融水","note":"冰川探險行程中可以直接飲用阿薩巴斯卡冰川的融水——那是幾百年前落下的雪。記得帶一個空瓶子。","url":"https://www.google.com/maps/search/?api=1&query=glacier+water+Athabasca","category":"Glacial Meltwater","status":{"label":"10/12 季末","kind":"season"}}],"shops":[{"name":"Mount Burgess 餐廳(翡翠湖山莊)","note":"1902 年 CPR 山莊的主餐廳,湖畔用餐。這一整區唯一稱得上正式的餐廳。","url":"https://www.crmr.com/emerald/","category":"Mount Burgess Dining Room","status":{"label":"須訂位","kind":"booking"}},{"name":"Cilantro on the Lake","note":"翡翠湖山莊的休閒餐廳,窯烤披薩與露台座位。⚠️ 季節性營業,十月可能已關,先電話確認。","url":"https://www.google.com/maps/search/?api=1&query=Cilantro+on+the+Lake+Emerald+Lake","category":"Cilantro on the Lake","status":{"label":"季節限定","kind":"season"}},{"name":"Truffle Pigs Lodge(Field)","note":"Field 鎮上的旅館與餐廳。若當天想在 Yoho 多待一晚,這是唯一像樣的住宿,早餐也對外開放。","url":"https://trufflepigs.com/","category":"Truffle Pigs Lodge"},{"name":"Siding 雜貨店咖啡(Field)","note":"Field 的社區雜貨店兼咖啡吧。買水、零食、熱咖啡與明信片的地方,也是這一帶少數有無線網路的點。","url":"https://www.google.com/maps/search/?api=1&query=Siding+General+Store+Cafe+Field+BC","category":["Siding Café","$"]},{"name":"The Crossing 度假村餐廳","note":"冰原大道正中央唯一的加油站、廁所、餐廳與住宿。食物普通、價格偏高,但當你在那裡的時候它就是唯一選項。","url":"https://thecrossingresort.com/","category":"The Crossing Resort","status":{"label":"十月中收季","kind":"season"}},{"name":"冰原探索中心餐飲","note":"冰原大道北端的遊客中心,有自助餐廳與景觀餐廳。2026 年 10/12 隨冰川行程一起收季。","url":"https://www.google.com/maps/search/?api=1&query=Columbia+Icefield+Discovery+Centre+restaurant","category":"Icefield Discovery Centre","status":{"label":"10/12 季末","kind":"season"}},{"name":"Num-Ti-Jah 山莊(弓湖)","note":"1920 年代的紅屋頂獵人小屋,是冰原大道上最有故事的建築。營運狀況近年有變動,前往前務必確認。","url":"https://www.google.com/maps/search/?api=1&query=Num-Ti-Jah+Lodge+Bow+Lake","category":"Num-Ti-Jah Lodge","status":{"label":"須先確認營運","kind":"booking"}},{"name":"桑瓦普塔瀑布山莊","note":"冰原大道北段的山莊與餐廳,靠近 Jasper 一側。若你把行程往北延伸到瀑布區,午餐就靠它。","url":"https://www.google.com/maps/search/?api=1&query=Sunwapta+Falls+Rocky+Mountain+Lodge","category":"Sunwapta Falls Lodge","status":{"label":"季節限定","kind":"season"}},{"name":"露易絲湖村超市(出發前補給)","note":"上冰原大道前最後一個超市。三明治、水、零食、熱咖啡在這裡買齊,之後 190 公里沒有第二次機會。","url":"https://www.google.com/maps/search/?api=1&query=Lake+Louise+Village+grocery+store","category":["Village Market","必停"]},{"name":"Kicking Horse 咖啡","note":"BC 省 Golden 附近起家,加拿大最大的有機公平貿易咖啡品牌。這一帶的咖啡館幾乎都用它,豆子超市就買得到。","url":"https://www.google.com/maps/search/?api=1&query=Kicking+Horse+Coffee+Invermere+BC","category":["Kicking Horse Coffee","伴手禮"]}]}],"spotsTitle":"必去景點總覽（32 項）","spots":[{"name":"Calgary Tower","note":"登頂眺望卡爾加里市景，塔內設玻璃地板觀景台","url":"https://www.calgarytower.com/","lat":51.0447,"lng":-114.0631},{"name":"Studio Bell 國家音樂中心","note":"加拿大國家音樂中心，收藏跨世代樂器與展覽","url":"https://www.studiobell.ca/","lat":51.0453,"lng":-114.0553},{"name":"Prince's Island Park & Eau Claire","note":"市中心河畔公園，散步騎車皆宜，免費","url":"https://www.calgary.ca/parks/princes-island-park.html","lat":51.0537,"lng":-114.068},{"name":"East Village / Peace Bridge","note":"新興文創街區與紅色編織人行橋地標","url":"https://www.visitcalgary.com/plan-and-stay/itineraries-and-travel-inspiration/east-village-neighbourhood-guide","lat":51.047,"lng":-114.05},{"name":"Inglewood 老城區 + Bird Sanctuary","note":"卡爾加里最老街區，古董店與河濱鳥類保護區","url":"https://www.calgary.ca/parks/inglewood-bird-sanctuary.html","lat":51.029,"lng":-114.0157},{"name":"Heritage Park Historical Village","note":"北美最大的歷史主題公園，重現拓荒年代場景（選項），成人約 $39.95 起","url":"https://heritagepark.ca/","lat":50.9743,"lng":-114.1064},{"name":"Calgary Zoo","note":"加拿大知名動物園，含熊貓館（選項），約 $30–38","url":"https://www.calgaryzoo.com/","lat":51.0447,"lng":-114.0247},{"name":"Banff Gondola（Sulphur Mountain）","note":"纜車登頂硫磺山，鳥瞰班夫全景與周邊山谷，約 $55–95","url":"https://www.banffjaspercollection.com/attractions/banff-gondola/","lat":51.1494,"lng":-115.5719},{"name":"Bow Falls","note":"班夫鎮旁的寬闊瀑布，步行可達、免費","url":"https://banff.ca/654/Bow-Falls-Trail","lat":51.1712,"lng":-115.56},{"name":"Surprise Corner","note":"眺望 Bow Falls 與 Fairmont 城堡飯店的觀景點，免費","url":"https://banff.ca/1110/Surprise-Corner","lat":51.1745,"lng":-115.565},{"name":"Cave and Basin National Historic Site","note":"加拿大國家公園發源地，溫泉洞穴古蹟，約 $9–10","url":"https://parks.canada.ca/lhn-nhs/ab/caveandbasin","lat":51.1727,"lng":-115.5822},{"name":"Banff Upper Hot Springs","note":"戶外高山溫泉，健行後放鬆首選，成人 $19.75","url":"https://parks.canada.ca/pn-np/ab/banff/sources-banff-springs","lat":51.1622,"lng":-115.5563},{"name":"Lake Louise 湖畔","note":"洛磯山最具代表性的藍綠色冰河湖，免費","url":"https://www.banfflakelouise.com/","lat":51.4254,"lng":-116.1773},{"name":"獨木舟租借（Fairmont Boathouse）","note":"Lake Louise 湖上划船，天氣允許時體驗，約 $180+/hr","url":"https://www.chateau-lake-louise.com/activities/canoeing/","lat":51.4173,"lng":-116.1765},{"name":"Fairview Lookout","note":"俯瞰 Lake Louise 全景的短程健行步道，免費","url":"https://www.google.com/maps/search/Fairview%20Lookout%20Trail%20Lake%20Louise/@51.4189,-116.1806,16z","lat":51.4189,"lng":-116.1806},{"name":"Moraine Lake / Rockpile Viewpoint","note":"十峰谷經典景色，私家車已禁止進入，需接駁","url":"https://parks.canada.ca/pn-np/ab/banff","lat":51.3217,"lng":-116.186},{"name":"Lake Agnes Tea House 健行","note":"體力允許可加碼的山中茶屋步道，步道免費","url":"https://www.banfflakelouise.com/things-to-do","lat":51.4297,"lng":-116.1875},{"name":"Herbert Lake","note":"冰原公路南端小巧靜謐的湖泊，免費","url":"https://parks.canada.ca/pn-np/ab/banff","lat":51.628,"lng":-116.3405},{"name":"Bow Lake & Crowfoot Glacier","note":"湖畔遠眺冰河景致，免費","url":"https://parks.canada.ca/pn-np/ab/banff","lat":51.6912,"lng":-116.4738},{"name":"Peyto Lake 觀景台","note":"狐狸形狀的鮮豔藍色湖泊，冰原公路必停，免費","url":"https://parks.canada.ca/pn-np/ab/banff","lat":51.728,"lng":-116.528},{"name":"Columbia Icefield（Ice Explorer／Glacier Skywalk）","note":"雪車開上冰原、玻璃步道懸空觀景，約 $95–126","url":"https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/","lat":52.2192,"lng":-117.2296},{"name":"Sunwapta Falls","note":"冰原公路北端的峽谷瀑布，免費","url":"https://parks.canada.ca/pn-np/ab/jasper","lat":52.4986,"lng":-117.6547},{"name":"Emerald Lake","note":"Yoho 國家公園翡翠色湖泊，免費","url":"https://parks.canada.ca/pn-np/bc/yoho","lat":51.4397,"lng":-116.5297},{"name":"Emerald Lake 獨木舟租借","note":"湖上划船體驗（選項），約 $90/hr","url":"https://www.boathousetradingco.com/summer-rentals","lat":51.4397,"lng":-116.5297},{"name":"Natural Bridge","note":"河水沖蝕形成的天然石橋，免費","url":"https://parks.canada.ca/pn-np/bc/yoho","lat":51.4423,"lng":-116.498},{"name":"Takakkaw Falls","note":"加拿大落差數一數二的高瀑布，免費","url":"https://parks.canada.ca/pn-np/bc/yoho","lat":51.4986,"lng":-116.5015},{"name":"Johnston Canyon（Lower / Upper Falls）","note":"峽谷棧道健行至上下瀑布，免費","url":"https://parks.canada.ca/pn-np/ab/banff","lat":51.2298,"lng":-115.838},{"name":"Lake Minnewanka（湖畔）","note":"班夫最大湖泊，環湖車道景色開闊，免費","url":"https://parks.canada.ca/pn-np/ab/banff","lat":51.2361,"lng":-115.4425},{"name":"Lake Minnewanka 遊船","note":"湖上遊船體驗（選項），約 $65–74.50","url":"https://www.banffjaspercollection.com/attractions/lake-minnewanka-cruise/","lat":51.2361,"lng":-115.4425},{"name":"Two Jack Lake","note":"熱門拍照打卡湖景，免費","url":"https://parks.canada.ca/pn-np/ab/banff","lat":51.2247,"lng":-115.4931},{"name":"Grassi Lakes","note":"湖水清澈的輕鬆步道；目前因落石災害無限期封閉（含聯外 742 號公路），出發前請至 Alberta Parks 步道公告確認，若仍封閉可改走 Policeman's Creek 木棧道或 Quarry Lake ⚠️ 2026/6/1 落石後 Hwy 742 封閉、Grassi Lakes 一帶步道全封，登山口進不去（要繞 Hwy 40 多兩小時）。出發前查 albertaparks.ca。","url":"https://www.albertaparks.ca/parks/kananaskis/canmore-nordic-centre-pp/park-facilities/day-use/grassi-lakes/","lat":51.0692,"lng":-115.3389,"status":{"label":"步道封閉中","kind":"season"}},{"name":"Canmore 小鎮","note":"山城小鎮氛圍，咖啡廳與伴手禮店林立，免費","url":"https://www.explorecanmore.ca/","lat":51.0891,"lng":-115.3594}],"shopsTitle":"必吃餐廳總覽（15 項）","shops":[{"name":"River Cafe","category":"加拿大在地食材料理","note":"Prince's Island Park 內，適合旅程的告別晚餐","url":"https://www.river-cafe.com/","lat":51.0537,"lng":-114.068},{"name":"Charcut Roast House","category":"職人烤肉","note":"招牌自製 Charcuterie 拼盤","url":"https://charcut.com/","lat":51.0475,"lng":-114.071},{"name":"Ten Foot Henry","category":"蔬食 / 地中海風味","note":"氣氛輕鬆，想換口味時的好選擇","url":"https://tenfoothenry.com/","lat":51.0384,"lng":-114.0836},{"name":"National on 17th","category":"家庭式酒吧料理","note":"長途飛行後的首選，好消化","url":"https://www.ntnl.ca/17th-avenue","lat":51.0384,"lng":-114.0836},{"name":"Anju","category":"韓式創意料理","note":"想解膩吃辣時來一頓（⚠️ 已永久歇業；主廚 Roy Oh 現經營 Roy’s Korean Kitchen，royskoreankitchen.com）","lat":51.039,"lng":-114.082,"status":{"label":"已永久歇業","kind":"season"}},{"name":"OEB Breakfast Co.","category":"早午餐","note":"名店常排隊，建議提早前往","url":"https://eatoeb.com/locations/calgary/","lat":51.047,"lng":-114.063},{"name":"Sidewalk Citizen Bakery","category":"烘焙坊咖啡","note":"散步途中歇腳的好地方","url":"https://www.sidewalkcitizenbakery.com/","lat":51.035,"lng":-114.029},{"name":"The Bison Restaurant","category":"洛磯山野味","note":"野牛、鹿肉料理","url":"https://www.thebison.ca/","lat":51.1765,"lng":-115.571},{"name":"Park Distillery","category":"炭烤料理 / 調酒","note":"自釀烈酒調酒，氣氛熱鬧","url":"https://parkdistillery.com/","lat":51.1762,"lng":-115.5715},{"name":"Grizzly House","category":"瑞士鍋","note":"1967 年老店，經典起司／巧克力瑞士鍋","url":"https://banffgrizzlyhouse.com/","lat":51.1758,"lng":-115.5712},{"name":"Farm and Fire","category":"柴燒披薩","note":"班夫少見的柴燒披薩","url":"https://www.banffjaspercollection.com/dining/farm-fire/","lat":51.1748,"lng":-115.5697},{"name":"Wild Flour Bakery","category":"烘焙坊","note":"每日限量麵包，健行前的補給站","url":"https://www.wildflourbakery.ca/","lat":51.1755,"lng":-115.5705},{"name":"Tooloulou's","category":"紐奧良風味早午餐","note":"份量十足","url":"https://tooloulous.com/","lat":51.176,"lng":-115.5708},{"name":"The Trough（Canmore）","category":"精緻料理","note":"山區行程的安靜句點；近期有多筆資訊顯示可能已歇業，出發前請先致電 (403) 678-2820 確認營業狀態","url":"https://thetrough.ca/","lat":51.0895,"lng":-115.3585},{"name":"communitea（Canmore）","category":"蔬食 / 茶飲","note":"健行後的清爽選擇，The Trough 若未營業可改來這裡","url":"https://www.thecommunitea.com/","lat":51.0899,"lng":-115.3575}],"food":[]},"unverified":[{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"OpenTable 的三個訂位連結真的能訂到位嗎","why":"整個 opentable.com / opentable.ca 網域在建置環境不可達，連首頁都回 403，所以這三條完全沒驗到。Ten Foot Henry 那條是從官網「SAVE A SEAT」按鈕抄下來的（來源可信），另兩條是搜尋結果。","how":"直接點那三站的「需訂位」徽章。開得起來且能選日期人數就沒問題；若導到錯的餐廳或 404，就改打電話——Charbar (403) 452-3115、Ten Foot Henry (403) 475-5537。","where":[]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"Parks Canada 接駁預約連結有沒有真的落在夢蓮湖那一項","why":"reservation.pc.gc.ca 是 Angular SPA，靜態抓下來的 HTML 標題一律是「Home Page」，看不出深層連結有沒有帶對參數。","how":"點任一個夢蓮湖站點的「需訂位」徽章，確認頁面直接開在 Moraine Lake Shuttle 的日期選擇畫面，而不是首頁。若落在首頁，手動走 Parks Canada → Banff → Shuttles 一次。","where":[]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"Heritage Park 的購票頁","why":"heritagepark.ca 回 200，但抓下來的標題是「規制」——疑似被 CDN／WAF 攔在中間頁，實際內容沒看到。","how":"點「傳統公園歷史村」的徽章，確認是購票頁。順便確認 10/12（2026 最後開放日）的票還有。","where":["傳統公園歷史村"]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"三個非訂票的官網連不上：Peters’ Drive-In、Visit Kensington、Tool Shed（tooloulous.com）","why":"Peters’ 與 Visit Kensington 在建置環境完全連不上（000），tooloulous.com 回 503。可能是防爬、地區限制，也可能真的壞了——單次測量分不出來。","how":"各點一次。真的打不開就把標題連結改成 Google 地圖搜尋（這頁其他沒有官網的站點都是這樣處理的）。","where":[]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"市區 Avis S50 的實際報價，以及「市區取車、機場還車」的單程費","why":"四家租車公司的官網都不公布市區牌價與單程費，必須進訂位引擎、選好日期地點才會顯示。我在建置環境跑不了訂位引擎。","how":"在 avis.ca 用同車型同日期跑三組：(A) 市區取／市區還、(B) 市區取／機場還、(C) 機場取／機場還，比對「Estimated Total」。(B) 減 (A) 就是單程費。","where":["10/04 市區 Avis 取車","10/10 市區 Avis 還車"]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"冰原一日團的即時餘位（若最後決定參團而不自駕）","why":"我查的當下 10/7 有 22 位、10/6 只剩 2 位、10/9 已售完，但餘位每天在變。","how":"點 10/07「三選一」裡選項 ② 的連結看當天餘位。要訂就別拖——三個人塞不進只剩 2 位的團。","where":["10/07 哥倫比亞冰原"]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"The Crossing Resort 的 10 月房價與 2026 確切收季日（若選「冰原住一晚」）","why":"官網列到 10/17 的套裝，但沒有公布 10 月的每晚牌價；比價站顯示 US$121 起，幣別與房型都不確定。","how":"直接上 thecrossingresort.com 查 10/6–10/7 的三人房價，跟退掉一晚 HI Canmore（約 CA$200）比。","where":["10/07 哥倫比亞冰原"]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"螺旋隧道觀景台 10 月上旬的開放狀況","why":"這是 Yoho 的路邊觀景台（Kicking Horse Pass 上），我查不到它 10 月的關閉日期——有些 BC 的路邊設施 10 月中就封。","how":"看 Parks Canada Yoho 的 road conditions 頁。封了就把時間給翡翠湖與天然石橋，那兩個全年開放。","where":[]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"10/07 Ice Explorer／Skywalk 的當日場次時間，以及要不要買二合一票","why":"官方票價由 JavaScript 訂票元件動態載入（需要授權 token），我讀不到 10/07 的實際場次與成交價。CA$125／人是授權代理的公開牌價。","how":"點 10/07 冰原那一站的「需購票」徽章，選 10/07，看實際場次。⚠️ 10 月雪車只到 16:00、Skywalk 11:00 才開，二合一要 2.5–3 小時——選 12:30–13:00 的場次才裝得下。","where":["哥倫比亞冰原"]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"10/12 感恩節當天從市區到 YYC 的實際班次（趕 14:50 的班機）","why":"Calgary Transit 在國定假日降為週日班次，班距拉長。我查到的是 2025 年感恩節的公告，2026 年通常一樣但沒有官方確認。","how":"用 Calgary Transit 的 trip planner 查 10/12 從 Peace Bridge 到 YYC 的 Route 500 班次。班距太長就改叫 Uber（約 CA$35–37，尖峰更高），三人加行李要叫 XL。","where":[]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"Japan English 活動的地點與地址","why":"你只給了時間（10/02 18:00），沒有地點——我沒有這個活動的任何資訊，頁面上那一站的座標先放市中心。","how":"把地址填進 10/02 那一站。順便確認它跟 14:30 和 Yuki 吃飯的地點之間怎麼移動（市中心 CTrain 在 7 Ave 段免費）。","where":["Japan English 活動"]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"10/02 和 Yuki 吃飯的地點","why":"同上，只有時間沒有地點，座標先放市中心。","how":"填進去之後，上午 Studio Bell 的結束時間才抓得準（目前抓 14:00 收）。","where":["和 Yuki 吃飯"]},{"category":"A. 訂票連結（在別的網路開一次就知道）","item":"哥倫比亞冰原 10/08 的場次（日期從 10/07 改過來了）","why":"住宿定案後冰原從「當天來回」變成「北上 Jasper 的中途站」，日期改成 10/08。官方票價由 JavaScript 動態載入，我讀不到實際場次。","how":"點 10/08 冰原那一站的徽章，選 10/08，挑 11:00–13:00 的場次——雪車末班 16:00，而你還要開 1.6 小時到 Jasper。","where":["哥倫比亞冰原"]},{"category":"B. 行程排法（要不要改由你決定，我沒有動）","item":"10/07 中等路線的帕克稜線步道與威爾考克斯埡口步道，10 月上旬還走得動嗎","why":"這兩條在冰原大道最高的路段（海拔 2,000 m 以上），10 月上旬可能已經積雪或結冰。我查不到 2026 年那幾天的實際步道狀況。","how":"出發前一週看 Parks Canada 的 Banff／Jasper trail report，或 AllTrails 的近期回報。積雪就改走輕鬆路線的米斯塔亞峽谷與水鳥湖，那兩個在路邊、不需爬升。","where":["威爾考克斯埡口步道"]},{"category":"B. 行程排法（要不要改由你決定，我沒有動）","item":"10/03 若改選需要開車的替代方案，租車要提前一天取","why":"本頁採用的是「10/03 留在卡加利、不用車」，車 10/04 才取。選項 ② 碎頭野牛跳崖處與選項 ③ 恐龍谷都要開 1.5–2.5 小時。","how":"決定要改的話，把 Avis 取車日改成 10/03，多一天租金約 CA$70–100 加一天市區停車。訂車時直接選 10/03 取、10/10 還就好，不用改行程頁的其他部分。","where":["方案 A 10/03"]},{"category":"B. 行程排法（要不要改由你決定，我沒有動）","item":"10/01 的實際抵達時間：頁面照機票寫 12:40，請對一次登機證","why":"頁面的 flights.booked 寫 WS081 NRT 18:30 → YYC 10/1 12:40，10/01 的第一站也是照這個排的。我在中途的內部筆記裡一度寫成「約 14:00 抵達」，兩者不一致，而我無法查證你手上機票的實際時間。","how":"看一眼登機證。若真的是 12:40，行程不用改；若是 14:00 左右，把 10/01 整天後推 1.5 小時（放行李 15:30、和平橋 17:00、晚餐 19:00）——卡加利 10/1 日落 19:13，和平橋與王子島公園仍在天光內。","where":["抵達 YYC 機場"]},{"category":"B. 行程排法（要不要改由你決定，我沒有動）","item":"10/09 這天只排了兩個路邊瀑布，Jasper 鎮上完全沒逛到","why":"Jasper → 卡加利 413 km／5–6 小時，加上還車，這天裝不下別的。你 10/08 傍晚到、10/09 一早走，實際待在 Jasper 只有一個晚上。","how":"想多看一點的話兩個選擇：① 10/08 早點出發、冰原玩快一點，傍晚在 Jasper 鎮上多留兩小時；② 10/09 把還車改到 10/10，那天就能在 Jasper 待到中午。⚠️ Maligne Canyon 與 Cavell Road 2026 整季關閉，Jasper 的兩大招牌都不在。","where":["Jasper・838 Geikie Street 入住"]},{"category":"C. 只能打電話或到現場確認","item":"卡加利火焰隊 10/1–10/12 到底有沒有主場賽","why":"2026–27 賽季賽程在建置時尚未公布，無法確認 10/10 那天有沒有比賽。","how":"nhl.com/flames 的賽程頁在賽季前約兩個月公布。有主場賽再去買票（徽章的連結就是單場票頁）；沒有的話那個時段可以換成別的安排。","where":["方案 A 10/10 中等路線"]},{"category":"C. 只能打電話或到現場確認","item":"翡翠湖山莊主餐廳非住客能不能訂位","why":"Mount Burgess Dining Room 查到的說法是只服務登記住宿的房客，非住客訂不到——這也是那兩站的徽章沒有連結的原因。","how":"打 (403) 609-6150 直接問。訂不到就改同一個山莊的 Cilantro on the Lake 或 Kicking Horse Lounge（都對外開放）。","where":["翡翠湖山莊・感恩節午餐","翡翠湖山莊晚午餐"]},{"category":"C. 只能打電話或到現場確認","item":"Truffle Pigs Bistro 的訂位","why":"官網明寫「Presently we do not have an online reservation」，沒有線上訂位頁。（我一度採用了一個回 200、標題是「Libro Booking」的網址，後來查出那是別家餐廳的系統，已移除。）","how":"打 (250) 343-6303。Field 鎮只有這一間像樣的餐廳，10/06（週二）午餐建議先問。","where":["Truffle Pigs Bistro(Field 鎮)"]},{"category":"C. 只能打電話或到現場確認","item":"The Trough（Canmore）是否仍營業","why":"這一條是原本行程就標記的疑慮，我沒有推翻也沒有確認。","how":"打 (403) 678-2820。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"Enterprise 市區店（West Downtown c508）的週日與感恩節營業時間","why":"Enterprise 官網擋自動查詢，同一家店我在 Google Maps 與 Yelp 查到三種互相矛盾的週日時間。","how":"打 403-212-5232 問三件事：① 10/11（日）幾點開關；② 10/12 感恩節開不開；③ 有沒有 after-hours drop box。如果 Avis 沒車了，這家是備案。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"機場設施費 AFC 是不是真的 CA$10／租車日","why":"這個金額來自新聞搜尋摘要（原文頁面有 WAF 擋著），yyc.com 自己的租車頁沒有公布金額。兩次不同搜尋的數字一致，但我沒能讀到一手來源。","how":"如果最後決定機場取車，在報價明細裡找「Airport Facility Charge / AFC」那一行自己核對。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"Communauto 亞伯達分部的註冊審核要幾天","why":"官方沒有公告亞伯達的審核時間，只說是人工審核。外國文件通常比本地人慢。","how":"直接線上送件看回覆時間。若打算用，出發前至少三週送出——卡在 10/1–10/3 那三天就整段泡湯。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"夢蓮湖接駁「出發前 2 天 08:00 MDT 整點釋出」這個機制 2026 年是否照舊","why":"這是我把四個站點的徽章從「提前 21 天」改成「提前 2 天」的依據——4/15 開賣的 40% 名額現在（8 月）早就滿了，剩下的只有 T-2 那批。但 Parks Canada 每年的釋出規則會微調，我讀不到 2026 年的官方公告。","how":"上 reservation.pc.gc.ca 看 Moraine Lake Shuttle 的 2026 年預約規則。你 10/03 要爬 Sentinel Pass，沒有接駁就上不去——夢蓮湖公路禁私家車。","where":["Sentinel Pass（你自己安排）"]},{"category":"C. 只能打電話或到現場確認","item":"Hwy 742 與 Grassi Lakes 到 10 月初有沒有重開","why":"2026/6/1 落石後 Hwy 742（Spray Lakes Rd）在 Grassi Lakes 停車場↔Goat Creek 雙向封閉，省府「目標 8 月中完工」但至今無確認重開。我查到的是 8 月下旬的狀態。","how":"出發前查 albertaparks.ca 的 Kananaskis advisory 與 511 Alberta。若重開了，草地湖（來回 4 km、平緩）是坎摩爾最好走的一條，可以換掉 10/08 的強斯頓峽谷；記得那一區停車要 Kananaskis Conservation Pass（每車每日 CA$15、綁車牌），跟國家公園的 Discovery Pass 不通用。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"三人 7 個公園日，到底買 Discovery Pass 家庭年票還是團體車輛日票（要在 10/04 進山前買好）","why":"用我查到的價格算，7 天日票 CA$171.50 比家庭／團體年票 CA$167.50 還貴 4 塊——差距太小，票價每年微調就會翻盤，而我讀不到 2026 年的官方現價。","how":"上 parks.canada.ca 的 fees 頁看 2026 年的 Discovery Pass 家庭／團體年票與單日團體票價，代進 7 天算一次。差距這麼小的話，年票還有「明年再來能用」的殘值。買了掛後視鏡。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"租來的那台車有沒有 M+S 胎標（影響 10/06 進 BC 的 Yoho）","why":"BC 法規 10/1–4/30 要求指定山區公路配 M+S 或雪胎，Highway 1 過了亞伯達／BC 界就適用。但雪胎在 Enterprise／National／Alamo 三家無法預約，Avis 也不保證，只能取車當下確認。","how":"取車時蹲下去看四個胎的胎壁有沒有 M+S 字樣，胎紋要 3.5 mm 以上。看到禿胎或沒有標記，當場要求換車——不要接受口頭保證「去山上沒問題」。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"市區 Avis S50 在 10/10（週六）的關門時間、有沒有 after-hours 鑰匙投遞箱","why":"官網查到 10/10 週六 09:00–16:00，但沒說有沒有 after-hours drop box。你們當天從班夫下山，若路況慢可能趕不上 16:00。","how":"訂車時直接問客服：① 10/10 週六幾點關；② 有沒有 after-hours drop box、遲還怎麼計費。若沒有，10/10 的行程要提早出發，或把還車改到 10/11。","where":["市區 Avis 還車（120 10th Ave SW）"]},{"category":"C. 只能打電話或到現場確認","item":"Avis 附加駕駛費的「每人每租約 CA$60 封頂」是否適用於這張租約","why":"這個封頂是成本表裡把兩位附加駕駛從 CA$182 降到 CA$100 的依據，來自 Avis 加拿大 FAQ 的原文，但各分店與各方案可能有例外。","how":"訂車時在報價明細裡找 additional driver 那一行，確認總額是 CA$100 而不是按日累加。順便問 Avis Preferred 免費會員能不能免收一位。","where":[]},{"category":"C. 只能打電話或到現場確認","item":"10/03 Sentinel Pass 的落葉松季「4 人成團」熊管理規定","why":"Larch Valley／Sentinel Pass 在落葉松季常有強制四人成團的規定，三個人會在步道口被擋回來。每年的實施日期由 Parks Canada 視熊況公告，我查不到 2026 年的。","how":"出發前查 Parks Canada 的 Banff area closures 與 trail conditions。若當天有這條規定，三個人要在步道口併團，或改走露易絲湖側的阿格尼絲湖茶屋。","where":["Sentinel Pass（你自己安排）"]},{"category":"C. 只能打電話或到現場確認","item":"市區 Avis 10/09（週五）的關門時間與 after-hours 鑰匙投遞箱","why":"10/09 你要從 Jasper 開 413 km／約 5–6 小時下來還車。我查到的是週日與週六 09:00–16:00，平日時間沒查到；遇雪或施工很容易拖過關門。","how":"訂車時直接問客服：① 10/09 週五幾點關；② 有沒有 after-hours drop box、遲還怎麼計費。若沒有，那天要更早離開 Jasper，或把還車改到 10/10。","where":["市區 Avis 還車（120 10th Ave SW）"]},{"category":"C. 只能打電話或到現場確認","item":"冰原大道 10/08 與 10/09 的路況（連兩天都要走完整條）","why":"10 月上旬冰原大道已可能下雪封路，而你這兩天要北上再南下走兩次。封路的話 Jasper 那晚會整個卡住。","how":"出發前與當天早上都看 511 Alberta。封了的話：北上改走 Hwy 11 經 Rocky Mountain House（多約 2 小時）；南下若封就只能走 Hwy 16 經 Edmonton（約 7.5 小時，當天還不了車）。","where":["哥倫比亞冰原"]}],"days":[{"date":"2026-10-01","weekday":"週四","theme":"落地日・不要睡","slots":[{"time":"12:40","period":"午後","name":"抵達 YYC 機場","lat":51.1225,"lng":-114.0203},{"time":"16:00","period":"午後","name":"王子島公園 & 和平橋","lat":51.0537,"lng":-114.068},{"time":"18:00","period":"傍晚","name":"17 Ave SW / Kensington","lat":51.0435,"lng":-114.089}],"routes":[{"kind":"easy","label":"輕鬆路線","stops":[{"time":"12:40","name":"卡加利國際機場 YYC","url":"https://www.yyc.com/","note":"入境 + 領行李約 45–60 分。海關會問住哪、待幾天、做什麼——照實說「朋友家、11 天、觀光」。"},{"time":"14:30","name":"朋友家放行李・沖澡","url":"https://www.google.com/maps/search/?api=1&query=Calgary+Downtown","note":"機場到市區約 25 分。不要躺下,沖個熱水澡就出門。"},{"time":"16:00","name":"和平橋 + 王子島公園","url":"https://www.google.com/maps/search/?api=1&query=Peace+Bridge+Calgary","note":"河邊平路散步 2–3 km。十月初白楊樹全金黃,是卡加利一年最好看的時候。曬太陽有助調時差。"},{"time":"18:00","name":"薑汁牛肉的發源地・銀苑餐廳","url":"https://www.google.com/maps/search/?api=1&query=Silver+Inn+Restaurant+Calgary","note":"1975 年在這裡發明了 Ginger Beef,現在是全加拿大中餐館的標配。第一餐吃這個很有意義,而且不會太重。"},{"time":"21:00","name":"強制就寢","url":null,"note":"此刻東京是中午 12 點。硬撐到這時候再睡,隔天就幾乎正常了。"}]},{"kind":"mid","label":"中等路線","stops":[{"time":"16:00","name":"鼻山公園","url":"https://www.google.com/maps/search/?api=1&query=Nose+Hill+Park+Calgary","note":"市內最大的草原丘陵公園,登頂 3 km 可俯瞰整個卡加利,天氣好時西邊天際線就是落磯山。第一天先看到目的地,很有儀式感。"},{"time":"18:00","name":"卡加利塔日落","url":"https://www.calgarytower.com/","note":"191 公尺玻璃地板觀景台。十月日落約 19:00,卡好時間可以同時看到城市燈亮與遠方雪山。 九月至五月每天 10:00–21:00、無分時入場，現場櫃台隨到隨買——線上反而多收 $1.50 手續費，十月淡季不必先訂。"},{"time":"19:30","name":"銀苑餐廳・薑汁牛肉","url":"https://www.google.com/maps/search/?api=1&query=Silver+Inn+Restaurant+Calgary","note":"同上。"}]}],"planB":"☔️ 雨雪備案:改去 卡加利中央圖書館(建築本身是景點,免費)+ 德文郡室內花園,兩者都在市中心且相連的 +15 空中走廊系統內,下雨下雪完全不用出到戶外。","tips":["貼心備註:落地當天就把 eSIM 開通、離線地圖下載、朋友家 WiFi 連上 三件事做掉。還有——先去超市買好接下來幾天的水和零食,加拿大餐廳份量大但點心貴。"]},{"date":"2026-10-02","weekday":"週五","theme":"卡加利市區・下午有兩個約","slots":[{"time":"09:30","period":"morning","name":"史蒂芬大道步行街","lat":51.0486,"lng":-114.0708,"note":"從 Peace Bridge 走過來約 15 分鐘。市中心主街，早上人少好逛。"},{"time":"11:00","period":"morning","name":"Studio Bell 國家音樂中心","lat":51.0453,"lng":-114.0553,"url":"https://www.studiobell.ca/general-admission","note":"⚠️ 週一與公眾假日休館，淡季有可能縮成週三至週日——10/02 是週五應該有開，出發前打 (403) 543-5115 或看官網當月時間表確認。逛 2.5 小時剛好接得上 14:30 的約。"},{"period":"noon","time":"14:30","name":"和 Yuki 吃飯","lat":51.0447,"lng":-114.0719,"note":"固定約。地點請自己填——座標先放市中心。從 Studio Bell（East Village）走路或 CTrain 都很近。"},{"period":"evening","time":"18:00","name":"Japan English 活動","lat":51.0447,"lng":-114.0719,"note":"固定約。地點與地址請自己填——我沒有這個活動的資訊，座標先放市中心。跟 14:30 的約之間有 3 小時，夠在附近喝杯咖啡或回住處休息。"}],"routes":[{"kind":"easy","label":"輕鬆路線（全程市中心走路 + 免費 CTrain）","stops":[{"time":"09:00","name":"Phil & Sebastian 咖啡","url":"https://philsebastian.com/","note":"卡加利自烘咖啡的代表,已經紅到全加拿大。點一杯 flat white 開場。"},{"time":"09:30","period":"上午","name":"史蒂芬大道步行街","lat":51.0486,"lng":-114.0708},{"time":"11:00","period":"上午","name":"Studio Bell 國家音樂中心","lat":51.0453,"lng":-114.0553,"url":"https://www.studiobell.ca/general-admission","note":" 週一與公眾假日休館（10/12 感恩節進不去），淡季可能縮成週三至週日。"},{"time":"14:30","name":"和 Yuki 吃飯","lat":51.0447,"lng":-114.0719,"note":"固定約，地點自填。"},{"time":"16:30","name":"休息・回住處或附近咖啡","lat":51.0539,"lng":-114.0789,"note":"兩個約之間的 3 小時。Peace Bridge 走路 10 分鐘就到住處。"},{"time":"18:00","name":"Japan English 活動","lat":51.0447,"lng":-114.0719,"note":"固定約，地點自填。"}]},{"kind":"mid","label":"中等路線（上午多走一段河濱）","stops":[{"time":"08:30","name":"弓河步道騎車","url":"https://www.google.com/maps/search/?api=1&query=Bow+River+Pathway+Calgary","note":"卡加利有全北美最長的城市步道系統(逾 900 km)。租共享單車沿河騎 15–20 km,經過王子島、和平橋、Edworthy 公園。"},{"time":"11:00","period":"午後","name":"East Village / 和平橋","lat":51.047,"lng":-114.05},{"time":"12:00","period":"上午","name":"Studio Bell 國家音樂中心","lat":51.0453,"lng":-114.0553,"url":"https://www.studiobell.ca/general-admission","note":"午後場，逛 2 小時。"},{"time":"14:30","name":"和 Yuki 吃飯","lat":51.0447,"lng":-114.0719,"note":"固定約，地點自填。"},{"time":"16:30","name":"Inglewood 老城區","lat":51.0388,"lng":-114.0316,"url":"https://www.google.com/maps/search/Inglewood+Calgary/@51.0388,-114.0316,15z","note":"兩個約之間的空檔。CTrain 紅線再走幾分鐘，古董店與獨立咖啡。"},{"time":"18:00","name":"Japan English 活動","lat":51.0447,"lng":-114.0719,"note":"固定約，地點自填。"}]}],"planB":"☔️ 雨雪備案:兩個約都不受天氣影響。上午改走室內：卡加利中央圖書館（建築本身是景點、免費）→ Glenbow 博物館 → CORE 購物中心的 +15 空中走廊，全程不淋雨。","tips":["貼心備註:⚠️ 今天有兩個固定時間的約：14:30 和 Yuki 吃飯、18:00 Japan English 活動。上午的行程都安排在市中心走得到的範圍，14:00 前一定收得回來。","貼心備註:兩個約之間只有 3 小時，中間不要排需要跨區的點。Japan English 活動的地點請自己填進來——我沒有它的資訊。","貼心備註:卡加利市中心的 CTrain 在 7 Ave 市區段完全免費，兩個約之間移動用它最快。"]},{"date":"2026-10-03","weekday":"週六","theme":"自行安排・Sentinel Pass","slots":[{"period":"morning","time":"—","name":"Sentinel Pass（你自己安排）","url":"https://www.pc.gc.ca/en/pn-np/ab/banff/activ/randonnee-hiking/sentinelle-sentinel","lat":51.3283,"lng":-116.2028,"note":"行程頁不排這一天的內容。座標是 Sentinel Pass 埡口，地圖上標出來方便你對位置。接駁預約、熊管理規定、雪況三件事見上方貼心備註。","needsBooking":true,"leadDays":2,"bookingKind":"reserve"}],"routes":[],"planB":"☔️ 雨雪備案:高山埡口下雪或起霧就不要上去。降級成落葉松谷（Larch Valley）到谷口折返，或整天改成露易絲湖畔平路。","tips":["貼心備註:這一天你自己安排，行程頁不排內容。下面只留跟 Sentinel Pass 有關、而且非查不可的三件事。","貼心備註:⚠️ 夢蓮湖公路禁止私家車，只能搭 Parks Canada 接駁——要預約。40% 名額 4/15 開賣（早就滿了），剩下 60% 在出發前 2 天 08:00 MDT 整點釋出，要準時守著搶。","貼心備註:⚠️ Larch Valley／Sentinel Pass 在落葉松季有強制「4 人成團」的熊管理規定，三個人可能在步道口被擋回來。出發前查 Parks Canada 的 area closures 公告。","貼心備註:Sentinel Pass 來回約 11.6 km、爬升 725 m，是這一帶最硬的半日行程之一。10 月上旬高處可能已有雪，登山鞋與冰爪要評估。從卡加利單程約 2 小時。"],"alternatives":[]},{"date":"2026-10-04","weekday":"週日","theme":"卡加利・進山前最後一天","slots":[{"time":"10:00","period":"morning","name":"卡加利農夫市集","lat":51.027,"lng":-114.027,"note":"南館 510 77 Ave SE，週四至週日 09:00–17:00。進山前的補給站——山上的超市貴三成。"},{"time":"13:30","period":"noon","name":"Inglewood 老城區","lat":51.029,"lng":-114.0157,"note":"古董店、獨立咖啡、書店。昨天爬了 11.6 km，今天走平路就好。"},{"time":"18:00","period":"evening","name":"River Café","lat":51.0537,"lng":-114.068,"url":"https://www.river-cafe.com/","needsBooking":true,"leadDays":30,"bookingKind":"reserve","bookingUrl":"https://www.river-cafe.com/reservations/","note":"王子島公園裡的餐廳，走路可到。進山前最後一頓好的。"}],"routes":[{"kind":"easy","label":"輕鬆路線（全程走路 + 免費 CTrain）","stops":[{"time":"10:00","period":"noon","name":"卡加利農夫市集","lat":51.027,"lng":-114.027,"note":"Calgary Farmers' Market 南館（510 77 Ave SE），週四至週日 09:00–17:00。午餐直接在市集解決。"},{"time":"13:30","period":"午後","name":"Inglewood 老城區","lat":51.029,"lng":-114.0157},{"time":"15:30","name":"MEC 戶外用品店・補齊裝備","url":"https://www.mec.ca/en/stores/calgary","lat":51.0436,"lng":-114.0836,"note":"830 10 Ave SW，走路可到。山上缺什麼今天補齊——熊鈴、防水層、保溫瓶，班夫鎮上同樣的東西貴一截。"},{"time":"18:00","period":"傍晚","name":"River Café","lat":51.0537,"lng":-114.068,"url":"https://www.river-cafe.com/","needsBooking":true,"leadDays":30,"bookingKind":"reserve","bookingUrl":"https://www.river-cafe.com/reservations/"}]},{"kind":"mid","label":"中等路線（早上加一段河濱）","stops":[{"time":"08:30","name":"弓河步道騎車","url":"https://www.google.com/maps/search/?api=1&query=Bow+River+Pathway+Calgary","note":"卡加利有全北美最長的城市步道系統(逾 900 km)。租共享單車沿河騎 15–20 km,經過王子島、和平橋、Edworthy 公園。"},{"time":"11:00","period":"noon","name":"卡加利農夫市集","lat":51.027,"lng":-114.027,"note":"Calgary Farmers' Market 南館（510 77 Ave SE），週四至週日 09:00–17:00。午餐直接在市集解決。"},{"time":"14:00","name":"The Confluence 匯流歷史園區","url":"https://www.theconfluence.ca/","note":"舊名 Fort Calgary,2024 年更名以納入原住民觀點。弓河與 Elbow 河匯流處,卡加利的起點。 ⚠️ 文化中心正進行第二期展覽改建（Ki’pait’apiiyssinnooni）而關閉，目前只開放戶外園區與特別活動——把它當散步而不是看展。","status":{"label":"室內改建關閉","kind":"season"}},{"time":"18:00","period":"傍晚","name":"River Café","lat":51.0537,"lng":-114.068,"url":"https://www.river-cafe.com/","needsBooking":true,"leadDays":30,"bookingKind":"reserve","bookingUrl":"https://www.river-cafe.com/reservations/"}]}],"planB":"☔️ 雨雪備案:農夫市集本來就是室內。下午改去 CORE 購物中心的 +15 空中走廊或卡加利中央圖書館，全程不淋雨。","tips":["貼心備註:今天還在卡加利，不用車。明天才取車進山——今天把補給買齊（山上物價高三成）。","貼心備註:昨天爬完 Sentinel Pass，今天刻意排輕鬆的。市區用免費 CTrain 與走路就夠。"]},{"date":"2026-10-05","weekday":"週一","theme":"取車・進山日・落腳 Harvie Heights","slots":[{"name":"市區 Avis 取車（120 10th Ave SW）","url":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","lat":51.0435,"lng":-114.0736,"needsBooking":true,"leadDays":30,"bookingKind":"reserve","bookingUrl":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","note":"離 Peace Bridge 走路約 15 分鐘。取車後先加滿油再上 Highway 1。三人輪流開的話，第二、三位駕駛要當場登記。帶護照 + 母國駕照正本 + 國際駕照，三樣缺一不可。","period":"morning","time":"09:30"},{"time":"12:30","period":"noon","name":"坎摩爾小鎮","lat":51.0891,"lng":-115.3594,"note":"卡加利開來約 1 小時 15 分，住處再往東 10 分鐘。先放行李再逛主街 8 Street——山上超市貴三成，今天順便補齊。"},{"time":"18:30","period":"evening","name":"硃砂湖日落","lat":51.1781,"lng":-115.5989,"note":"10 月上旬日落約 19:10。從坎摩爾開到硃砂湖約 30 分鐘，留足返程時間。"}],"routes":[{"kind":"easy","label":"輕鬆路線","stops":[{"name":"市區 Avis 取車（120 10th Ave SW）","url":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","lat":51.0435,"lng":-114.0736,"needsBooking":true,"leadDays":30,"bookingKind":"reserve","bookingUrl":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","note":"離 Peace Bridge 走路約 15 分鐘。取車後先加滿油再上 Highway 1。三人輪流開的話，第二、三位駕駛要當場登記。帶護照 + 母國駕照正本 + 國際駕照，三樣缺一不可。","time":"09:30"},{"time":"12:30","period":"noon","name":"坎摩爾小鎮","lat":51.0891,"lng":-115.3594,"note":"卡加利開來約 1 小時 15 分。先去旅館放行李（HI Canmore 下午 3 點才能 check-in，但可以先寄放），再逛主街 8 Street。"},{"time":"15:00","name":"坎摩爾・警察溪木棧道","url":"https://www.google.com/maps/search/?api=1&query=Policeman%27s+Creek+Boardwalk+Canmore","note":"坎摩爾鎮上的木棧道，平路 2 km，不受 Hwy 742 封路影響。原本這個時段排的是草地湖步道，那一區整個封了。","lat":51.0889,"lng":-115.352},{"time":"18:30","period":"evening","name":"硃砂湖日落","lat":51.1781,"lng":-115.5989,"note":"10 月日落約 19:10。從坎摩爾開到硃砂湖約 30 分鐘，記得留返程時間。"}]},{"kind":"mid","label":"中等路線","stops":[{"name":"市區 Avis 取車（120 10th Ave SW）","url":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","lat":51.0435,"lng":-114.0736,"needsBooking":true,"leadDays":30,"bookingKind":"reserve","bookingUrl":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","note":"離 Peace Bridge 走路約 15 分鐘。取車後先加滿油再上 Highway 1。三人輪流開的話，第二、三位駕駛要當場登記。帶護照 + 母國駕照正本 + 國際駕照，三樣缺一不可。","time":"09:00"},{"time":"12:00","period":"noon","name":"坎摩爾小鎮","lat":51.0891,"lng":-115.3594,"note":"卡加利開來約 1 小時 15 分。先去旅館放行李（HI Canmore 下午 3 點才能 check-in，但可以先寄放），再逛主街 8 Street。"},{"time":"14:30","period":"午後","name":"洞穴與盆地國家歷史遺址","lat":51.1727,"lng":-115.5822,"note":"加拿大國家公園的發源地，室內為主。需國家公園入園證。"},{"time":"16:00","name":"Quarry Lake 採石湖","url":"https://www.google.com/maps/search/Quarry+Lake+Canmore/@51.0742,-115.3706,15z","note":"坎摩爾鎮南邊的小湖，繞湖平路 1.6 km，背景是三姊妹峰。同樣不受 742 封路影響。","lat":51.0742,"lng":-115.3706},{"time":"18:30","period":"evening","name":"硃砂湖日落","lat":51.1781,"lng":-115.5989,"note":"10 月日落約 19:10。從坎摩爾開到硃砂湖約 30 分鐘，記得留返程時間。"}]}],"planB":"☔️ 雨雪備案:硃砂湖日落改成坎摩爾鎮上的 Grizzly Paw 釀酒廠，室內、走路可到，順便把明天的行程再確認一次。","tips":["貼心備註:今天取車進山，住 Harvie Heights（1000 Harvie Heights Road）。卡加利開來約 1 小時 15 分。","貼心備註:出城前在卡加利加滿油。班夫與坎摩爾的油價每公升貴約 CA$0.15–0.25。Harvie Heights 沒有加油站，最近的在坎摩爾。","貼心備註:Harvie Heights 在國家公園界線外，停在住處不用通行證；但明天起進園區就要，見交通區塊的通行證那一段。"]},{"date":"2026-10-06","weekday":"週二","theme":"露易絲湖 + Yoho・跨省進 BC","slots":[{"time":"09:00","period":"morning","name":"露易絲湖湖畔步道","lat":51.4254,"lng":-116.1773,"note":"坎摩爾開約 1 小時。城堡飯店前沿湖平路 4 km 來回。十月的湖色比夏天沉，但少了人潮反而更像它本來的樣子。"},{"time":"12:30","period":"noon","name":"翡翠湖","lat":51.4397,"lng":-116.5297,"url":"https://parks.canada.ca/pn-np/bc/yoho"},{"time":"15:00","period":"evening","name":"塔卡考瀑布","lat":51.4986,"lng":-116.5015,"url":"https://parks.canada.ca/pn-np/bc/yoho"}],"routes":[{"kind":"easy","label":"輕鬆路線（全程平路）","stops":[{"time":"09:00","period":"noon","name":"露易絲湖湖畔步道","lat":51.4254,"lng":-116.1773},{"time":"11:30","name":"Truffle Pigs Bistro(Field 鎮)","url":"https://trufflepigs.com/","note":"人口只有 170 人的鐵路小鎮裡,一間水準高得不合理的餐廳。這一帶唯一像樣的午餐選擇。 ⚠️ 官網沒有線上訂位系統，要打電話 (250) 343-6303；Field 鎮就這一間，10/06（週二）午餐建議先問。","needsBooking":true,"leadDays":5,"bookingKind":"reserve"},{"time":"12:30","period":"morning","name":"天然石橋","lat":51.4423,"lng":-116.498,"url":"https://parks.canada.ca/pn-np/bc/yoho"},{"time":"13:30","period":"noon","name":"翡翠湖","lat":51.4397,"lng":-116.5297,"url":"https://parks.canada.ca/pn-np/bc/yoho"},{"time":"15:30","period":"evening","name":"塔卡考瀑布","lat":51.4986,"lng":-116.5015,"url":"https://parks.canada.ca/pn-np/bc/yoho"}]},{"kind":"mid","label":"中等路線（加走費爾維觀景台與翡翠盆地）","stops":[{"time":"08:30","period":"noon","name":"露易絲湖湖畔步道","lat":51.4254,"lng":-116.1773},{"time":"09:30","period":"evening","name":"費爾維觀景台","lat":51.4189,"lng":-116.1806,"url":"https://www.google.com/maps/search/Fairview%20Lookout%20Trail%20Lake%20Louise/@51.4189,-116.1806,16z"},{"time":"12:30","name":"Truffle Pigs Bistro(Field 鎮)","url":"https://trufflepigs.com/","note":"人口只有 170 人的鐵路小鎮裡,一間水準高得不合理的餐廳。這一帶唯一像樣的午餐選擇。 ⚠️ 官網沒有線上訂位系統，要打電話 (250) 343-6303；Field 鎮就這一間，10/06（週二）午餐建議先問。","needsBooking":true,"leadDays":5,"bookingKind":"reserve"},{"time":"13:30","name":"翡翠湖環湖 + 翡翠盆地","url":"https://www.google.com/maps/search/?api=1&query=Emerald+Lake+Circuit+Trail+Yoho","note":"環湖 5.2 km 之外再加走 Emerald Basin 岔路(+4 km、上升 300 m),進到冰斗地形裡,幾乎不會遇到人。"},{"time":"16:00","period":"evening","name":"塔卡考瀑布","lat":51.4986,"lng":-116.5015,"url":"https://parks.canada.ca/pn-np/bc/yoho"}]}],"planB":"☔️ 雨雪備案:塔卡考瀑布的產業道路遇雪會提早封閉（通常 10 月中）。封了就把時間全給翡翠湖與天然石橋，回程繞去露易絲湖村喝咖啡。","tips":["貼心備註:⚠️ 今天會開進 BC 省。BC 法規規定 10/1–4/30 行駛指定山區公路必須配 M+S 或雪胎——Highway 1 過了亞伯達／BC 界就適用。取車時務必確認胎壁有 M+S 或雪花標誌。","貼心備註:露易絲湖與 Field 鎮在同一條路上（Field 在露易絲湖西邊 25 分鐘），所以併成一天。夢蓮湖那一側你 10/03 已經去過，今天不重複。","貼心備註:Field 鎮只有一間像樣的餐廳（Truffle Pigs），沒有線上訂位，10/06 午餐建議先電 (250) 343-6303。"]},{"date":"2026-10-07","weekday":"週三","theme":"班夫鎮・湖、纜車、溫泉","slots":[{"time":"09:30","period":"morning","name":"明尼汪卡湖 & 兩傑克湖","lat":51.2361,"lng":-115.4425,"note":"從坎摩爾開約 30 分。傍晚光線最好（日落 19:03），順路把明天要去的班夫鎮先摸熟。"},{"time":"12:00","period":"noon","name":"弓河瀑布 & 驚喜角","lat":51.1712,"lng":-115.56,"url":"https://banff.ca/654/Bow-Falls-Trail","note":"坎摩爾退房後開約 25 分。先來這裡，因為離班夫鎮近、方便之後 check-in。"},{"time":"14:00","period":"noon","name":"班夫纜車・硫磺山","lat":51.1494,"lng":-115.5719,"url":"https://www.banffjaspercollection.com/attractions/banff-gondola/tickets/","needsBooking":true,"leadDays":7,"bookingKind":"ticket","bookingUrl":"https://www.banffjaspercollection.com/attractions/banff-gondola/tickets/"},{"time":"17:00","period":"evening","name":"班夫上溫泉","lat":51.1622,"lng":-115.5563,"note":"就在纜車站下方 1 公里。Parks Canada 不接受預約，現場售票。泡完開回 Harvie Heights 約 40 分。"}],"routes":[{"kind":"easy","label":"輕鬆路線","stops":[{"time":"09:30","period":"morning","name":"明尼汪卡湖 & 兩傑克湖","lat":51.2361,"lng":-115.4425,"note":"從坎摩爾開約 30 分。傍晚光線最好（日落 19:03），順路把明天要去的班夫鎮先摸熟。"},{"time":"11:30","period":"午後","name":"洞穴與盆地國家歷史遺址","lat":51.1727,"lng":-115.5822,"note":"加拿大國家公園的發源地，室內為主。需國家公園入園證。"},{"time":"12:30","period":"noon","name":"弓河瀑布 & 驚喜角","lat":51.1712,"lng":-115.56,"url":"https://banff.ca/654/Bow-Falls-Trail","note":"坎摩爾退房後開約 25 分。先來這裡，因為離班夫鎮近、方便之後 check-in。"},{"time":"14:00","period":"noon","name":"班夫纜車・硫磺山","lat":51.1494,"lng":-115.5719,"url":"https://www.banffjaspercollection.com/attractions/banff-gondola/tickets/","needsBooking":true,"leadDays":7,"bookingKind":"ticket","bookingUrl":"https://www.banffjaspercollection.com/attractions/banff-gondola/tickets/"},{"time":"17:00","period":"evening","name":"班夫上溫泉","lat":51.1622,"lng":-115.5563,"note":"就在纜車站下方 1 公里。Parks Canada 不接受預約，現場售票。泡完直接回旅館。"}]},{"kind":"mid","label":"中等路線（步道上硫磺山、纜車下山）","stops":[{"time":"09:00","name":"明尼汪卡湖・史都華峽谷步道","url":"https://www.google.com/maps/search/?api=1&query=Lake+Minnewanka+Stewart+Canyon+Trail","note":"班夫退房前最後一段步道。若 10/8 已經走過明尼汪卡湖，改成直接下山、把時間留給市區。","period":"morning","lat":51.2489,"lng":-115.47},{"time":"12:00","period":"noon","name":"弓河瀑布 & 驚喜角","lat":51.1712,"lng":-115.56,"url":"https://banff.ca/654/Bow-Falls-Trail","note":"坎摩爾退房後開約 25 分。先來這裡，因為離班夫鎮近、方便之後 check-in。"},{"time":"13:30","name":"硫磺山步道上行 + 纜車下山","url":"https://www.google.com/maps/search/?api=1&query=Sulphur+Mountain+Trail+Banff","note":"5.5 km 之字坡、上升 655 m,約 2 小時。山頂可買單程下山票,自己走上去有種完全不同的成就感。 半價單程下山票只能在山頂上站現場買、沒有線上預售，而且依剩餘運能發售——滿載時要候位，不要排在末班車前。"},{"time":"17:30","period":"evening","name":"班夫上溫泉","lat":51.1622,"lng":-115.5563,"note":"就在纜車站下方 1 公里。Parks Canada 不接受預約，現場售票。泡完直接回旅館。"}]}],"planB":"☔️ 雨雪備案:纜車在強風或濃霧會停開。停了就把時間全給上溫泉（雨天泡露天溫泉反而是加分）+ 洞穴與盆地室內展示 + 班夫大道逛街。","tips":["貼心備註:Harvie Heights 到班夫鎮只要 36 分，今天車程都在 30 分鐘內。動線排成「湖 → 纜車 → 溫泉」，泡完直接回住處。","貼心備註:班夫上溫泉 Parks Canada 明確不接受預約與預售票，一律現場售票、先到先入場，所以這一站沒有預訂徽章不是漏標。","貼心備註:明天要開 306 km 到 Jasper，今天別排太滿、早點休息。"],"alternatives":[]},{"date":"2026-10-08","weekday":"週四","theme":"冰原大道北上・住進 Jasper","slots":[{"time":"09:00","period":"morning","name":"弓湖 & 烏鴉腳冰川","lat":51.6912,"lng":-116.4738,"url":"https://parks.canada.ca/pn-np/ab/banff","note":"Harvie Heights 出發 1 小時。冰原大道上最容易停的一個湖，路邊就是觀景點。"},{"time":"11:00","period":"noon","name":"哥倫比亞冰原","lat":52.2192,"lng":-117.2296,"url":"https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/","needsBooking":true,"leadDays":14,"bookingKind":"ticket","bookingUrl":"https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/","note":"⚠️ 雪車＋天空步道二合一要 2.5–3 小時，雪車末班 16:00、Skywalk 11:00 才開。11:00 到剛好。二合一票成人 CA$125（提前 2 週以上訂較便宜）。"},{"period":"evening","time":"17:30","name":"Jasper・838 Geikie Street 入住","url":"https://zh-t.airbnb.com/rooms/1675535512645460488","lat":52.87252,"lng":-118.0905,"note":"冰原開來 103 km／1.6 小時。Jasper 鎮上有 70+ 家餐廳營運中，晚餐不用先訂。⚠️ Maligne Canyon 與 Cavell Road 2026 整季關閉，別排。"}],"routes":[{"kind":"easy","label":"輕鬆路線（沿途都是路邊觀景點）","stops":[{"time":"08:30","period":"morning","name":"赫伯特湖","lat":51.628,"lng":-116.3405,"url":"https://parks.canada.ca/pn-np/ab/banff"},{"time":"09:15","period":"morning","name":"弓湖 & 烏鴉腳冰川","lat":51.6912,"lng":-116.4738,"url":"https://parks.canada.ca/pn-np/ab/banff"},{"time":"10:00","period":"noon","name":"佩托湖觀景台","lat":51.728,"lng":-116.528,"url":"https://parks.canada.ca/pn-np/ab/banff"},{"time":"11:00","period":"noon","name":"哥倫比亞冰原","lat":52.2192,"lng":-117.2296,"url":"https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/","needsBooking":true,"leadDays":14,"bookingKind":"ticket","bookingUrl":"https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/","note":"雪車 + 天空步道二合一票成人 CA$125（提前 2 週以上訂較便宜）。10 月雪車末班 16:00、Skywalk 11:00 才開，所以 13:00 到剛好。"},{"time":"15:00","name":"桑瓦普塔瀑布 Sunwapta Falls","url":"https://www.google.com/maps/search/Sunwapta+Falls/@52.5344,-117.6453,15z","lat":52.5344,"lng":-117.6453,"note":"冰原往 Jasper 路上，停車場走 5 分鐘就到。北上順路，不繞路。"},{"time":"17:30","name":"Jasper・838 Geikie Street 入住","url":"https://zh-t.airbnb.com/rooms/1675535512645460488","lat":52.87252,"lng":-118.0905}]},{"kind":"mid","label":"中等路線（冰原前加一段稜線）","stops":[{"time":"08:00","period":"morning","name":"赫伯特湖","lat":51.628,"lng":-116.3405,"url":"https://parks.canada.ca/pn-np/ab/banff"},{"time":"08:45","period":"morning","name":"弓湖 & 烏鴉腳冰川","lat":51.6912,"lng":-116.4738,"url":"https://parks.canada.ca/pn-np/ab/banff"},{"time":"10:00","name":"米斯塔亞峽谷","url":"https://www.google.com/maps/search/?api=1&query=Mistaya+Canyon+Banff","note":"停車場下切 500 公尺,河水把石灰岩切成扭曲的深槽。很多人開過頭錯過它,但它是這條路上最好的短停點。"},{"time":"11:15","period":"noon","name":"哥倫比亞冰原","lat":52.2192,"lng":-117.2296,"url":"https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/","needsBooking":true,"leadDays":14,"bookingKind":"ticket","bookingUrl":"https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/","note":"雪車 + 天空步道二合一票成人 CA$125（提前 2 週以上訂較便宜）。10 月雪車末班 16:00、Skywalk 11:00 才開，所以 13:00 到剛好。"},{"time":"14:30","name":"威爾考克斯埡口步道","url":"https://www.google.com/maps/search/?api=1&query=Wilcox+Pass+Trail+Jasper","note":"冰原正對面的步道口，看阿薩巴斯卡冰川最好的角度。⚠️ 海拔 2,000 m 以上，10 月上旬可能積雪。"},{"time":"17:00","name":"桑瓦普塔瀑布 Sunwapta Falls","url":"https://www.google.com/maps/search/Sunwapta+Falls/@52.5344,-117.6453,15z","lat":52.5344,"lng":-117.6453,"note":"北上順路。"},{"time":"18:30","name":"Jasper・838 Geikie Street 入住","url":"https://zh-t.airbnb.com/rooms/1675535512645460488","lat":52.87252,"lng":-118.0905}]}],"planB":"☔️ 雨雪備案:冰原大道下雪會封路（10 月已有可能）。出發前查 511 Alberta；封了就走 Hwy 11（大衛湯普森公路）繞經 Rocky Mountain House 到 Jasper，多約 2 小時，沿途沒有冰原但路況穩。真的封死就取消 Jasper 那晚。","tips":["貼心備註:今天是整趟最長的一段：Harvie Heights → Jasper 306 km／4.6 小時（不含停留），冰原中心在 203 km／2.9 小時處。⚠️ 08:00 出發才來得及在冰原玩滿再天黑前到 Jasper。","貼心備註:⚠️ 冰原的「雪車＋天空步道」二合一要 2.5–3 小時，而 10 月雪車只開到 16:00、Skywalk 11:00 才開。08:00 出發約 10:50 到，時間剛好——但不要在前面的湖拖太久。","貼心備註:⚠️ 整條冰原大道只有 Saskatchewan River Crossing 一個加油站，而且季節性營業。出發前在坎摩爾加滿油。手機訊號大半路段沒有。","貼心備註:退房後行李全部上車，今晚住 Jasper（838 Geikie Street）。Jasper 日落比南邊晚約 10 分鐘。"]},{"date":"2026-10-09","weekday":"週五","theme":"Jasper 南下・回卡加利還車","slots":[{"period":"morning","time":"07:30","name":"Jasper 退房・行李上車","url":"https://zh-t.airbnb.com/rooms/1675535512645460488","lat":52.87252,"lng":-118.0905,"note":"早點走。今天要開 413 km，中途只停兩個路邊瀑布。"},{"period":"morning","time":"08:15","name":"阿薩巴斯卡瀑布 Athabasca Falls","url":"https://www.google.com/maps/search/Athabasca+Falls/@52.6647,-117.8847,15z","lat":52.6647,"lng":-117.8847,"note":"Jasper 南下 30 分，停車場走 3 分鐘。冰原大道南段最值得停的一個，水量大、峽谷窄。"},{"period":"noon","time":"14:30","name":"市區 Avis 還車（120 10th Ave SW）","url":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","lat":51.0435,"lng":-114.0736,"note":"還車前把油加滿。還完走路 15 分鐘回 Peace Bridge 住處。"},{"time":"18:30","name":"17 街 SW(紅哩大道)","url":"https://www.google.com/maps/search/?api=1&query=17th+Avenue+SW+Calgary","note":"回到卡加利的第一晚。開了一整天，就近吃飯。","period":"evening","lat":51.0384,"lng":-114.0836}],"routes":[{"kind":"easy","label":"輕鬆路線（只停兩個路邊瀑布）","stops":[{"time":"07:30","name":"Jasper 退房・行李上車","url":"https://zh-t.airbnb.com/rooms/1675535512645460488","lat":52.87252,"lng":-118.0905},{"time":"08:15","name":"阿薩巴斯卡瀑布 Athabasca Falls","url":"https://www.google.com/maps/search/Athabasca+Falls/@52.6647,-117.8847,15z","lat":52.6647,"lng":-117.8847,"note":"走 3 分鐘。"},{"time":"11:30","name":"Saskatchewan River Crossing 加油與午餐","url":"https://www.thecrossingresort.com/","lat":51.9694,"lng":-116.7261,"note":"冰原大道唯一的加油站，季節性營業。這裡加滿，後面到坎摩爾都沒有。"},{"time":"14:30","name":"市區 Avis 還車（120 10th Ave SW）","url":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","lat":51.0435,"lng":-114.0736},{"time":"18:30","name":"17 街 SW(紅哩大道)","url":"https://www.google.com/maps/search/?api=1&query=17th+Avenue+SW+Calgary","note":"回到卡加利的第一晚。晚餐與酒吧一條街，走路或 CTrain 都到得了。","period":"evening","lat":51.0384,"lng":-114.0836}]},{"kind":"mid","label":"中等路線（多停一個瀑布，但要更早出發）","stops":[{"time":"07:00","name":"Jasper 退房・行李上車","url":"https://zh-t.airbnb.com/rooms/1675535512645460488","lat":52.87252,"lng":-118.0905},{"time":"07:45","name":"阿薩巴斯卡瀑布 Athabasca Falls","url":"https://www.google.com/maps/search/Athabasca+Falls/@52.6647,-117.8847,15z","lat":52.6647,"lng":-117.8847},{"time":"09:00","name":"桑瓦普塔瀑布 Sunwapta Falls","url":"https://www.google.com/maps/search/Sunwapta+Falls/@52.5344,-117.6453,15z","lat":52.5344,"lng":-117.6453,"note":"昨天北上若沒停，今天補。"},{"time":"11:30","name":"Saskatchewan River Crossing 加油與午餐","url":"https://www.thecrossingresort.com/","lat":51.9694,"lng":-116.7261},{"time":"14:30","name":"市區 Avis 還車（120 10th Ave SW）","url":"https://www.avis.ca/en/locations/ca/ab/calgary/s50","lat":51.0435,"lng":-114.0736},{"time":"18:30","name":"17 街 SW(紅哩大道)","url":"https://www.google.com/maps/search/?api=1&query=17th+Avenue+SW+Calgary","note":"回到卡加利的第一晚。晚餐與酒吧一條街，走路或 CTrain 都到得了。","period":"evening","lat":51.0384,"lng":-114.0836}]}],"planB":"☔️ 雨雪備案:冰原大道下雪封路的話，改走 Hwy 16 東行經 Edmonton 再南下——約 7.5 小時，那就整天都在開車、當天還不了車。真遇到這種情況，優先改還車日而不是硬開。","tips":["貼心備註:⚠️ 今天是純移動日：Jasper → 卡加利 413 km／約 5–6 小時。08:00 前出發，中途只停南下順路的瀑布，才來得及在市區 Avis 關門前還車。","貼心備註:阿薩巴斯卡瀑布與桑瓦普塔瀑布都在南下的 93 號公路邊，不繞路。其餘景點今天一律不排——昨天北上時已經看過冰原大道一次。","貼心備註:⚠️ 市區 Avis 平日營業時間比週末長，但從 Jasper 下來若遇雪或施工會拖很久。出發前確認 10/09（週五）的關門時間與有沒有 after-hours 鑰匙投遞箱。","貼心備註:還車前把油加滿。Jasper 或坎摩爾加都行，市區的加油站比機場便宜。"]},{"date":"2026-10-10","weekday":"週六","theme":"感恩節長週末・卡加利","slots":[{"time":"10:00","period":"morning","name":"傳統公園歷史村","lat":50.9743,"lng":-114.1064,"url":"https://heritagepark.ca/","needsBooking":true,"leadDays":3,"bookingKind":"ticket","bookingUrl":"https://heritagepark.ca/admission/","note":"加拿大最大的活歷史村，10 月只開週末、10:00–17:00。CTrain 紅線 Heritage 站下車後距園區 2.1 km，要轉 Route 402 接駁（約每 20 分一班）。"},{"time":"14:30","period":"noon","name":"卡加利農夫市集","lat":51.027,"lng":-114.027,"note":"南館，週四至週日 09:00–17:00。"},{"time":"18:30","name":"17 街 SW(紅哩大道)","url":"https://www.google.com/maps/search/?api=1&query=17th+Avenue+SW+Calgary","note":"感恩節長週末第一晚，先訂位。","period":"evening","lat":51.0384,"lng":-114.0836}],"routes":[{"kind":"easy","label":"輕鬆路線（CTrain + 公車）","stops":[{"time":"10:00","period":"evening","name":"傳統公園歷史村","lat":50.9743,"lng":-114.1064,"url":"https://heritagepark.ca/","needsBooking":true,"leadDays":3,"bookingKind":"ticket","bookingUrl":"https://heritagepark.ca/admission/","note":"加拿大最大的活歷史村，10 月只開週末、10:00–17:00，10/12 感恩節週一加開，那天是 2026 年最後開放日。CTrain 紅線 Heritage 站下車後距園區 2.1 km，要轉 Route 402 Heritage Park 接駁（約每 20 分一班），不是走 10 分鐘。"},{"time":"14:30","period":"noon","name":"卡加利農夫市集","lat":51.027,"lng":-114.027,"note":"Calgary Farmers' Market 南館（510 77 Ave SE），週四至週日 09:00–17:00。午餐直接在市集解決。"},{"time":"18:30","name":"17 街 SW(紅哩大道)","url":"https://www.google.com/maps/search/?api=1&query=17th+Avenue+SW+Calgary","note":"卡加利吃喝玩樂密度最高的一條街。從東走到西約 2.5 km,沿途餐廳酒吧上百家。","lat":51.0384,"lng":-114.0836}]},{"kind":"mid","label":"中等路線（早上加一段河濱）","stops":[{"time":"08:30","name":"弓河步道騎車","url":"https://www.google.com/maps/search/?api=1&query=Bow+River+Pathway+Calgary","note":"卡加利有全北美最長的城市步道系統(逾 900 km)。租共享單車沿河騎 15–20 km,經過王子島、和平橋、Edworthy 公園。"},{"time":"11:00","period":"evening","name":"傳統公園歷史村","lat":50.9743,"lng":-114.1064,"url":"https://heritagepark.ca/","needsBooking":true,"leadDays":3,"bookingKind":"ticket","bookingUrl":"https://heritagepark.ca/admission/","note":"加拿大最大的活歷史村，10 月只開週末、10:00–17:00，10/12 感恩節週一加開，那天是 2026 年最後開放日。CTrain 紅線 Heritage 站下車後距園區 2.1 km，要轉 Route 402 Heritage Park 接駁（約每 20 分一班），不是走 10 分鐘。"},{"time":"15:00","period":"午後","name":"Inglewood 老城區","lat":51.029,"lng":-114.0157},{"time":"18:30","name":"17 街 SW(紅哩大道)","url":"https://www.google.com/maps/search/?api=1&query=17th+Avenue+SW+Calgary","note":"卡加利吃喝玩樂密度最高的一條街。從東走到西約 2.5 km,沿途餐廳酒吧上百家。","lat":51.0384,"lng":-114.0836}]}],"planB":"☔️ 雨雪備案:傳統公園有大量室內空間，下雨照常。真的很糟就改成卡加利中央圖書館 + Glenbow 博物館 + CORE 的 +15 空中走廊，全程不淋雨。","tips":["貼心備註:車昨天已經還掉，今天起全程 CTrain 與走路。感恩節長週末第一天，市區餐廳建議先訂位。","貼心備註:傳統公園歷史村 10 月只開週末，10/12 感恩節週一加開且是 2026 年最後開放日——10/10 或 10/12 擇一即可。"]},{"date":"2026-10-11","weekday":"週日","theme":"感恩節大餐・打包日","slots":[{"time":"10:00","period":"上午","name":"OEB 早午餐","lat":51.047,"lng":-114.063,"url":"https://eatoeb.com/locations/calgary/"},{"time":"12:30","period":"午後","name":"Inglewood 採買","lat":51.029,"lng":-114.0157},{"time":"15:00","period":"午後","name":"CF Chinook Centre","lat":50.9997,"lng":-114.0722}],"routes":[{"kind":"easy","label":"輕鬆路線","stops":[{"time":"10:00","name":"OEB Breakfast Co. 早午餐","url":"https://eatoeb.com/","note":"卡加利起家、現在紅到全加拿大的早餐店。連假的早午餐會排隊,建議先訂或提早去。"},{"time":"12:30","name":"Inglewood 採買最後一輪","url":"https://www.google.com/maps/search/?api=1&query=Inglewood+Calgary+antique+shops","note":"古董店、黑膠、手工皂、獨立設計。這裡買的東西比機場有意義得多。"},{"time":"15:00","name":"回朋友家・打包行李","url":null,"note":"趁天亮整理。把要帶回日本的食品全部檢查一遍(日本海關禁肉類與部分乳製品)。"},{"time":"17:30","name":"感恩節大餐(在朋友家最好)","url":"https://www.google.com/maps/search/?api=1&query=Thanksgiving+dinner+Calgary","note":"加拿大感恩節的核心就是在家吃飯。如果朋友有邀請,一定要留在家裡——這比任何餐廳都珍貴。可以主動提議煮一道日本菜當回禮。"}]},{"kind":"mid","label":"中等路線","stops":[{"time":"08:30","name":"鼻山公園晨走","url":"https://www.google.com/maps/search/?api=1&query=Nose+Hill+Park+Calgary+summit","note":"8 km 環線。最後一次看落磯山天際線,和第一天形成呼應。"},{"time":"12:00","name":"Kensington + 弓河北岸步道","url":"https://www.google.com/maps/search/?api=1&query=Kensington+Calgary","note":"沿河走 6–8 km 回市中心,穿過 Riley Park 與 Sunnyside。"},{"time":"17:30","name":"Deane House 感恩節晚餐","url":"https://www.deanehouse.com/","note":"1906 年的老宅改成的餐廳,就在 The Confluence 旁。若朋友家沒安排,這是卡加利最有節日氣氛的選擇之一——但必須提前一個月訂。","needsBooking":true,"leadDays":30,"bookingKind":"reserve","bookingUrl":"https://www.deanehouse.com/reservations/"}]}],"planB":"☔️ 雨雪備案:今天本來就以吃與打包為主,天氣影響最小。下雨就去 CORE 購物中心 與 中央圖書館 消磨,兩者在 +15 系統內相連。","tips":["貼心備註:今晚先線上辦好 WestJet 報到(起飛前 24 小時開放)。順便確認行李額度——WestJet 國際線經濟艙的免費託運件數各票種不同,超重費很貴。楓糖漿與液體記得託運。"]},{"date":"2026-10-12","weekday":"週一","theme":"感恩節・回程","slots":[{"time":"08:00","period":"上午","name":"悠閒早餐","lat":51.0447,"lng":-114.0719},{"time":"11:30","period":"上午","name":"抵達 YYC 機場","lat":51.1225,"lng":-114.0203}],"routes":[{"kind":"easy","label":"唯一路線","stops":[{"time":"08:00","name":"Monogram Coffee 最後一杯","url":"https://monogramcoffee.com/","note":"卡加利精品咖啡的另一個代表。國定假日部分分店縮短營業,先查。"},{"time":"09:30","name":"和朋友道別 + 最後檢查","url":null,"note":"護照、錢包、充電器、房間插座、浴室。寫張手寫卡片留下來。"},{"time":"11:30","name":"抵達卡加利機場 YYC","url":"https://www.yyc.com/","note":"國際線建議起飛前 3 小時到。感恩節當天機場人潮多,不要卡點。"},{"time":"13:00","name":"機場免稅 + 最後採買","url":"https://www.yyc.com/en-us/shop-dine-relax","note":"楓糖、Cows 冰淇淋週邊、Roots。價格比市區貴,只買忘了買的。"},{"time":"14:50","name":"WS80 起飛 → 成田","url":null,"note":"10h30m,10/13 16:20 抵達成田。往西飛的時差比較好調,落地當晚正常睡就好。"}]},{"kind":"mid","label":"如果想再擠一個行程","stops":[{"time":"09:00","name":"王子島公園晨走","url":"https://www.google.com/maps/search/?api=1&query=Prince%27s+Island+Park+Calgary","note":"更務實的選擇。走 3 km 河邊步道,拍最後幾張秋景,10:30 回去拿行李。"}]}],"planB":"☔️ 雨雪備案:十月初卡加利下雪不算罕見。若前一晚有降雪預報,提早一小時出門,並先查 YYC 航班狀態。除雪會拖慢地面作業。","tips":["貼心備註:今天是加拿大感恩節,大部分商店、銀行、部分餐廳休息。不要指望早上還能去買什麼——該買的昨天都要買完。機場店家照常營業。"]}],"carPlan":{"title":"租車與共享車：怎麼租、租幾天、比價與推薦","lede":"你們已經決定租車。這一節回答三個問題：跟誰租、租幾天、共享車能不能取代。價格是 2026/08/23 查到的公開牌價與官方費率，未經訂位引擎報價，僅供抓預算。","recommendation":{"choice":"市區 Avis（120 10th Ave SW，店號 S50）取還，只租 10/5–10/9 共 5 天","why":"兩個理由。① 機場每「租車日」多收 CA$10 設施費（2026/7/1 起從 $6 漲上來），再加各家不公布比例的特許費。② 卡加利那幾天（10/1–10/4、10/9 還車後）都用不到車，市區還要付停車費——10/03 你去爬 Sentinel Pass 是朋友載或跟團，也不需要租車。市區據點裡只有 Avis S50 在官網查到週日營業。","caution":"還車排在 10/09（週五），但那天要從 Jasper 開 413 km／約 5–6 小時下來。⚠️ 務必先確認市區 Avis 週五的關門時間與有沒有 after-hours 鑰匙投遞箱——遇雪或施工很容易拖過關門。","totalCAD":"約 CA$1,050–1,350（5 天，三人合計，含稅費油錢與國家公園通行證）","breakdown":[{"item":"基本租金（中型 SUV，淡季）","cad":"CA$300–500","note":"CA$60–100／日 × 5 天，未稅"},{"item":"車損自負額保險 LDW","cad":"CA$150–190","note":"CA$30–38／日。台灣與日本發行的信用卡幾乎都不含加拿大租車車損"},{"item":"附加駕駛 ×2","cad":"CA$100","note":"Avis 加拿大 CA$10／日、CA$50／週，每位附加駕駛每張租約上限 CA$60"},{"item":"油錢","cad":"CA$230–270","note":"逐日里程相加約 1,350–1,500 km（10/08 北上 Jasper 306 km、10/09 南下 413 km 就佔一半），SUV 9–10 L/100km，油價 CA$1.75–1.90／L。⚠️ 冰原大道只有 Saskatchewan River Crossing 一個加油站。"},{"item":"國家公園通行證（5 個公園日，含 Jasper）","cad":"CA$122.50","note":"10/05–10/09 都在 Banff／Yoho／Jasper 界內。團體車輛日票 CA$24.50 × 5 = CA$122.50，低於 Discovery Pass 家庭年票 CA$167.50——這次買日票。三個公園共用同一張。"},{"item":"GST 5%","cad":"CA$28–40","note":"亞伯達沒有 PST，只有 GST。通行證不課 GST"},{"item":"（不用付）機場設施費 AFC","cad":"CA$0","note":"市區取車不收"},{"item":"（不用付）亞伯達 6% 租車稅","cad":"CA$0","note":"2027/1/1 才上路"}],"howTo":"現在就訂（10/10–10/12 是感恩節長週末，市區小店車款會被掃空）。訂之前在 avis.ca 用同車型同日期跑三組報價比對「Estimated Total」：(A) 市區取／市區還、(B) 市區取／機場還、(C) 機場取／機場還——(B) 減 (A) 就是單程費的真實金額，四家官網都不公布。"},"compare":[{"option":"市區 Avis S50，租 5 天（本頁採用）","priceCAD":"CA$1,050–1,350","pros":"不吃機場設施費與特許費；省下卡加利五天的租金與停車","cons":"要多兩趟市區↔機場移動；市區店營業時間比機場短","verdict":"推薦"},{"option":"機場租滿 11 天（10/1–10/12）","priceCAD":"CA$1,900–2,450","pros":"落地就有車，最省事；機場店開到凌晨 01:00–02:00","cons":"AFC CA$110 + 特許費；卡加利五天車停著付停車費","verdict":"多花約 CA$900–1,150 買省事"},{"option":"Alamo（機場，附加駕駛最便宜）","priceCAD":"加駕駛 CA$9.99／日／人","pros":"三人都要開時，加駕駛費 CA$9.99／日／人——但 Avis 有「每位每張租約上限 CA$60」的封頂，7 天兩位只要 CA$100，反而是 Avis 便宜","cons":"與 Enterprise／National 共用車隊，熱門車型可能被同集團上位品牌先挑走","verdict":"算進封頂後 Avis 較省，不必為此換家"},{"option":"Routes Car Rental（機場外接駁）","priceCAD":"約 CA$71／日起","pros":"牌價最低的一批","cons":"「無限里程」只在亞伯達省內有效——你們 10/06 要進 BC（Yoho），出省就開始算里程費","verdict":"不建議：行程本身就會觸發它的里程限制"},{"option":"Turo（P2P 共享）","priceCAD":"每日 CA$36–70 牌價","pros":"是唯一可能真正取代傳統租車的共享選項","cons":"每日里程上限由車主各自設定，你們山區會跑近 1,000 km，逐台確認 distance limit 才敢訂；車主可拒單、交車時間看車主","verdict":"可以比價，但里程條款沒確認前不要下訂"}],"carshare":{"verdict":"共享車不能取代山區那四天（10/5–10/8），但值得為卡加利那七天辦一個。","detail":"Communauto 在卡加利只有 FLEX 單程車，沒有可預約的來回站點車。三個致命點：① 行程必須在市中心 Zone 內結束，不能把車丟在坎摩爾；② 每趟只含 75 km（是每趟，不是每天），超出每公里 33¢；③ 多日行程停著也在計費。10/5–10/8 四天估約 CA$577–606，還開不到想去的地方。Zipcar 已不在卡加利營運。","useful":"真正有用的地方是 10/1–10/4 與 10/9 還車之後在卡加利市區跑腿：FLEX 46¢／分鐘、每小時 CA$14.75、第一天上限 CA$55，含油含保險。市區大部分行程用 CTrain（7 Ave 市區段免費）與走路就夠，偶爾要載東西才叫車。","howTo":"⚠️ 註冊要在出發前完成。需要「加拿大地址」（朋友家可用）＋護照＋駕照官方翻譯或國際駕照，人工審核外國文件要數個工作天，亞伯達分部沒有公告時間。排在落地後才辦，10/1–10/3 那三天剛好整段泡湯。","caution":"Communauto 卡加利首頁還印著「$36.50/day、$220/week」——那是 station-based 車的費率樣板，卡加利根本沒有這個產品。照那個數字規劃班夫行程會嚴重低估成本。"},"documents":[{"item":"國際駕駛執照 IDP —— 每個可能開車的人都要各自辦一份","detail":"亞伯達法規允許訪客用母國駕照開一年，所以「合法」沒問題。但租車櫃檯是另一回事：Enterprise（含 National、Alamo）明文寫「母國駕照若非拉丁字母（such as Russian, Japanese, or Arabic alphabets）→ IDP is REQUIRED」，日文駕照被直接點名。","gotcha":"這是整份調查裡風險最高的一條。有人沒帶 IDP，那個人就不能被登記為駕駛——登記了保險也等於無效。而且抵達加拿大後無法補辦。"},{"item":"母國駕照正本 —— 不能只帶 IDP","detail":"IDP 單獨無效，必須與正本駕照一起出示。警察臨檢時只有 IDP 等於無照。","gotcha":"正本駕照與 IDP 要分開放，避免一起遺失。"},{"item":"日本駕照：国外運転免許証","detail":"手数料 ¥2,250，運転免許試験場（府中／鮫洲／江東）當日核發，一般警察署約需兩週。需現行駕照正本、護照正本、規格照片一張（4.5×3.5cm，六個月內）。","gotcha":"有效期是「發行日起一年，沒有更新制度」——10/1 出發的話，發行日必須在 2025/10/13 之後。另外照片規格 2022/5/13 改過，用舊規格會被退。"},{"item":"台灣駕照：國際駕照","detail":"監理站辦理，規費約 NT$250，效期最長三年。Avis Canada 接受 1949 年日內瓦公約締約國核發的駕照。","gotcha":"最大風險是姓名不一致——台灣駕照上的英文拼音必須和護照一模一樣，不一致當場就會被卡住。辦 IDP 時帶護照影本讓監理站照著打。"},{"item":"信用卡（額度要夠，且持卡人必須是主駕駛）","detail":"Avis 加拿大取車時預授權凍結 CA$750，或「預估租金＋20%」取其高者。加拿大據點不接受金融卡（debit card）作為信用證明。","gotcha":"7 天租約的預估租金＋20% 可能凍結 CA$1,000 以上。三人裡要確認至少一張額度充足的實體信用卡。"},{"item":"車損保險 LDW —— 假設要現場買","detail":"亞伯達法定第三方責任只有 CA$200,000，租車公司通常只給法定額度。台灣與日本發行的信用卡幾乎都不含加拿大租車車損（CDW）。","gotcha":"出發前把自己信用卡的租車險條款截圖帶著，櫃檯推銷時才有依據。但預算上要先假設 CA$30–38／日是要付的。"}],"roadRules":[{"item":"⚠️ 進 BC 省必須是 M+S 或雪胎（影響 10/06 的 Yoho）","detail":"BC 法規規定 10/1–4/30 行駛指定山區公路必須配 M+S 或雪胎標記的輪胎。Highway 1 過了亞伯達／BC 界（Kicking Horse Pass）就適用，Yoho 的翡翠湖、塔卡考瀑布都在 BC。標準配的 M+S 全季胎就達標，不用加錢升級。","gotcha":"取車時一定要蹲下去看胎壁有沒有 M+S 字樣、胎紋還夠不夠（法規要求 3.5 mm）。有客訴案例是租車公司口頭說「去山上沒問題」但車上是磨平的舊胎——看到禿胎當場要求換車。另外雪胎在 Enterprise／National／Alamo 三家無法預約，只能看取車當下現場有無，不能事先訂起來當保險。"},{"item":"不需要為了 10 月升級四驅","detail":"10 月上旬的路況用前驅＋M+S 全季胎足夠，不必為此升級車型或加價買冬季胎。真正需要四驅是 11 月之後或遇到早來的大雪。","gotcha":""},{"item":"Kananaskis Conservation Pass 與 Discovery Pass 不通用","detail":"只要把車停在 Kananaskis Country 或 Bow Valley（含 Canmore Nordic Centre、Grassi Lakes 停車場）就需要，每車每日 CA$15、線上買並綁車牌，與國家公園的 Discovery Pass 不通用。本頁改後的路線全在國家公園界內，用 Discovery Pass 即可。","gotcha":"原本這裡寫「只在坎摩爾周邊活動不需要」是錯的——Canmore Nordic Centre 與 Grassi Lakes 停車場都在 Bow Valley 範圍內。Alberta Parks 會開 CA$180 罰單，而且會透過租車公司轉嫁給你。"},{"item":"冰原大道只有一個加油站","detail":"Saskatchewan River Crossing 是整條路唯一的加油站，而且季節性營業。出發前在坎摩爾或班夫加滿。","gotcha":"10/07 那天最容易出事的兩件事：以為路上有加油站；為了多看幾個湖拖到太晚——天黑後沒訊號、有動物。"},{"item":"⚠️ Hwy 742（Spray Lakes Road）自 2026/6/1 落石封閉，無重開時程","detail":"Grassi Lakes 停車場↔Goat Creek 雙向封閉，Grassi Lakes 的 Upper／Interpretive／Reclaimer 三條步道自 6/10 起全封。要繞到 Ha Ling Peak 得走 Hwy 40 南進，約多兩小時。本頁已把原本排在 10/04 與 10/08 的草地湖與 Ha Ling 全部換掉。","gotcha":"省府「目標 8 月中完工」但至今無確認重開，且已對擅入者開罰。出發前查 albertaparks.ca 的 advisory 與 511 Alberta——若重開了，草地湖仍是坎摩爾最好走的一條。"}],"transfer":[{"mode":"Uber／Lyft（Peace Bridge ↔ YYC）","priceCAD":"單程約 CA$35–37","time":"約 25 分","note":"全車計價，三人分攤每人約 CA$12。三人加大件行李可能要叫 UberX 以上，價格另計。10/12 感恩節下午是離場尖峰，實際可能明顯高於 CA$35。"},{"mode":"Calgary Transit Route 500 – Airport Express（2026/8/31 前叫 Route 300）","priceCAD":"成人單程 CA$4（三人 CA$12）","time":"約 45–55 分","note":"比 Uber 慢一倍但便宜約 CA$23。⚠️ 10/12 感恩節當天 Calgary Transit 降為「週日班次」，班距拉長——趕 14:50 的班機要用 trip planner 再確認一次。"},{"mode":"計程車","priceCAD":"約 CA$40–55 跳表","time":"約 25 分","note":"比 Uber 貴 CA$10–20。YYC 官網沒有公布固定牌價，這個區間來自旅遊網站整理，不是官方定價。"}]}}</script>
+<script>
+// Leaflet 地圖引擎。純函式（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84）可單元測試；
+// initTravelMap 需瀏覽器 + Leaflet (L)。瀏覽器與 Node 雙用。
+
+// HTML 轉義，防止 XSS
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 生成跳轉手機地圖導航的連結。
+// iOS 不識別 geo: scheme，用 Apple Maps 的 https 通用連結；其餘平臺用 geo:。
+// ua 可選（瀏覽器裡傳 navigator.userAgent），不傳則回退 geo:。
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地圖 App 的點位連結（免 key 的官方 URI 規範：高德 URI API、Google Maps URLs）。
+// 這不是 page-contract 的 actionLink——不承載實時資料主張，只是"開啟地圖看這個點"。
+//
+// 【高德只在中國境內出現】境內 Google 地圖不可用、底圖座標系還會偏移，所以境內只給高德；
+// 境外（日本、加拿大等）**只給 Google，不附高德**——讀者不會用它，多一個連結只是噪音。
+// 不要「境外也順手加上高德」，那是本函式改過一次才拿掉的（見 engine-contract.md#map-links）。
+//
+// 【境外用「名稱 + 視野錨點」而不是純座標】純座標（?api=1&query=51.04,-114.05）在 Google 地圖上
+// 只會顯示成一串度分秒，沒有店名、營業時間、評論、照片——而那才是讀者點開地圖想看的東西。
+// /maps/search/<名稱>/@lat,lng,zoom 是 Google 自己 UI 產生的 URL 形式，且優雅降級：
+// 名稱匹配得上就落在該地點卡片，匹配不上（如中文別名「硃砂湖日落」）也仍然落在正確座標的視野內。
+// 注意：Google 內部的 place id（如 !1s0x53717aaa864fd43b:0x7609799479e4d20e、/g/11cmdqr136）
+// 查不到也絕不能手拼——拼錯會指到完全不同的地方。要精準 place URL 只能由官方 skill 返回。
+//
+// 輸入座標一律 WGS-84：高德 URI 用 coordinate=wgs84 宣告由其換算，Google 本身即 WGS-84。
+// isInChinaBBox 宣告在下方 GCJ 區塊（函式宣告有提升，此處可用）。
+function buildMapAppLinks(lat, lng, label) {
+  if (isInChinaBBox(lat, lng)) {
+    return [{
+      label: '高德地圖',
+      url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+        + '&name=' + encodeURIComponent(label)
+        + '&coordinate=wgs84&callnative=1&src=travel-plan-aston',
+    }];
+  }
+  return [{
+    label: 'Google 地圖',
+    url: 'https://www.google.com/maps/search/' + encodeURIComponent(label)
+      + '/@' + lat + ',' + lng + ',17z',
+  }];
+}
+
+// —— GCJ-02 → WGS-84 座標轉換 ——
+// 高德/騰訊地圖返回的座標是 GCJ-02（國測局加密），直接畫在 OSM（WGS-84）瓦片上
+// 會偏移一百到幾百米。凡座標來自高德/騰訊類 skill，必須先經此函式轉換。
+// 中國境外座標原樣返回（GCJ-02 僅在境內加偏）。
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+
+function isInChinaBBox(lat, lng) {
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+}
+
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+
+// 從有序點位提取 [lat,lng] 陣列，用於連線
+function routeCoordinates(points) {
+  return (points || []).map(function (p) { return [p.lat, p.lng]; });
+}
+
+// 初始化地圖：編號 divIcon 標記、按序虛線路線、點選彈出 名稱+時間+導航連結。
+// elementId: 容器 id；points: [{lat, lng, name, time}]（按行程順序，座標須為 WGS-84）
+// opts 可選：{ tileUrl, attribution } 替換預設 OSM 瓦片源（如 OSM 訪問不穩時換映象）。
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: opts.attribution || '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({
+      className: 'route-pin',
+      html: '<span class="route-pin__num">' + (i + 1) + '</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '導航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
+      + (p.time ? escapeHTML(p.time) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) {
+    L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
+  }
+  map.fitBounds(coords.length ? coords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
+    routeCoordinates: routeCoordinates,
+    gcj02ToWgs84: gcj02ToWgs84,
+    initTravelMap: initTravelMap,
+  };
+}
+
+// 出發前提醒：截止日期計算 + 渲染。瀏覽器與 Node 雙用。
+
+// startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 為 'YYYY-MM-DD'
+// 用 UTC 做日期運算，避免本地時區導致的偏移。
+function computeReminders(startDateISO, items) {
+  return items
+    .map(function (it) {
+      var d = new Date(startDateISO + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - it.leadDays);
+      return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+    })
+    .sort(function (a, b) {
+      return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+    });
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item">'
+      + '<input type="checkbox"> '
+      + '<span class="todo-deadline">' + r.deadline + '前</span> '
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建議提前' + r.leadDays + '天）</span>'
+      + '</li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+
+// 時間軸上的「這一站要先訂」徽章。
+//
+// opts（可選）：{ kind: 'ticket' | 'reserve' | 'permit', url: '官方訂票／訂位頁' }
+//
+// 為什麼把「要訂什麼」跟「去哪訂」做成同一個徽章、而不是兩個元素：讀者是照時間軸走的，
+// 他在第五天看到「班夫纜車」時才會想到票的事。若那一刻只看到「建議提前 5 天訂」，
+// 他還得回頭翻頁頂待辦清單、再自己去搜官網——中間任何一步斷掉，這條提醒就等於沒有。
+// 徽章本身就是連結，落點才會跟需求發生的位置一致。
+//
+// 不給 opts 時輸出跟舊版完全相同，既有頁面不受影響。
+function reminderBadgeHTML(leadDays, opts) {
+  var o = opts || {};
+  var kind = (o.kind === 'ticket' || o.kind === 'reserve' || o.kind === 'permit') ? o.kind : '';
+  var WORD = { ticket: '需購票', reserve: '需訂位', permit: '需通行證' };
+  var lead = (typeof leadDays === 'number' && leadDays > 0) ? '建議提前 ' + leadDays + ' 天' : '';
+  var text = kind
+    ? (lead ? WORD[kind] + ' · ' + lead : WORD[kind])
+    : ('⚠️ 建議提前' + leadDays + '天訂');
+  var cls = 'reminder-badge' + (kind ? ' ' + kind : '');
+  if (o.url) {
+    return '<a class="' + cls + '" href="' + escapeHTML(o.url) + '" target="_blank" rel="noopener">'
+      + escapeHTML(text) + ' ↗</a>';
+  }
+  return '<span class="' + cls + '">' + escapeHTML(text) + '</span>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    computeReminders: computeReminders,
+    renderChecklistHTML: renderChecklistHTML,
+    reminderBadgeHTML: reminderBadgeHTML,
+  };
+}
+
+// POI 卡片牆引擎：延伸推薦總覽（engine-contract.md#poi-wall）與每站附近推薦面板（#nearby-panel）共用的純函式。
+// 瀏覽器與 Node 雙用。刻意不 require map.js/reminders.js（引擎檔案互相獨立，故意不合並去重，
+// 維護時保持這個邊界）——需要 map.js 的 buildMapAppLinks 時由呼叫方顯式傳入。
+
+// HTML 轉義，防止 XSS（與 map.js/reminders.js 各自一份，屬故意重複，見 page-contract.md）
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  var R = 6371000;
+  var toRad = function (d) { return d * Math.PI / 180; };
+  var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDist(m) {
+  return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km';
+}
+
+// 同一地點常有不同寫法（如「片瀬東浜海岸」vs「片瀬東浜海水浴場」），用寬鬆比對而非精確相等
+function normalizeName(s) {
+  return String(s || '').replace(/[（）()／/・\s]/g, '');
+}
+function commonPrefixLen(a, b) {
+  var n = Math.min(a.length, b.length), i = 0;
+  while (i < n && a.charAt(i) === b.charAt(i)) i += 1;
+  return i;
+}
+// 字首比對用來兜住「同地不同命名尾詞」（片瀬東浜海岸 vs 片瀬東浜海水浴場、
+// The Bison 餐廳 vs The Bison Restaurant）。
+//
+// 曾經用「固定比前 4 個字」，對拉丁文字太寬鬆：'lakelouise' 與 'lakeminnewanka'
+// 前 4 字都是 'lake'，會把 Lake Minnewanka 誤判成 Lake Louise——後果是那個站點被
+// 靜默排除在附近推薦面板之外，面板只是少一項，畫面上完全看不出異常。
+// 而且原本會命中的案例也是「因為錯的理由」命中：thebison 只比到 'theb'，
+// 'The Bridge' 一樣會過。
+//
+// 改成「共同字首必須佔較短字串的 60% 以上」：
+//   片瀬東浜海(5) / 片瀬東浜海岸(6)   = 0.83 ✓
+//   thebison(8)  / thebison餐廳(11)  = 0.73 ✓
+//   lake(4)      / lakelouise(10)    = 0.40 ✗（正確排除）
+function sameCore(a, b) {
+  if (!a || !b) return false;
+  var na = normalizeName(a), nb = normalizeName(b);
+  if (!na || !nb) return false;
+  if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
+  var p = commonPrefixLen(na, nb);
+  return p >= 3 && p / Math.min(na.length, nb.length) >= 0.6;
+}
+function titleTokens(title) {
+  return String(title || '').replace(/[（）()]/g, '・').split(/[・／/]/).map(function (s) { return s.trim(); }).filter(Boolean);
+}
+function matchesStopTitle(name, tokens, fullTitle) {
+  if (!name) return false;
+  if (sameCore(name, fullTitle)) return true;
+  return tokens.some(function (tok) { return sameCore(name, tok); });
+}
+
+function linkOrText(label, url) {
+  return url
+    ? '<a href="' + escapeHTML(url) + '" target="_blank" rel="noopener">' + escapeHTML(label) + ' ↗</a>'
+    : escapeHTML(label);
+}
+
+// mapAppLinksFn：呼叫方傳入 map.js 的 buildMapAppLinks（不在這裡 require，保持引擎檔案互相獨立）。
+// 沒有座標或沒傳函式就不渲染這一行，不手拼地圖連結。
+function mapLinkHTML(lat, lng, name, mapAppLinksFn) {
+  if (typeof lat !== 'number' || typeof lng !== 'number' || typeof mapAppLinksFn !== 'function') return '';
+  var links = mapAppLinksFn(lat, lng, name) || [];
+  if (!links.length) return '';
+  return '<p class="poi-maplink">' + links.map(function (l) {
+    return '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHTML(l.label) + '</a>';
+  }).join('') + '</p>';
+}
+
+// category 可以是字串或字串陣列。用陣列是因為一張卡片常常同時要標好幾個維度：
+// 英文名 + 價位（$$$）+ 難度（中等）+ 飲食（純素）。
+// 這些**都不是 status**——status 只有 season／booking／free 三種，硬把價位塞進去
+// 會讓「10/12 封路」跟「$$$」用同一個警示色，警示效果整個消失（真的發生過）。
+function pillsHTML(category) {
+  if (!category) return '';
+  var list = Array.isArray(category) ? category : [category];
+  return list.filter(Boolean).map(function (c) {
+    return ' <span class="pill">' + escapeHTML(c) + '</span>';
+  }).join('');
+}
+
+// 季節狀態標籤（conditional-features.md#season-status）。三種 kind 用不同顏色，
+// 「季末／封路」必須跟「須提前訂」「免費」一眼分得出來——那是這個標籤存在的理由。
+// 曾經因為 poiCardHTML 不認 status，呼叫方把 label 塞進 category 硬渲染，
+// 結果 15 個「10/12 封路」全部退化成中性小標籤，警示效果整個消失。
+function statusHTML(st) {
+  if (!st || !st.label) return '';
+  var kind = (st.kind === 'season' || st.kind === 'booking' || st.kind === 'free') ? st.kind : 'free';
+  return '<span class="status ' + kind + '">' + escapeHTML(st.label) + '</span>';
+}
+
+// it: { name, url, note, shop, category, status, lat, lng }
+// sourceClass/sourceLabel：來源標籤（'highlight'+'精選' 或 'transit'+'行程途經'，見 engine-contract.md#poi-wall「分組標記」）
+// distLabel：可選，附近推薦面板用（如 "190 m"），延伸推薦總覽不傳
+function poiCardHTML(it, sourceClass, sourceLabel, distLabel, mapAppLinksFn) {
+  return '<div class="hl-card poi-card"><span class="source-tag ' + escapeHTML(sourceClass) + '">' + escapeHTML(sourceLabel) + '</span>' +
+    '<h4>' + linkOrText(it.name, it.url) +
+    pillsHTML(it.category) +
+    statusHTML(it.status) +
+    (distLabel ? '<span class="dist-tag">' + escapeHTML(distLabel) + '</span>' : '') +
+    '</h4>' +
+    (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
+    (it.note ? '<p>' + escapeHTML(it.note) + '</p>' : '') +
+    mapLinkHTML(it.lat, it.lng, it.name, mapAppLinksFn) +
+    '</div>';
+}
+
+// 版面行數固定 2（engine-contract.md#poi-wall「版面」），超過 2 項才需要滑動提示
+var POI_GRID_ROWS = 2;
+function scrollHintHTML(itemCount) {
+  return itemCount > POI_GRID_ROWS ? '<p class="poi-scroll-hint">◂ 左右滑動檢視更多 ▸</p>' : '';
+}
+
+// 卡片牆容器的開標籤。**超過一欄時必須可鍵盤聚焦**——`overflow-x:auto` 的 div 預設
+// 不可聚焦，只用鍵盤的人到不了可視範圍外的卡片（WCAG 2.1.1）。加 tabindex="0" 後
+// 方向鍵就能原生捲動；role="group" + aria-label 讓螢幕閱讀器知道這是一組可捲動內容。
+// 項目數 <= 版面列數（不需要捲動）時不加，避免製造多餘的 Tab 停留點。
+function gridOpenTag(itemCount) {
+  return itemCount > POI_GRID_ROWS
+    ? '<div class="poi-grid" tabindex="0" role="group" aria-label="可左右捲動的卡片列表，共 ' + itemCount + ' 項">'
+    : '<div class="poi-grid">';
+}
+
+// 延伸推薦總覽／「行程途經」分組用：單純把 items 渲染成卡片牆，不做距離排序或排除
+function poiWallHTML(items, sourceClass, sourceLabel, mapAppLinksFn) {
+  var list = items || [];
+  if (!list.length) return '';
+  var cards = list.map(function (it) {
+    return poiCardHTML(it, sourceClass, sourceLabel, null, mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(list.length) + gridOpenTag(list.length) + cards + '</div>';
+}
+
+// 每站附近推薦面板用：按距離排序、排除跟該站同名的項目，可選記錄命中（供「行程途經」分組用）
+// opts: { sourceClass, sourceLabel, hitStore, mapAppLinksFn }
+function nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts) {
+  opts = opts || {};
+  var tokens = titleTokens(stopTitle);
+  var withDist = (items || [])
+    .filter(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; })
+    .filter(function (it) { return !matchesStopTitle(it.name, tokens, stopTitle) && !matchesStopTitle(it.shop, tokens, stopTitle); })
+    .map(function (it) { return { it: it, dist: haversineMeters(fromLat, fromLng, it.lat, it.lng) }; })
+    .sort(function (a, b) { return a.dist - b.dist; });
+  if (opts.hitStore) {
+    // 記錄命中過的 day.slots 項目，跨全部站點去重（一個地點只記一次），供延伸推薦「行程途經」分組使用
+    withDist.forEach(function (row) {
+      var key = normalizeName(row.it.name);
+      if (key) opts.hitStore[key] = row.it;
+    });
+  }
+  if (!withDist.length) return '<p class="muted">暫無座標資料。</p>';
+  var cards = withDist.map(function (row) {
+    return poiCardHTML(row.it, opts.sourceClass || 'highlight', opts.sourceLabel || '精選', formatDist(row.dist), opts.mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(withDist.length) + gridOpenTag(withDist.length) + cards + '</div>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    escapeHTML: escapeHTML,
+    haversineMeters: haversineMeters,
+    formatDist: formatDist,
+    normalizeName: normalizeName,
+    commonPrefixLen: commonPrefixLen,
+    sameCore: sameCore,
+    titleTokens: titleTokens,
+    matchesStopTitle: matchesStopTitle,
+    pillsHTML: pillsHTML,
+    statusHTML: statusHTML,
+    linkOrText: linkOrText,
+    mapLinkHTML: mapLinkHTML,
+    poiCardHTML: poiCardHTML,
+    poiWallHTML: poiWallHTML,
+    nearbyGridHTML: nearbyGridHTML,
+  };
+}
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var trip;
+  try {
+    trip = JSON.parse(document.getElementById('trip-data').textContent);
+  } catch (e) {
+    // 使用者手改 trip-data 是預期用法，打錯一個逗號不該變成沒有線索的空白頁
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div style="margin:20px;padding:16px 20px;border-left:3px solid #a3701f;background:#f5ead2;'
+      + 'color:#1b2422;font:15px/1.7 -apple-system,sans-serif">⚠️ 行程資料（<code>trip-data</code>）格式有誤，頁面無法渲染。<br>'
+      + '錯誤：' + String(e && e.message) + '<br>請檢查 <code>&lt;script id="trip-data"&gt;</code> 裡的 JSON'
+      + '——最常見的是多一個逗號或少一個引號。</div>');
+    return;
+  }
+  var E = (typeof escapeHTML === 'function') ? escapeHTML : function (s) { return String(s); };
+  var $ = function (id) { return document.getElementById(id); };
+  var hl = trip.highlights || {};
+  // 附近推薦候選池：只用「已驗證座標」的既有 highlights（總覽牆的 150 項刻意不帶座標，見 trip.note）
+  var NEAR_POOL = (hl.spots || []).concat(hl.shops || []).filter(function (x) {
+    return typeof x.lat === 'number' && typeof x.lng === 'number';
+  });
+  var transitHits = {};
+
+  function linkOrPlain(name, url) {
+    return url ? '<a href="' + E(url) + '" target="_blank" rel="noopener">' + E(name) + ' ↗</a>' : E(name);
+  }
+
+  /* ---------- 1. tab 導覽（page-contract.md#tab-nav，項目跟著 trip 實際區塊產生） ---------- */
+  var tabs = [['#pretrip', '行前總覽'], ['#transport', '航班・住宿'], ['#plans', '逐日行程'], ['#map-sec', '路線地圖']];
+  (hl.regions || []).forEach(function (r) { tabs.push(['#rg-' + r.key, r.name + ' 30 選']); });
+  tabs.push(['#verify', '待確認'], ['#tips', '實用貼士'], ['#glossary', '中英對照']);
+  // 同一趟行程的姊妹頁：讀者必須能在兩份文件之間往返（page-contract.md#sibling-pages）
+  tabs.push(['calgary-rockies-lodging-plan.html', '住宿規劃 ↗']);
+  $('nav-in').innerHTML = tabs.map(function (t) {
+    return '<a href="' + t[0] + '">' + E(t[1]) + '</a>';
+  }).join('') + '<button class="theme-btn" id="theme-btn" type="button" aria-label="切換淺色／深色主題"></button>';
+  // tab 太多會橫向溢出，但滑鼠滾輪預設只認垂直滾動——沒有 shift 或觸控板的人
+  // 滾輪滾不動這排 tab，會以為「住宿規劃」這類排在後面的項目消失了。
+  // 把垂直滾動量轉成橫向捲動，且只在真的有橫向空間可捲時才攔截，不搶頁面本身的垂直捲動。
+  (function () {
+    var nav = $('nav-in');
+    nav.addEventListener('wheel', function (e) {
+      if (nav.scrollWidth <= nav.clientWidth) return;
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      nav.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  })();
+  // 主題切換：色票本來就定義了 :root[data-theme]，這裡只補上 UI 與記憶
+  (function () {
+    var root = document.documentElement, btn = $('theme-btn');
+    function sysDark() { return matchMedia('(prefers-color-scheme: dark)').matches; }
+    function cur() { return root.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+    function paint() { btn.textContent = cur() === 'dark' ? '☀ 淺色' : '☾ 深色'; }
+    try { var save = localStorage.getItem('travel-plan-theme'); if (save) root.setAttribute('data-theme', save); } catch (e) {}
+    paint();
+    btn.addEventListener('click', function () {
+      var next = cur() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('travel-plan-theme', next); } catch (e) {}
+      paint();
+    });
+  })();
+
+  /* ---------- 2. 頁頂待辦清單 ---------- */
+  $('checklist').innerHTML = renderChecklistHTML(computeReminders(trip.startDate, trip.reminders || []));
+
+  /* ---------- 3. 行前須知 ---------- */
+  var pt = trip.preTrip || {}, ptRows = [
+    ['天氣', pt.weather && (pt.weather.summary || '') + (pt.weather.typhoon ? '　' + pt.weather.typhoon : '')],
+    ['穿搭', pt.packing], ['支付', pt.payment],
+    ['必備 App', Array.isArray(pt.apps) ? pt.apps.join('・') : pt.apps],
+    ['購票時機', pt.ticketTip]
+  ].filter(function (r) { return r[1]; });
+  $('pretrip-body').innerHTML = '<div class="tw"><table><tbody>' + ptRows.map(function (r) {
+    return '<tr><th style="width:110px">' + E(r[0]) + '</th><td>' + E(r[1]) + '</td></tr>';
+  }).join('') + '</tbody></table></div>';
+
+  /* ---------- 4. 航班 + 住宿 + 免責聲明 ---------- */
+  var f = trip.flights || {}, fh = '<h3>航班</h3><div class="grid">';
+  (f.booked || []).forEach(function (b) {
+    fh += '<div class="card"><div class="eyebrow">' + E(b.label) + '　<span class="pill">已預訂</span></div>'
+       + '<div class="fact-v">' + E(b.code) + '</div><div class="fact-n">' + E(b.time) + '</div></div>';
+  });
+  fh += '</div>';
+  if ((f.candidates || []).length) {
+    fh += '<h3>待選班次</h3><div class="grid">' + f.candidates.map(function (c) {
+      return '<div class="card"><div class="eyebrow">待選 · 請自行核實預訂</div><div class="fact-v">' + E(c.code || '') + '</div>'
+        + '<div class="fact-n">' + E(c.time || '') + (c.note ? '<br>' + E(c.note) : '') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  fh += '<h3>住宿</h3><p class="muted">住宿已定案：卡加利住朋友家、坎摩爾 10/4–10/9 五晚、班夫 10/9 一晚。標「✅ 已定」的是決定要住的，其餘是同價位的備案。價格為查證當日的參考值，請自行核實。</p>';
+  (trip.hotelAreas || []).forEach(function (a) {
+    fh += '<div class="card" style="margin-top:14px"><h4>' + E(a.area) + '</h4><p class="muted" style="margin:4px 0 10px">' + E(a.reason) + '</p>'
+      + '<div class="tw"><table><thead><tr><th>價位</th><th>選項</th><th>參考價</th><th>備註</th></tr></thead><tbody>'
+      + (a.options || []).map(function (o) {
+        // 住宿的訂房連結跟時間軸站點共用 bookingUrl 機制（page-contract.md#booking）：
+        // 徽章本身就是連結，不另起一行。actionLink 是留給「官方 skill 回傳的 deeplink」的，
+        // 自己查證來的官方訂房頁屬於 bookingUrl，兩者不要混用。
+        var bk = o.bookingUrl
+          ? ' ' + reminderBadgeHTML(o.leadDays, { kind: o.bookingKind || 'reserve', url: o.bookingUrl })
+          : (o.actionLink && o.actionLink.url
+              ? ' <a class="action-link" href="' + escapeHTML(o.actionLink.url)
+                + '" target="_blank" rel="noopener">' + escapeHTML(o.actionLink.label || '前往') + ' →</a>'
+              : '');
+        return '<tr><td><span class="pill">' + E(o.tier) + '</span></td><td><b>' + E(o.name) + '</b>' + bk + '</td>'
+          + '<td class="mono">' + E(o.priceRange || '') + '</td><td>' + E(o.note || '') + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  });
+  fh += '<div class="alert"><b>免責聲明</b><p>' + E(trip.disclaimer) + '</p></div>';
+  // 租車與共享車（page-contract.md#car-plan）。接在交通區塊尾端，因為它跟每日動線綁在一起：
+  // 10/04 取車、10/10 還車、10/06 進 BC 要 M+S 胎——分開放讀者會對不上。
+  (function () {
+    var c = trip.carPlan;
+    if (!c) return;
+    var h = '<h3 style="margin-top:22px">' + E(c.title || '租車規劃') + '</h3>';
+    if (c.lede) h += '<p class="lede">' + E(c.lede) + '</p>';
+    h += '<div class="car">';
+    var r = c.recommendation;
+    if (r) {
+      h += '<div class="car-rec"><div class="car-choice">✅ ' + E(r.choice) + '</div>'
+        + (r.totalCAD ? '<div class="car-total">' + E(r.totalCAD) + '</div>' : '')
+        + (r.why ? '<div class="car-why">' + E(r.why) + '</div>' : '')
+        + (r.caution ? '<div class="car-caution">⚠️ ' + E(r.caution) + '</div>' : '')
+        + (r.howTo ? '<div class="car-why"><b>怎麼訂：</b>' + E(r.howTo) + '</div>' : '')
+        + '</div>';
+      if ((r.breakdown || []).length) {
+        h += '<div class="car-h">成本拆解（三人合計）</div><div class="car-wrap"><table class="car-tbl">'
+          + '<thead><tr><th>項目</th><th>金額</th><th>說明</th></tr></thead><tbody>'
+          + r.breakdown.map(function (b) {
+            return '<tr><td>' + E(b.item) + '</td><td class="num">' + E(b.cad || '')
+              + '</td><td>' + E(b.note || '') + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      }
+    }
+    if ((c.compare || []).length) {
+      h += '<div class="car-h">比價：五個方案</div><div class="car-wrap"><table class="car-tbl">'
+        + '<thead><tr><th>方案</th><th>價格</th><th>優點</th><th>缺點</th><th>結論</th></tr></thead><tbody>'
+        + c.compare.map(function (x) {
+          return '<tr' + (/推薦/.test(x.verdict || '') ? ' class="rec"' : '') + '><td>' + E(x.option)
+            + '</td><td class="num">' + E(x.priceCAD || '') + '</td><td>' + E(x.pros || '')
+            + '</td><td>' + E(x.cons || '') + '</td><td>' + E(x.verdict || '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+    var cs = c.carshare;
+    if (cs) {
+      h += '<div class="car-h">共享車能不能取代租車</div><ul class="car-list">'
+        + '<li class="car-item"><div class="t">' + E(cs.verdict) + '</div>'
+        + (cs.detail ? '<div class="d">' + E(cs.detail) + '</div>' : '')
+        + (cs.useful ? '<div class="d"><b>有用的地方：</b>' + E(cs.useful) + '</div>' : '')
+        + (cs.howTo ? '<div class="g">' + E(cs.howTo) + '</div>' : '')
+        + (cs.caution ? '<div class="g">⚠️ ' + E(cs.caution) + '</div>' : '')
+        + '</li></ul>';
+    }
+    [['證件與保險：缺一樣就開不了車', c.documents], ['路況與法規', c.roadRules]].forEach(function (pair) {
+      if (!(pair[1] || []).length) return;
+      h += '<div class="car-h">' + E(pair[0]) + '</div><ul class="car-list">'
+        + pair[1].map(function (x) {
+          return '<li class="car-item"><div class="t">' + E(x.item) + '</div>'
+            + (x.detail ? '<div class="d">' + E(x.detail) + '</div>' : '')
+            + (x.gotcha ? '<div class="g">⚠️ ' + E(x.gotcha) + '</div>' : '') + '</li>';
+        }).join('') + '</ul>';
+    });
+    if ((c.transfer || []).length) {
+      h += '<div class="car-h">沒有車的那幾天：Peace Bridge ↔ YYC</div><div class="car-wrap"><table class="car-tbl">'
+        + '<thead><tr><th>方式</th><th>價格</th><th>時間</th><th>說明</th></tr></thead><tbody>'
+        + c.transfer.map(function (x) {
+          return '<tr><td>' + E(x.mode) + '</td><td class="num">' + E(x.priceCAD || '')
+            + '</td><td class="num">' + E(x.time || '') + '</td><td>' + E(x.note || '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+    h += '</div>';
+    fh += h;
+  })();
+
+  $('transport-body').innerHTML = fh;
+
+  // 當日二選一／三選一（conditional-features.md#alternatives）。
+  // 這一段原本漏了：資料裡放了六張選項卡，頁面完全沒讀，三個檢查器全綠——
+  // 因為當時沒有任何檢查在問「alternatives 有給卻沒渲染嗎」。
+  function altsHTML(day) {
+    var a = day.alternatives || [];
+    if (!a.length) return '';
+    return '<div class="alt-h">這一天有 ' + a.length + ' 種走法</div><div class="alts">'
+      + a.map(function (x) {
+          var picked = /本頁採用|（採用）/.test(x.label || '');
+          return '<div class="alt' + (picked ? ' picked' : '') + '">'
+            + '<div class="alt-l">' + (picked ? '✅ ' : '') + E(x.label || '') + '</div>'
+            + (x.summary ? '<div class="alt-s">' + E(x.summary) + '</div>' : '')
+            + '</div>';
+        }).join('') + '</div>';
+  }
+
+  /* ---------- 5. 逐日行程（雙方案 A/B，conditional-features.md#dual-plans） ---------- */
+  var plans = trip.plans && trip.plans.length ? trip.plans
+            : [{ key: 'main', name: '行程', recommended: true, days: trip.days || [] }];
+  // 地圖只畫「推薦方案」的站點（兩套疊在一起看不懂）。編號必須跟地圖用同一套順序，
+  // 所以 mainPlan 要在時間軸渲染之前就決定，並用同一個走訪順序（日→站）發號。
+  var mainPlan = plans.filter(function (p) { return p.recommended; })[0] || plans[0];
+  var mapNo = 0;   // 只對 mainPlan 的站點遞增，數字與地圖標記一一對應
+  var panelSeq = 0, html = '';
+  plans.forEach(function (pl) {
+    html += '<div class="plan-head' + (pl.recommended ? '' : ' alt') + '" id="plan-' + E(pl.key) + '">'
+      + '<h3>' + E(pl.name) + (pl.recommended ? '<span class="badge-rec">推薦</span>' : '') + '</h3>'
+      + (pl.reason ? '<p>' + E(pl.reason) + '</p>' : '')
+      + (pl === mainPlan ? '' : '<p class="muted" style="margin:6px 0 0">此方案的站點沒有編號——地圖畫的是推薦方案，兩套疊在一起看不懂。站點大致相同、僅日期不同。</p>')
+      + '</div>';
+    // 需要提前訂的站點才有徽章。字、class、轉義、「沒 url 就不做成連結」全在引擎裡，
+    // 這裡只決定要不要叫它（page-contract.md#booking）。
+    // status 走引擎的 statusHTML（poi.js），不要自己拼——三種 kind 的顏色、
+    // 未知 kind 的降級、label 轉義都在那裡（conditional-features.md#season-status）。
+    function statusBadge(o) {
+      if (!o || !o.status || typeof statusHTML !== 'function') return '';
+      return statusHTML(o.status);
+    }
+    function bookBadge(o) {
+      if (!o || !o.needsBooking || typeof reminderBadgeHTML !== 'function') return '';
+      return reminderBadgeHTML(o.leadDays, { kind: o.bookingKind, url: o.bookingUrl });
+    }
+    (pl.days || []).forEach(function (d) {
+      html += '<div class="day"><div class="day-h">'
+        + '<span class="day-d">' + E(d.date.slice(5).replace('-', '/')) + '</span>'
+        + '<span class="day-w">' + E(d.weekday || '') + '</span>'
+        + '<span class="day-t">' + E(d.theme || '') + '</span></div><div class="day-b">';
+      // 錨點時間軸 + 每站附近推薦面板
+      html += '<ul class="tl">' + (d.slots || []).map(function (s) {
+        var pid = 'nb-' + pl.key + '-' + (panelSeq++);
+        // 地圖連結排在標題與時段標籤之間（同一行），不要另起一行
+        var maps = (typeof buildMapAppLinks === 'function' && typeof s.lat === 'number')
+          ? '<span class="poi-maplink poi-maplink--inline">' + buildMapAppLinks(s.lat, s.lng, s.name).map(function (l) {
+              return '<a href="' + l.url + '" target="_blank" rel="noopener">' + E(l.label) + '</a>'; }).join('') + '</span>' : '';
+        // 只有推薦方案的站點在地圖上，所以只有它有編號可對照
+        var num = (pl === mainPlan) ? (++mapNo) : null;
+        var numBadge = num ? '<span class="tl-num" title="地圖上的第 ' + num + ' 個標記">' + num + '</span>' : '';
+        return '<li><span class="tl-t">' + E(s.time || '') + '</span><div>'
+          + '<h4>' + numBadge + linkOrPlain(s.name, s.url) + maps + statusBadge(s) + bookBadge(s)
+            + (s.period ? '<span class="pill">' + E(s.period) + '</span>' : '') + '</h4>'
+          + (s.review ? '<p class="muted">' + E(s.review) + '</p>' : '')
+          + '<button class="nearby-toggle" data-target="' + pid + '" aria-expanded="false">▸ 顯示附近特色美食・店家・景點</button>'
+          + '<div class="nearby-panel" id="' + pid + '" data-lat="' + s.lat + '" data-lng="' + s.lng + '" data-name="' + E(s.name) + '" data-plan="' + E(pl.key) + '" hidden></div>'
+          + '</div></li>';
+      }).join('') + '</ul>';
+      // 雙強度路線
+      if ((d.routes || []).length) {
+        html += '<div class="routes">' + d.routes.map(function (r) {
+          return '<div class="route"><div class="route-h ' + (r.kind === 'easy' ? 'easy' : 'mid') + '">' + E(r.label || '') + '</div><ol>'
+            + (r.stops || []).map(function (st) {
+              return '<li><span class="rt">' + E(st.time || '') + '</span><div>'
+                + '<div class="rn">' + linkOrPlain(st.name, st.url) + statusBadge(st) + bookBadge(st) + '</div>'
+                + (st.note ? '<div class="rd">' + E(st.note) + '</div>' : '') + '</div></li>';
+            }).join('') + '</ol></div>';
+        }).join('') + '</div>';
+      }
+      if (d.planB) html += '<div class="wx"><b>☔️ 雨雪備案：</b>' + E(d.planB.replace(/^\s*☔️?\s*雨雪備案\s*[:：]\s*/, '')) + '</div>';
+      (d.tips || []).forEach(function (t) { html += '<div class="daytip">' + E(t) + '</div>'; });
+      html += altsHTML(d);   // 當日二選一／三選一（conditional-features.md#alternatives）
+      html += '</div></div>';
+    });
+  });
+  $('plans-body').innerHTML = html;
+
+  /* ---------- 6. 附近推薦：事件代理（engine-contract.md#nearby-panel） ---------- */
+  function slotsOfPlan(k) {
+    var p = plans.filter(function (x) { return x.key === k; })[0];
+    return p ? (p.days || []).reduce(function (a, d) { return a.concat(d.slots || []); }, []) : [];
+  }
+  document.querySelectorAll('[data-timeline]').forEach(function (tl) {
+    tl.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.nearby-toggle') : null;
+      if (!btn || !tl.contains(btn)) return;
+      var panel = $(btn.getAttribute('data-target'));
+      if (!panel) return;
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      if (!open && !panel.dataset.rendered) {
+        var lat = parseFloat(panel.dataset.lat), lng = parseFloat(panel.dataset.lng), nm = panel.dataset.name;
+        var others = slotsOfPlan(panel.dataset.plan).filter(function (x) { return x.name !== nm; });
+        panel.innerHTML =
+          '<p class="nb-cat">附近精選（' + NEAR_POOL.length + ' 項候選，依實際距離排序）</p>'
+          + nearbyGridHTML(NEAR_POOL, lat, lng, nm, { sourceClass: 'highlight', sourceLabel: '精選', mapAppLinksFn: buildMapAppLinks })
+          + '<p class="nb-cat">附近行程其他站點</p>'
+          + nearbyGridHTML(others, lat, lng, nm, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHits, mapAppLinksFn: buildMapAppLinks });
+        panel.dataset.rendered = '1';
+      }
+      panel.hidden = open;
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.textContent = (open ? '▸ 顯示' : '▾ 隱藏') + '附近特色美食・店家・景點';
+    });
+  });
+
+  /* ---------- 7. 地圖（用推薦方案的站點，避免兩案疊在一起看不懂） ---------- */
+  var pts = (mainPlan.days || []).reduce(function (a, d) {
+    return a.concat((d.slots || []).map(function (s) {
+      return { lat: s.lat, lng: s.lng, name: s.name, time: (d.date.slice(5).replace('-', '/')) + ' ' + (s.time || '') };
+    }));
+  }, []);
+  $('map-note').textContent = '地圖顯示「' + mainPlan.name + '」的 ' + pts.length
+    + ' 個站點，依行程順序連線。標記上的編號與上方逐日行程的編號一一對應——'
+    + '看到地圖上第 7 個點，往上找編號 7 就是那一站。';
+  if (typeof L !== 'undefined' && typeof initTravelMap === 'function') {
+    initTravelMap('map', pts);
+  } else {
+    // 離線／CDN 不可達：收掉空容器，說明文字改成誠實的版本（不要繼續宣稱地圖顯示了什麼）
+    $('map').style.display = 'none';
+    $('map-note').textContent = '地圖需要連網才能顯示。目前離線，站點位置請看上方逐日行程——每一站標題旁都有可點的地圖連結。';
+  }
+
+  /* ---------- 7.5 預先跑一遍每站附近推薦，只為了餵滿 transitHits（面板本身仍維持點擊才渲染） ---------- */
+  document.querySelectorAll('.nearby-panel').forEach(function (panel) {
+    var lat = parseFloat(panel.dataset.lat), lng = parseFloat(panel.dataset.lng), nm = panel.dataset.name;
+    if (!nm || isNaN(lat) || isNaN(lng)) return;
+    var others = slotsOfPlan(panel.dataset.plan).filter(function (x) { return x.name !== nm; });
+    nearbyGridHTML(others, lat, lng, nm, { hitStore: transitHits });
+  });
+
+  /* ---------- 8. 五大地區 30 選（poiWallHTML，engine-contract.md#poi-wall） ---------- */
+  var rg = '';
+  (hl.regions || []).forEach(function (r) {
+    rg += '<h3 id="rg-' + E(r.key) + '" style="scroll-margin-top:58px">' + E(r.name) + '</h3>';
+    [['spots', '推薦景點'], ['food', '特色美食與小物'], ['shops', '店家與餐廳']].forEach(function (c) {
+      var items = r[c[0]] || [];
+      if (!items.length) return;
+      rg += '<p class="nb-cat">' + E(c[1]) + '（' + items.length + ' 項）</p>'
+          + poiWallHTML(items.map(function (it) {
+              // status 直接交給引擎（poi.js 的 statusHTML 會依 kind 上色）；
+              // 不要把 label 塞進 category，那樣三種 kind 會全部退化成中性小標籤。
+              return { name: it.name, url: it.url, note: it.note, shop: it.shop,
+                       category: it.category, status: it.status, lat: it.lat, lng: it.lng };
+            }), 'highlight', '精選', buildMapAppLinks);
+    });
+  });
+  // 「行程途經」分組：附近面板算出來、命中 day.slots 但不在 highlights 裡的項目
+  rg += '<div id="transit-wall"></div>';
+  $('regions-body').innerHTML = rg;
+
+  var hlAllNames = [];
+  (hl.regions || []).forEach(function (r) {
+    ['spots', 'food', 'shops'].forEach(function (k) {
+      (r[k] || []).forEach(function (it) { hlAllNames.push(it.name); });
+    });
+  });
+  var transitItems = Object.keys(transitHits)
+    .map(function (k) { return transitHits[k]; })
+    .filter(function (it) { return !hlAllNames.some(function (hn) { return sameCore(hn, it.name); }); });
+  if (transitItems.length) {
+    $('transit-wall').innerHTML = '<p class="nb-cat">行程途經（' + transitItems.length + ' 項）</p>'
+      + poiWallHTML(transitItems, 'transit', '行程途經', buildMapAppLinks);
+  }
+
+  /* ---------- 9. 貼士 + 對照表 ---------- */
+  // 待確認清單：按 category 分組，每條給「為什麼驗不了」與「怎麼驗」。
+  // 不用 reminders.js 的 renderChecklistHTML——那個是按日期回推的出發前待辦，
+  // 這裡沒有日期概念，混用只會讓兩種清單都變得模糊（page-contract.md#unverified）。
+  (function () {
+    var uv = trip.unverified || [];
+    if (!uv.length) { var sec = document.getElementById('verify'); if (sec) sec.style.display = 'none'; return; }
+    var byCat = [];
+    uv.forEach(function (u) {
+      var g = byCat.filter(function (x) { return x.cat === (u.category || '其他'); })[0];
+      if (!g) { g = { cat: u.category || '其他', items: [] }; byCat.push(g); }
+      g.items.push(u);
+    });
+    $('verify-body').innerHTML = byCat.map(function (g) {
+      return '<div class="uv-cat">' + E(g.cat) + '</div><ul class="uv">' + g.items.map(function (u) {
+        return '<li class="uv-item"><input type="checkbox"><div>'
+          + '<div class="uv-t">' + E(u.item) + '</div>'
+          + (u.why ? '<div class="uv-why">驗不了的原因：' + E(u.why) + '</div>' : '')
+          + (u.how ? '<div class="uv-how"><b>怎麼確認：</b>' + E(u.how) + '</div>' : '')
+          + ((u.where || []).length ? '<div class="uv-where">影響：' + E(u.where.join(' · ')) + '</div>' : '')
+          + '</div></li>';
+      }).join('') + '</ul>';
+    }).join('');
+  })();
+
+  $('tips-body').innerHTML = '<div class="grid">' + (trip.tips || []).map(function (t) {
+    return '<div class="card"><p style="margin:0;font-size:14.5px;line-height:1.65">' + E(t) + '</p></div>';
+  }).join('') + '</div>';
+
+  var g = trip.glossary || {};
+  $('glossary-body').innerHTML = (g.note ? '<p class="lede">' + E(g.note) + '</p>' : '')
+    + (g.groups || []).map(function (grp) {
+      return '<h3>' + E(grp.category) + '</h3><dl class="gl">' + (grp.items || []).map(function (it) {
+        return '<div><dt>' + E(it.term) + '</dt><span class="zh">' + E(it.zh || '') + '</span><dd>' + E(it.note || '') + '</dd></div>';
+      }).join('') + '</dl>';
+    }).join('');
+})();
+
+</script>
+</body></html>

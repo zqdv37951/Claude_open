@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡爾加里 × 洛磯山脈</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root {
+  --bg: #f1f4f2;
+  --surface: #ffffff;
+  --surface-2: #e7ece9;
+  --ink: #1b2422;
+  --ink-soft: #4b5751;
+  --ink-faint: #7c8985;
+  --line: #d7ded9;
+  --teal: #146b6b;
+  --teal-ink: #0e4f4f;
+  --teal-soft: #e1f0ee;
+  --amber: #a3701f;
+  --amber-ink: #855c19;
+  --amber-soft: #f5ead2;
+  --shadow: 0 1px 2px rgba(20, 30, 28, 0.06), 0 8px 24px -12px rgba(20, 30, 28, 0.18);
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Noto Serif TC', 'PingFang TC', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101614; --surface: #171f1c; --surface-2: #1f2925;
+    --ink: #e8ece9; --ink-soft: #a9b5af; --ink-faint: #74827c;
+    --line: #2a3630;
+    --teal: #5fc9c4; --teal-ink: #8fdcd8; --teal-soft: #16302e;
+    --amber: #e3ae5c; --amber-ink: #eec078; --amber-soft: #3a2e17;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101614; --surface: #171f1c; --surface-2: #1f2925;
+  --ink: #e8ece9; --ink-soft: #a9b5af; --ink-faint: #74827c;
+  --line: #2a3630;
+  --teal: #5fc9c4; --teal-ink: #8fdcd8; --teal-soft: #16302e;
+  --amber: #e3ae5c; --amber-ink: #eec078; --amber-soft: #3a2e17;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.65; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; color: var(--ink); }
+.page { max-width: 60rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+@media (min-width: 768px) { .page { padding: 3.5rem 2rem 6rem; } }
+header.hero { padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; margin: 0 0 0.6rem; }
+#trip-title { font-size: clamp(2rem, 5vw, 2.7rem); font-weight: 400; }
+.lede { margin: 0.9rem 0 0; color: var(--ink-soft); max-width: 40rem; }
+section.block { margin-top: 2.4rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem; box-shadow: var(--shadow); }
+h2.block-title { font-size: 1.35rem; font-weight: 400; margin-bottom: 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--line); }
+.pretrip-todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.todo-item { display: flex; align-items: baseline; gap: 0.6rem; font-size: 0.95rem; }
+.todo-item input { accent-color: var(--teal); margin-top: 0.15rem; }
+.todo-deadline { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--teal-ink); font-weight: 600; white-space: nowrap; }
+.todo-text { color: var(--ink-soft); }
+.muted { color: var(--ink-faint); font-size: 0.92rem; margin: 0; }
+#pretrip-body { display: flex; flex-direction: column; gap: 0.9rem; }
+.pretrip-row { display: grid; grid-template-columns: 6rem 1fr; gap: 1rem; }
+.pretrip-label { font-family: var(--font-mono); font-size: 0.78rem; color: var(--teal-ink); font-weight: 600; letter-spacing: 0.03em; padding-top: 0.1rem; }
+.pretrip-row p { margin: 0; color: var(--ink-soft); }
+@media (max-width: 30rem) { .pretrip-row { grid-template-columns: 1fr; gap: 0.2rem; } }
+
+/* flights */
+#flights-grid { display: grid; gap: 1rem; }
+@media (min-width: 640px) { #flights-grid { grid-template-columns: 1fr 1fr; } }
+.ticket { background: var(--surface-2); border-radius: 10px; padding: 1rem 1.2rem; }
+.ticket-top { display: flex; justify-content: space-between; align-items: baseline; }
+.flight-label { font-weight: 600; font-size: 0.95rem; }
+.flight-code { font-family: var(--font-mono); color: var(--teal-ink); font-size: 0.9rem; margin: 0.4rem 0 0; }
+.flight-time { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.88rem; color: var(--ink-soft); margin: 0.3rem 0 0; }
+.flight-note { font-size: 0.82rem; color: var(--ink-faint); margin: 0.4rem 0 0; }
+.action-link { display: inline-block; margin-top: 0.6rem; font-size: 0.82rem; font-weight: 600; color: var(--teal-ink); text-decoration: none; border-bottom: 1px solid var(--teal); }
+.action-link:hover { color: var(--teal); }
+
+.adapt-note { font-size: 0.82rem; color: var(--ink-faint); margin: 0.8rem 0 0; font-style: italic; }
+
+/* highlights */
+.hl-card { background: var(--surface-2); border-radius: 10px; padding: 0.9rem 1.1rem; }
+.hl-card h4 { font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.hl-card h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+.hl-card h4 a:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+.hl-card p { margin: 0.4rem 0 0; font-size: 0.86rem; color: var(--ink-soft); }
+.hl-subblock + .hl-subblock { margin-top: 2rem; }
+.hl-subblock h3 { font-size: 1.1rem; font-weight: 400; }
+
+.disclaimer-card { border-color: var(--amber-soft); }
+.disclaimer-card p { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
+
+#map { height: 460px; border-radius: 10px; border: 1px solid var(--line); }
+.route-pin { background: var(--teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 35%, transparent); }
+.route-pin__num { color: #fff; font-weight: 700; font-size: 0.78rem; font-family: var(--font-mono); }
+
+.day-card { margin-top: 2.4rem; }
+.day-head { margin-bottom: 1.2rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }
+.day-date { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--teal-ink); }
+.day-head h2 { margin-top: 0.3rem; font-size: 1.6rem; font-weight: 400; }
+.day-tips { margin: 0.8rem 0 1.6rem; padding: 0.9rem 1.1rem; background: var(--surface-2); border-radius: 10px; list-style: none; font-size: 0.88rem; color: var(--ink-soft); }
+.period + .period { margin-top: 1.6rem; }
+.period-label { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-ink); margin-bottom: 0.9rem; }
+.stops { list-style: none; margin: 0; padding: 0; position: relative; }
+.stops::before { content: ""; position: absolute; left: 0.28rem; top: 0.6rem; bottom: 0.6rem; width: 1px; background: var(--line); }
+.stop { position: relative; display: grid; grid-template-columns: 0.7rem 1fr; column-gap: 1rem; padding: 0 0 1.5rem 0; }
+.stop-time { display: none; }
+.stop-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--teal); margin-top: 0.35rem; box-shadow: 0 0 0 3px var(--bg); }
+.stop-body h4 { font-family: var(--font-body); font-size: 1.02rem; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.stop-body h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+.stop-body h4 a:hover { border-bottom-color: var(--teal); color: var(--teal-ink); }
+.stop-body .review { margin: 0.4rem 0 0; color: var(--ink-soft); font-size: 0.94rem; max-width: 36rem; }
+.pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+.pill { font-family: var(--font-mono); font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line); }
+.pill-warm { background: var(--amber-soft); color: var(--amber-ink); border-color: transparent; }
+.transport { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--ink-faint); }
+
+/* per-stop nearby toggle panel */
+.nearby-toggle { margin-top: 0.8rem; padding: 0.35rem 0; background: none; border: none; font-family: var(--font-mono); font-size: 0.78rem; color: var(--teal-ink); cursor: pointer; text-align: left; }
+.nearby-toggle:hover { text-decoration: underline; }
+.nearby-toggle:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.nearby-panel { margin-top: 0.6rem; padding: 1rem; background: var(--surface-2); border-radius: 10px; }
+.nearby-panel[hidden] { display: none; }
+.nearby-sub + .nearby-sub { margin-top: 1.4rem; }
+.nearby-sub h5 { font-size: 0.85rem; font-weight: 600; color: var(--ink); margin: 0 0 0.7rem; }
+.nearby-sub .poi-grid { margin-top: 0; }
+.nearby-sub .hl-card { background: var(--surface); border: 1px solid var(--line); }
+.dist-tag { margin-left: auto; font-family: var(--font-mono); font-size: 0.68rem; font-variant-numeric: tabular-nums; color: var(--ink-faint); white-space: nowrap; }
+
+/* 延伸推荐总览 + 附近推荐面板：3 列 × 横向卷动卡片墙（trip-extras.md 第2、3节「卡片渲染规则」，两处统一版面与标签） */
+.poi-grid { display: grid; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 10px 16px; overflow-x: auto; padding-bottom: 8px; margin-top: 1rem; scroll-snap-type: x proximity; }
+.poi-card { display: flex; flex-direction: column; scroll-snap-align: start; }
+.poi-scroll-hint { margin: 0 0 0.4rem; font-size: 0.72rem; color: var(--ink-faint); font-family: var(--font-mono); }
+.source-tag { align-self: flex-start; font-family: var(--font-mono); font-size: 0.66rem; padding: 0.1rem 0.5rem; border-radius: 999px; white-space: nowrap; margin-bottom: 0.4rem; }
+.source-tag.highlight { background: var(--teal-soft); color: var(--teal-ink); }
+.source-tag.transit { background: var(--amber-soft); color: var(--amber-ink); }
+.poi-maplink { margin: 0.5rem 0 0; font-size: 0.72rem; }
+.poi-maplink a { color: var(--teal-ink); text-decoration: none; border-bottom: 1px dotted currentColor; margin-right: 0.7rem; }
+.poi-maplink a:hover { border-bottom-style: solid; }
+
+/* glossary */
+.glossary-group + .glossary-group { margin-top: 1.8rem; }
+.glossary-group h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+.glossary-list { margin: 0; display: grid; grid-template-columns: 1fr; gap: 0.7rem 1.5rem; }
+@media (min-width: 700px) { .glossary-list { grid-template-columns: 1fr 1fr; } }
+.glossary-list dt { font-family: var(--font-mono); font-size: 0.86rem; font-weight: 600; color: var(--teal-ink); margin: 0; }
+.glossary-list dd { margin: 0.2rem 0 0; font-size: 0.86rem; color: var(--ink-soft); }
+
+.section-sub { font-size: 1.1rem; font-weight: 400; margin: 1.8rem 0 0.9rem; }
+.dining-card { background: var(--surface-2); border-radius: 10px; padding: 1rem 1.2rem; }
+.dining-card h4 { font-family: var(--font-body); font-size: 1rem; }
+.dining-card .hours { margin: 0.3rem 0 0.6rem; font-size: 0.82rem; color: var(--ink-faint); }
+.dishes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.92rem; }
+.dishes .price { color: var(--teal-ink); font-family: var(--font-mono); font-variant-numeric: tabular-nums; float: right; }
+
+#tips-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+#tips-list li { display: flex; gap: 0.7rem; font-size: 0.95rem; color: var(--ink-soft); }
+#tips-list li::before { content: ""; flex: none; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--teal); margin-top: 0.5rem; }
+
+footer.foot { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: 0.78rem; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">Trip Plan・卡爾加里出發</p>
+    <h1 id="trip-title"></h1>
+    <p class="lede">2026年10月1日–10月12日，以卡爾加里住處為據點，前後兩段市區生活銜接六天洛磯山脈公路旅行。</p>
+    <div id="checklist" style="margin-top:1.4rem;"></div>
+  </header>
+
+  <section class="block">
+    <h2 class="block-title">行前須知</h2>
+    <div class="card" id="pretrip-body"></div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">航班</h2>
+    <div class="card">
+      <div id="flights-grid"></div>
+      <p class="adapt-note">原文件未提供住宿資訊，本頁不另行杜撰酒店建議，故省略酒店區塊。</p>
+    </div>
+  </section>
+
+  <div id="days"></div>
+
+  <section class="block">
+    <h2 class="block-title">路線地圖</h2>
+    <div id="map"></div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">必去景點・必吃餐廳總覽</h2>
+    <p class="adapt-note" style="margin:0 0 1rem;">依原文件的區域分類整理，未必都排入上方固定時間軸，可依喜好與體力自由替換行程中的項目。</p>
+    <div class="card hl-subblock">
+      <h3 id="hl-spots-title">必去景點總覽</h3>
+      <div class="poi-grid" id="hl-spots-list"></div>
+    </div>
+    <div class="card hl-subblock">
+      <h3 id="hl-shops-title">必吃餐廳總覽</h3>
+      <div class="poi-grid" id="hl-shops-list"></div>
+    </div>
+    <div class="card hl-subblock" id="hl-transit-block" hidden>
+      <h3>行程途經</h3>
+      <p class="adapt-note" style="margin:0 0 1rem;">來自各站「附近推薦」面板實際命中過的其他行程站點，不在上方精選清單內，去重後列於此。</p>
+      <div class="poi-grid" id="hl-transit-list"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">免責聲明</h2>
+    <div class="card disclaimer-card">
+      <p id="disclaimer-text"></p>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title">全程實用貼士</h2>
+    <div class="card">
+      <ul id="tips-list"></ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="block-title" id="glossary-title">外文名詞註解</h2>
+    <p class="adapt-note" id="glossary-note" style="margin:0 0 1rem;"></p>
+    <div id="glossary-groups"></div>
+  </section>
+
+  <footer class="foot">
+    由 travel-plan-aston skill 產生（Mode B：解析既有行程）。行程時間與價格為規劃參考值，非即時資訊。
+  </footer>
+
+</div>
+
+<script id="trip-data" type="application/json">
+{
+  "title": "卡爾加里 × 洛磯山脈 12 日行程",
+  "startDate": "2026-10-01",
+  "colorScheme": "teal-amber-fixed（trip-extras.md 第7節固定色票）",
+  "note": "本頁內容轉換自使用者提供的既有行程 HTML（非本 skill 產生的舊版頁面，故走 Mode B「已提供行程」的解析路徑，直接讀取原頁面文字/連結，非解析內嵌 trip-data）。原文件已相當完整（航班、每日行程、15 家餐廳、6 大區域約 32 個景點、8 條實用提醒），本次轉換保留原文全部資訊與判斷（含 Grassi Lakes 步道因落石無限期封閉、The Trough 疑似歇業等即時狀態警示），並套入 skill 的資料結構與待辦提醒引擎。座標為依地標名稱估算（非官方地圖 skill 測量），供地圖示意use；原文件沒有酒店/住宿資訊，故省略 hotelAreas 區塊，未另行杜撰住宿建議。已完整套用 trip-extras.md 第 2–7 節規則：highlights 總覽、每站附近推薦 toggle、時間軸站點標題連結、外文名詞注解、區塊順序、固定配色。2026-08-17 二次更新：延伸推薦總覽改用「精選 highlights／行程途經」兩組標記＋橫向捲動版面＋每卡地圖連結；附近推薦面板候選池擴大為 highlights∪全程 day.slots。三次更新：版面由5列改3列、附近推薦面板套用同一套卡片與標籤、時間軸站點補地圖連結兜底。四次更新：延伸推薦/附近推薦渲染邏輯抽成共用引擎 assets/poi.js 並整份內聯，取代頁面自己重刻的同名函式；卡片牆加 scroll-snap 與捲動提示。行程本身、景點、餐廳等原始資料全程未變動。",
+  "preTrip": {
+    "weather": {
+      "summary": "10 月洛磯山區日間均溫約 5–10°C，夜間常低於 0°C，冰原公路沿線更冷、可能降雪；卡爾加里市區相對溫和但早晚溫差大。",
+      "typhoon": "10 月初日落約 18:50、月中提前到 18:15，山區行程建議把握上午時段；9–10 月為麋鹿發情季，Bow Valley Parkway 清晨黃昏易有動物出沒，山路可能提早出現初雪，租車建議選配四驅或雪胎，隨時關注 511 Alberta 路況。"
+    },
+    "packing": "洋蔥式穿法，備妥防水登山鞋、手套與毛帽；市區活動輕便外套即可，山區與冰原公路務必加防風保暖層。",
+    "payment": "加拿大信用卡／感應式支付（Tap to Pay）普及，多數店家可直接刷卡；餐廳小費約 15–20%，另備少量現金以防萬一。",
+    "apps": [
+      "511 Alberta（即時路況）",
+      "Parks Canada App（國家公園資訊／通行證）",
+      "Roam Transit App（班夫接駁車班次）",
+      "AllTrails（步道即時開放狀況，含 Grassi Lakes 等封閉公告）"
+    ],
+    "ticketTip": "國家公園許可（Discovery Pass 或每日票）建議出發前於 Parks Canada 官網購買；Moraine Lake 接駁車、Columbia Icefield 的 Ice Explorer／Glacier Skywalk 等熱門項目建議提前一週以上上網預約，避免現場排隊或額滿。"
+  },
+  "flights": {
+    "booked": [
+      {
+        "label": "去程",
+        "code": "WS081 · WestJet · NRT → YYC",
+        "time": "10/1（四）18:30 出發 → 10/1 12:40 抵達"
+      },
+      {
+        "label": "回程",
+        "code": "WS080 · WestJet · YYC → NRT",
+        "time": "10/12（一）14:50 出發 → 10/13 16:20 抵達"
+      }
+    ],
+    "candidates": []
+  },
+  "disclaimer": "本頁全部資訊（天氣、航班、景點、餐廳、門票、營業時間、步道開放狀況等）均為 AI 基於公開資料整理的參考建議，可能不準確或已過時，不保證與實時情況一致；請務必在官方管道／訂票訂房／地圖等 App 上核實後再做決定或前往。",
+  "tips": [
+    "Moraine Lake 交通 — 私家車自 2023 年起禁止進入，僅能透過 Parks Canada 接駁車、Roam Transit #10 或健行／單車前往，接駁服務約在感恩節（10/12）前後停駛，務必出發前確認官網最新班次與是否需要預約。",
+    "Columbia Icefield 營運季 — Ice Explorer 雪車與 Glacier Skywalk 10 月中旬起會轉為冬季縮短時段，建議出發前一週再次確認開放時間。",
+    "氣候與穿著 — 10 月洛磯山區日間均溫約 5–10°C，夜間常低於 0°C，冰原公路沿線更冷、可能降雪，建議洋蔥式穿法，備妥防水登山鞋、手套與毛帽。",
+    "日照時間 — 10 月初日落約 18:50，月中提前到 18:15 左右，山區行程建議把握上午時段，下午 4 點後山路視線變差。",
+    "國家公園許可 — 進入 Banff／Yoho 國家公園需要 Parks Canada 一日票或年度 Discovery Pass，一張年票可通用所有國家公園。查到的資料每日票約 $11–12.25/人、年票約 $75–83.50/人（各來源數字略有出入，可能是新年度調價所致），行程 6 個公園日換算下來年票通常更划算，出發前請以官網 Parks Canada 票價頁為準。",
+    "野生動物與路況 — 9–10 月是麋鹿發情季，Bow Valley Parkway 清晨、黃昏易有動物出沒；山區道路可能提早出現初雪，租車建議選配四驅或雪胎，並隨時關注 511 Alberta 路況。",
+    "時差與作息 — 東京與卡爾加里時差 15 小時（卡爾加里較慢），抵達首兩天行程建議放輕鬆，以利調整時差。",
+    "感恩節假日 — 10/12 賦歸日恰逢加拿大感恩節，部分商店景點為假日營業時段，市區與機場交通可能較忙碌，建議提早出發。"
+  ],
+  "reminders": [
+    {
+      "item": "Moraine Lake 接駁車預約（Parks Canada／Roam Transit #10）",
+      "leadDays": 21
+    },
+    {
+      "item": "Columbia Icefield Ice Explorer／Glacier Skywalk 門票",
+      "leadDays": 7
+    },
+    {
+      "item": "Banff Gondola（Sulphur Mountain）門票",
+      "leadDays": 5
+    },
+    {
+      "item": "Parks Canada 國家公園 Discovery Pass／日票",
+      "leadDays": 14
+    },
+    {
+      "item": "River Cafe 晚餐訂位",
+      "leadDays": 14
+    },
+    {
+      "item": "National on 17th 訂位",
+      "leadDays": 7
+    },
+    {
+      "item": "The Bison Restaurant 訂位",
+      "leadDays": 7
+    },
+    {
+      "item": "Calgary Tower 門票（線上購買可省排隊）",
+      "leadDays": 3
+    },
+    {
+      "item": "致電確認 The Trough（Canmore）是否仍營業（(403) 678-2820）",
+      "leadDays": 3
+    }
+  ],
+  "highlights": {
+    "spotsTitle": "必去景點總覽（32 項）",
+    "spots": [
+      {
+        "name": "Calgary Tower",
+        "note": "登頂眺望卡爾加里市景，塔內設玻璃地板觀景台",
+        "url": "https://www.calgarytower.com/",
+        "lat": 51.0447,
+        "lng": -114.0631
+      },
+      {
+        "name": "Studio Bell 國家音樂中心",
+        "note": "加拿大國家音樂中心，收藏跨世代樂器與展覽",
+        "url": "https://www.studiobell.ca/",
+        "lat": 51.0453,
+        "lng": -114.0553
+      },
+      {
+        "name": "Prince's Island Park & Eau Claire",
+        "note": "市中心河畔公園，散步騎車皆宜，免費",
+        "url": "https://www.calgary.ca/parks/princes-island-park.html",
+        "lat": 51.0537,
+        "lng": -114.068
+      },
+      {
+        "name": "East Village / Peace Bridge",
+        "note": "新興文創街區與紅色編織人行橋地標",
+        "url": "https://www.visitcalgary.com/plan-and-stay/itineraries-and-travel-inspiration/east-village-neighbourhood-guide",
+        "lat": 51.047,
+        "lng": -114.05
+      },
+      {
+        "name": "Inglewood 老城區 + Bird Sanctuary",
+        "note": "卡爾加里最老街區，古董店與河濱鳥類保護區",
+        "url": "https://www.calgary.ca/parks/inglewood-bird-sanctuary.html",
+        "lat": 51.029,
+        "lng": -114.0157
+      },
+      {
+        "name": "Heritage Park Historical Village",
+        "note": "北美最大的歷史主題公園，重現拓荒年代場景（選項），成人約 $39.95 起",
+        "url": "https://heritagepark.ca/",
+        "lat": 50.9743,
+        "lng": -114.1064
+      },
+      {
+        "name": "Calgary Zoo",
+        "note": "加拿大知名動物園，含熊貓館（選項），約 $30–38",
+        "url": "https://www.calgaryzoo.com/",
+        "lat": 51.0447,
+        "lng": -114.0247
+      },
+      {
+        "name": "Banff Gondola（Sulphur Mountain）",
+        "note": "纜車登頂硫磺山，鳥瞰班夫全景與周邊山谷，約 $55–95",
+        "url": "https://www.banffjaspercollection.com/attractions/banff-gondola/",
+        "lat": 51.1494,
+        "lng": -115.5719
+      },
+      {
+        "name": "Bow Falls",
+        "note": "班夫鎮旁的寬闊瀑布，步行可達、免費",
+        "url": "https://banff.ca/654/Bow-Falls-Trail",
+        "lat": 51.1712,
+        "lng": -115.56
+      },
+      {
+        "name": "Surprise Corner",
+        "note": "眺望 Bow Falls 與 Fairmont 城堡飯店的觀景點，免費",
+        "url": "https://banff.ca/1110/Surprise-Corner",
+        "lat": 51.1745,
+        "lng": -115.565
+      },
+      {
+        "name": "Cave and Basin National Historic Site",
+        "note": "加拿大國家公園發源地，溫泉洞穴古蹟，約 $9–10",
+        "url": "https://parks.canada.ca/lhn-nhs/ab/caveandbasin",
+        "lat": 51.1727,
+        "lng": -115.5822
+      },
+      {
+        "name": "Banff Upper Hot Springs",
+        "note": "戶外高山溫泉，健行後放鬆首選，成人 $19.75",
+        "url": "https://parks.canada.ca/pn-np/ab/banff/sources-banff-springs",
+        "lat": 51.1622,
+        "lng": -115.5563
+      },
+      {
+        "name": "Lake Louise 湖畔",
+        "note": "洛磯山最具代表性的藍綠色冰河湖，免費",
+        "url": "https://www.banfflakelouise.com/",
+        "lat": 51.4254,
+        "lng": -116.1773
+      },
+      {
+        "name": "獨木舟租借（Fairmont Boathouse）",
+        "note": "Lake Louise 湖上划船，天氣允許時體驗，約 $180+/hr",
+        "url": "https://www.chateau-lake-louise.com/activities/canoeing/",
+        "lat": 51.4173,
+        "lng": -116.1765
+      },
+      {
+        "name": "Fairview Lookout",
+        "note": "俯瞰 Lake Louise 全景的短程健行步道，免費",
+        "url": "https://www.banfflakelouise.com/experiences/fairview-lookout-trail",
+        "lat": 51.4189,
+        "lng": -116.1806
+      },
+      {
+        "name": "Moraine Lake / Rockpile Viewpoint",
+        "note": "十峰谷經典景色，私家車已禁止進入，需接駁",
+        "url": "https://parks.canada.ca/pn-np/ab/banff",
+        "lat": 51.3217,
+        "lng": -116.186
+      },
+      {
+        "name": "Lake Agnes Tea House 健行",
+        "note": "體力允許可加碼的山中茶屋步道，步道免費",
+        "url": "https://www.banfflakelouise.com/experiences",
+        "lat": 51.4297,
+        "lng": -116.1875
+      },
+      {
+        "name": "Herbert Lake",
+        "note": "冰原公路南端小巧靜謐的湖泊，免費",
+        "url": "https://parks.canada.ca/pn-np/ab/banff",
+        "lat": 51.628,
+        "lng": -116.3405
+      },
+      {
+        "name": "Bow Lake & Crowfoot Glacier",
+        "note": "湖畔遠眺冰河景致，免費",
+        "url": "https://parks.canada.ca/pn-np/ab/banff",
+        "lat": 51.6912,
+        "lng": -116.4738
+      },
+      {
+        "name": "Peyto Lake 觀景台",
+        "note": "狐狸形狀的鮮豔藍色湖泊，冰原公路必停，免費",
+        "url": "https://parks.canada.ca/pn-np/ab/banff",
+        "lat": 51.728,
+        "lng": -116.528
+      },
+      {
+        "name": "Columbia Icefield（Ice Explorer／Glacier Skywalk）",
+        "note": "雪車開上冰原、玻璃步道懸空觀景，約 $95–126",
+        "url": "https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/",
+        "lat": 52.2192,
+        "lng": -117.2296
+      },
+      {
+        "name": "Sunwapta Falls",
+        "note": "冰原公路北端的峽谷瀑布，免費",
+        "url": "https://parks.canada.ca/pn-np/ab/jasper",
+        "lat": 52.4986,
+        "lng": -117.6547
+      },
+      {
+        "name": "Emerald Lake",
+        "note": "Yoho 國家公園翡翠色湖泊，免費",
+        "url": "https://parks.canada.ca/pn-np/bc/yoho",
+        "lat": 51.4397,
+        "lng": -116.5297
+      },
+      {
+        "name": "Emerald Lake 獨木舟租借",
+        "note": "湖上划船體驗（選項），約 $90/hr",
+        "url": "https://www.boathousetradingco.com/summer-rentals",
+        "lat": 51.4397,
+        "lng": -116.5297
+      },
+      {
+        "name": "Natural Bridge",
+        "note": "河水沖蝕形成的天然石橋，免費",
+        "url": "https://parks.canada.ca/pn-np/bc/yoho",
+        "lat": 51.4423,
+        "lng": -116.498
+      },
+      {
+        "name": "Takakkaw Falls",
+        "note": "加拿大落差數一數二的高瀑布，免費",
+        "url": "https://parks.canada.ca/pn-np/bc/yoho",
+        "lat": 51.4986,
+        "lng": -116.5015
+      },
+      {
+        "name": "Johnston Canyon（Lower / Upper Falls）",
+        "note": "峽谷棧道健行至上下瀑布，免費",
+        "url": "https://parks.canada.ca/pn-np/ab/banff",
+        "lat": 51.2298,
+        "lng": -115.838
+      },
+      {
+        "name": "Lake Minnewanka（湖畔）",
+        "note": "班夫最大湖泊，環湖車道景色開闊，免費",
+        "url": "https://parks.canada.ca/pn-np/ab/banff",
+        "lat": 51.2361,
+        "lng": -115.4425
+      },
+      {
+        "name": "Lake Minnewanka 遊船",
+        "note": "湖上遊船體驗（選項），約 $65–74.50",
+        "url": "https://www.banffjaspercollection.com/attractions/lake-minnewanka-cruise/",
+        "lat": 51.2361,
+        "lng": -115.4425
+      },
+      {
+        "name": "Two Jack Lake",
+        "note": "熱門拍照打卡湖景，免費",
+        "url": "https://parks.canada.ca/pn-np/ab/banff",
+        "lat": 51.2247,
+        "lng": -115.4931
+      },
+      {
+        "name": "Grassi Lakes",
+        "note": "湖水清澈的輕鬆步道；目前因落石災害無限期封閉（含聯外 742 號公路），出發前請至 Alberta Parks 步道公告確認，若仍封閉可改走 Policeman's Creek 木棧道或 Quarry Lake",
+        "url": "https://www.albertaparks.ca/parks/kananaskis/canmore-nordic-centre-pp/park-facilities/day-use/grassi-lakes/",
+        "lat": 51.0692,
+        "lng": -115.3389
+      },
+      {
+        "name": "Canmore 小鎮",
+        "note": "山城小鎮氛圍，咖啡廳與伴手禮店林立，免費",
+        "url": "https://www.explorecanmore.ca/",
+        "lat": 51.0891,
+        "lng": -115.3594
+      }
+    ],
+    "shopsTitle": "必吃餐廳總覽（15 項）",
+    "shops": [
+      {
+        "name": "River Cafe",
+        "category": "加拿大在地食材料理",
+        "note": "Prince's Island Park 內，適合旅程的告別晚餐",
+        "url": "https://www.river-cafe.com/",
+        "lat": 51.0537,
+        "lng": -114.068
+      },
+      {
+        "name": "Charcut Roast House",
+        "category": "職人烤肉",
+        "note": "招牌自製 Charcuterie 拼盤",
+        "url": "https://charcut.com/",
+        "lat": 51.0475,
+        "lng": -114.071
+      },
+      {
+        "name": "Ten Foot Henry",
+        "category": "蔬食 / 地中海風味",
+        "note": "氣氛輕鬆，想換口味時的好選擇",
+        "url": "https://tenfoothenry.com/",
+        "lat": 51.0384,
+        "lng": -114.0836
+      },
+      {
+        "name": "National on 17th",
+        "category": "家庭式酒吧料理",
+        "note": "長途飛行後的首選，好消化",
+        "url": "https://www.ntnl.ca/17th-avenue",
+        "lat": 51.0384,
+        "lng": -114.0836
+      },
+      {
+        "name": "Anju",
+        "category": "韓式創意料理",
+        "note": "想解膩吃辣時來一頓",
+        "url": "https://anju.ca/",
+        "lat": 51.039,
+        "lng": -114.082
+      },
+      {
+        "name": "OEB Breakfast Co.",
+        "category": "早午餐",
+        "note": "名店常排隊，建議提早前往",
+        "url": "https://eatoeb.com/locations/calgary/",
+        "lat": 51.047,
+        "lng": -114.063
+      },
+      {
+        "name": "Sidewalk Citizen Bakery",
+        "category": "烘焙坊咖啡",
+        "note": "散步途中歇腳的好地方",
+        "url": "https://www.sidewalkcitizenbakery.com/",
+        "lat": 51.035,
+        "lng": -114.029
+      },
+      {
+        "name": "The Bison Restaurant",
+        "category": "洛磯山野味",
+        "note": "野牛、鹿肉料理",
+        "url": "https://www.thebison.ca/",
+        "lat": 51.1765,
+        "lng": -115.571
+      },
+      {
+        "name": "Park Distillery",
+        "category": "炭烤料理 / 調酒",
+        "note": "自釀烈酒調酒，氣氛熱鬧",
+        "url": "https://parkdistillery.com/",
+        "lat": 51.1762,
+        "lng": -115.5715
+      },
+      {
+        "name": "Grizzly House",
+        "category": "瑞士鍋",
+        "note": "1967 年老店，經典起司／巧克力瑞士鍋",
+        "url": "https://banffgrizzlyhouse.com/",
+        "lat": 51.1758,
+        "lng": -115.5712
+      },
+      {
+        "name": "Farm and Fire",
+        "category": "柴燒披薩",
+        "note": "班夫少見的柴燒披薩",
+        "url": "https://www.banffjaspercollection.com/dining/farm-fire/",
+        "lat": 51.1748,
+        "lng": -115.5697
+      },
+      {
+        "name": "Wild Flour Bakery",
+        "category": "烘焙坊",
+        "note": "每日限量麵包，健行前的補給站",
+        "url": "https://www.wildflourbakery.ca/",
+        "lat": 51.1755,
+        "lng": -115.5705
+      },
+      {
+        "name": "Tooloulou's",
+        "category": "紐奧良風味早午餐",
+        "note": "份量十足",
+        "url": "https://tooloulous.com/",
+        "lat": 51.176,
+        "lng": -115.5708
+      },
+      {
+        "name": "The Trough（Canmore）",
+        "category": "精緻料理",
+        "note": "山區行程的安靜句點；近期有多筆資訊顯示可能已歇業，出發前請先致電 (403) 678-2820 確認營業狀態",
+        "url": "https://thetrough.ca/",
+        "lat": 51.0895,
+        "lng": -115.3585
+      },
+      {
+        "name": "communitea（Canmore）",
+        "category": "蔬食 / 茶飲",
+        "note": "健行後的清爽選擇，The Trough 若未營業可改來這裡",
+        "url": "https://www.thecommunitea.com/",
+        "lat": 51.0899,
+        "lng": -115.3575
+      }
+    ]
+  },
+  "glossary": {
+    "title": "外文名詞註解",
+    "note": "本頁地名、店名多保留英文原文，以下整理全篇出現過的非中文詞彙的中文說明。",
+    "groups": [
+      {
+        "category": "交通・機構",
+        "items": [
+          {
+            "term": "WestJet",
+            "note": "加拿大主要航空公司之一，本行程去回程皆搭乘"
+          },
+          {
+            "term": "YYC / NRT",
+            "note": "分別為卡爾加里國際機場、東京成田國際機場的機場代碼"
+          },
+          {
+            "term": "Trans-Canada Highway（Hwy 1）",
+            "note": "橫貫加拿大東西的一號公路，卡爾加里往班夫的主要路線"
+          },
+          {
+            "term": "Parks Canada",
+            "note": "加拿大國家公園管理局，負責國家公園門票、通行證與接駁預約"
+          },
+          {
+            "term": "Discovery Pass",
+            "note": "Parks Canada 發行的國家公園年度通行證，一張可用於全加拿大所有國家公園"
+          },
+          {
+            "term": "Roam Transit",
+            "note": "班夫／露易絲湖地區的公共接駁巴士系統，含前往 Moraine Lake 的路線"
+          },
+          {
+            "term": "511 Alberta",
+            "note": "亞伯達省官方即時路況查詢服務"
+          }
+        ]
+      },
+      {
+        "category": "景點・步道",
+        "items": [
+          {
+            "term": "Icefields Parkway（93 號公路）",
+            "note": "班夫至傑士伯間的景觀公路，沿線串連多座冰河與觀景台"
+          },
+          {
+            "term": "Bow Valley Parkway（1A 號公路）",
+            "note": "班夫鎮往露易絲湖方向的舊線觀景道路，車速較慢、易見野生動物"
+          },
+          {
+            "term": "Sulphur Mountain",
+            "note": "班夫鎮旁的硫磺山，Banff Gondola 纜車終點"
+          },
+          {
+            "term": "Rockpile Viewpoint",
+            "note": "Moraine Lake 旁的短程健行制高點，可俯瞰十峰谷"
+          },
+          {
+            "term": "Fairview Lookout",
+            "note": "Lake Louise 湖畔的短程觀景健行步道"
+          },
+          {
+            "term": "Studio Bell",
+            "note": "加拿大國家音樂中心的官方名稱"
+          },
+          {
+            "term": "Stephen Avenue Walk",
+            "note": "卡爾加里市中心的歷史步行商業街"
+          },
+          {
+            "term": "East Village",
+            "note": "卡爾加里市中心東側的新興文創街區"
+          },
+          {
+            "term": "Cave and Basin",
+            "note": "加拿大第一座國家公園的發源地，溫泉洞穴古蹟"
+          }
+        ]
+      }
+    ]
+  },
+  "days": [
+    {
+      "date": "2026-10-01",
+      "weekday": "週四",
+      "theme": "抵達卡爾加里",
+      "tips": [
+        "東京與卡爾加里時差 15 小時，第一晚建議早點休息，不排太滿的行程。"
+      ],
+      "slots": [
+        {
+          "period": "noon",
+          "name": "抵達 YYC 機場",
+          "time": "12:40",
+          "lat": 51.1225,
+          "lng": -114.0203,
+          "review": "領行李後直接返回住處放行李、簡單休息"
+        },
+        {
+          "period": "evening",
+          "name": "17 Ave SW / Kensington 散步",
+          "time": "傍晚",
+          "lat": 51.0435,
+          "lng": -114.089,
+          "review": "沿街散步，活動筋骨、適應時差"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "National on 17th",
+          "dishes": [
+            {
+              "name": "家庭式酒吧料理",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "weekday": "週五",
+      "theme": "市中心文化半日 + 東村",
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Calgary Tower",
+          "time": "上午",
+          "lat": 51.0447,
+          "lng": -114.0631,
+          "review": "眺望市景",
+          "ticketPrice": "約 $23 起",
+          "url": "https://www.calgarytower.com/buytickets",
+          "needsBooking": true,
+          "leadDays": 3
+        },
+        {
+          "period": "morning",
+          "name": "Stephen Avenue Walk",
+          "time": "上午",
+          "lat": 51.0486,
+          "lng": -114.0708,
+          "review": "歷史步行街，逛街散步"
+        },
+        {
+          "period": "noon",
+          "name": "Studio Bell 國家音樂中心",
+          "time": "下午",
+          "lat": 51.0453,
+          "lng": -114.0553,
+          "review": "跨世代樂器收藏與展覽",
+          "ticketPrice": "約 $17–25",
+          "url": "https://www.studiobell.ca/general-admission"
+        },
+        {
+          "period": "noon",
+          "name": "East Village / Peace Bridge",
+          "time": "下午",
+          "lat": 51.047,
+          "lng": -114.05,
+          "review": "新興文創街區與紅色編織步橋"
+        },
+        {
+          "period": "evening",
+          "name": "中國城",
+          "time": "傍晚",
+          "lat": 51.0526,
+          "lng": -114.07,
+          "review": "晃晃先墊個胃"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "Charcut Roast House",
+          "dishes": [
+            {
+              "name": "招牌自製 Charcuterie 拼盤",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "weekday": "週六",
+      "theme": "Prince's Island Park + 週末市集",
+      "alternatives": [
+        {
+          "label": "加碼選項：Calgary Zoo 半日",
+          "summary": "若還有餘力，可安排卡爾加里動物園半日（約 $30–38）"
+        }
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Crossroads Market / Hillhurst Sunnyside 週末市集",
+          "time": "上午",
+          "lat": 51.027,
+          "lng": -114.027,
+          "review": "買點在地小食"
+        },
+        {
+          "period": "noon",
+          "name": "Prince's Island Park & Eau Claire",
+          "time": "午後",
+          "lat": 51.0537,
+          "lng": -114.068,
+          "review": "河岸散步"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "Ten Foot Henry",
+          "dishes": [
+            {
+              "name": "蔬食為主，地中海風味",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "weekday": "週日",
+      "theme": "進山：卡爾加里 → 班夫",
+      "slots": [
+        {
+          "period": "morning",
+          "name": "卡爾加里 → 班夫",
+          "time": "上午",
+          "lat": 51.0803,
+          "lng": -114.7838,
+          "review": "沿 Trans-Canada Hwy 1 西行，車程約 1.5 小時",
+          "transport": {
+            "mode": "自駕",
+            "duration": "約 1.5 小時"
+          }
+        },
+        {
+          "period": "noon",
+          "name": "Banff Ave / Bow Falls / Surprise Corner",
+          "time": "午後",
+          "lat": 51.1745,
+          "lng": -115.565,
+          "review": "辦理入住後市區走走"
+        },
+        {
+          "period": "evening",
+          "name": "Banff Gondola（Sulphur Mountain）",
+          "time": "傍晚",
+          "lat": 51.1494,
+          "lng": -115.5719,
+          "review": "搭乘纜車上硫磺山看日落",
+          "ticketPrice": "約 $55–95",
+          "url": "https://www.banffjaspercollection.com/attractions/banff-gondola/tickets/",
+          "needsBooking": true,
+          "leadDays": 5
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "The Bison Restaurant",
+          "dishes": [
+            {
+              "name": "洛磯山野味，野牛、鹿肉料理",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "weekday": "週一",
+      "theme": "露易絲湖 & 夢蓮湖",
+      "tips": [
+        "Moraine Lake 接駁服務通常於加拿大感恩節（10/12）前後停駛，10/5 前往仍在營運季內，但建議出發前再次確認官網最新班次與是否需預約。"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Lake Louise 湖畔",
+          "time": "7–8 點前出發，車程約 45 分鐘",
+          "lat": 51.4254,
+          "lng": -116.1773,
+          "review": "湖畔散步、Fairview Lookout，天氣允許可租獨木舟"
+        },
+        {
+          "period": "noon",
+          "name": "Moraine Lake / Rockpile Viewpoint",
+          "time": "午後",
+          "lat": 51.3217,
+          "lng": -116.186,
+          "review": "轉搭 Parks Canada 接駁車或 Roam Transit 前往（私家車已禁止進入），健行眺望十峰谷",
+          "needsBooking": true,
+          "leadDays": 21
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "Park Distillery",
+          "dishes": [
+            {
+              "name": "炭烤料理配自釀調酒",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "weekday": "週二",
+      "theme": "Icefields Parkway 一日遊",
+      "tips": [
+        "10 月冰原區域早晚接近零度，務必攜帶保暖層與防風外套；Ice Explorer / Skywalk 10 月中旬起會縮短營運時段，出發前一週再確認。"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Herbert Lake / Bow Lake & Crowfoot Glacier / Peyto Lake 觀景台",
+          "time": "沿 93 號公路北上",
+          "lat": 51.6912,
+          "lng": -116.4738,
+          "review": "沿途停靠的三個經典景點"
+        },
+        {
+          "period": "noon",
+          "name": "Columbia Icefield（Ice Explorer / Glacier Skywalk）",
+          "time": "中午",
+          "lat": 52.2192,
+          "lng": -117.2296,
+          "review": "冰原雪車或玻璃步道",
+          "ticketPrice": "約 $95–126",
+          "url": "https://www.banffjaspercollection.com/attractions/columbia-icefield-adventure/tickets/",
+          "needsBooking": true,
+          "leadDays": 7
+        },
+        {
+          "period": "evening",
+          "name": "Sunwapta Falls",
+          "time": "回程",
+          "lat": 52.4986,
+          "lng": -117.6547,
+          "review": "順遊峽谷瀑布"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "沿線補給站少，建議先備行動糧，回班夫再正式用餐",
+          "dishes": []
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "weekday": "週三",
+      "theme": "Yoho 國家公園 + Johnston Canyon",
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Emerald Lake / Natural Bridge / Takakkaw Falls",
+          "time": "上午",
+          "lat": 51.4397,
+          "lng": -116.5297,
+          "review": "跨省界進入卑詩省 Yoho 國家公園（視道路開放狀況）"
+        },
+        {
+          "period": "noon",
+          "name": "Johnston Canyon（Lower / Upper Falls）",
+          "time": "回程",
+          "lat": 51.2298,
+          "lng": -115.838,
+          "review": "沿 Bow Valley Parkway 停留，健行峽谷棧道"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "Farm and Fire",
+          "dishes": [
+            {
+              "name": "柴燒披薩",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "weekday": "週四",
+      "theme": "班夫慢遊日",
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Banff Upper Hot Springs",
+          "time": "上午",
+          "lat": 51.1622,
+          "lng": -115.5563,
+          "review": "放鬆連日健行的雙腿",
+          "ticketPrice": "成人 $19.75"
+        },
+        {
+          "period": "noon",
+          "name": "Cave and Basin National Historic Site",
+          "time": "午後",
+          "lat": 51.1727,
+          "lng": -115.5822,
+          "review": "或延續 Sulphur Mountain 步道",
+          "ticketPrice": "約 $9–10"
+        },
+        {
+          "period": "evening",
+          "name": "Banff Ave 逛街",
+          "time": "傍晚",
+          "lat": 51.1765,
+          "lng": -115.571,
+          "review": "買紀念品"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "Grizzly House",
+          "dishes": [
+            {
+              "name": "1967 年老店，經典起司／巧克力瑞士鍋",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "weekday": "週五",
+      "theme": "Minnewanka 湖區 + Canmore",
+      "tips": [
+        "Grassi Lakes 步道目前因落石無限期封閉，The Trough 也有歇業傳聞，兩者出發前都務必再次確認。"
+      ],
+      "alternatives": [
+        {
+          "label": "步道方案 A：Grassi Lakes（目前封閉）",
+          "summary": "輕鬆步道、湖水清澈，因落石災害無限期封閉（含聯外 742 號公路），出發前請至 Alberta Parks 步道公告確認是否重新開放"
+        },
+        {
+          "label": "步道方案 B：Policeman's Creek 木棧道 / Quarry Lake",
+          "summary": "Grassi Lakes 封閉期間的替代選擇，同樣位於 Canmore"
+        }
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Lake Minnewanka / Two Jack Lake",
+          "time": "上午",
+          "lat": 51.2361,
+          "lng": -115.4425,
+          "review": "環湖車道、拍照點"
+        },
+        {
+          "period": "noon",
+          "name": "Grassi Lakes",
+          "time": "午後",
+          "lat": 51.0692,
+          "lng": -115.3389,
+          "seasonal": "步道因落石災害目前無限期封閉，若仍封閉可改走 Policeman's Creek 木棧道或 Quarry Lake",
+          "review": "轉往 Canmore，健行清澈湖水步道"
+        },
+        {
+          "period": "evening",
+          "name": "Canmore 小鎮",
+          "time": "傍晚",
+          "lat": 51.0891,
+          "lng": -115.3594,
+          "review": "逛小鎮，買咖啡與伴手禮"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "The Trough（Canmore）",
+          "dishes": [
+            {
+              "name": "精緻料理，山區行程的安靜句點；近期有歇業傳聞，出發前請先致電 (403) 678-2820 確認營業狀態",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "weekday": "週六",
+      "theme": "回卡爾加里",
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Canmore → 卡爾加里",
+          "time": "上午",
+          "lat": 51.0803,
+          "lng": -114.7838,
+          "review": "退房啟程，車程約 1.5–2 小時，可在 Canmore 稍作停留",
+          "transport": {
+            "mode": "自駕",
+            "duration": "約 1.5–2 小時"
+          }
+        },
+        {
+          "period": "noon",
+          "name": "採買、整理行李",
+          "time": "下午",
+          "lat": 51.0447,
+          "lng": -114.0719,
+          "review": "補齊伴手禮清單"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "晚餐",
+          "place": "Anju",
+          "dishes": [
+            {
+              "name": "韓式創意料理",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "weekday": "週日",
+      "theme": "卡爾加里最後巡禮",
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Inglewood 老城區 + Bird Sanctuary",
+          "time": "上午",
+          "lat": 51.029,
+          "lng": -114.0157,
+          "review": "老城區與河濱鳥類保護區散步"
+        },
+        {
+          "period": "noon",
+          "name": "CF Chinook Centre / Hudson's Bay",
+          "time": "下午",
+          "lat": 50.9997,
+          "lng": -114.0722,
+          "review": "補買禮物，順便確認行李重量"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "OEB Breakfast Co. / Sidewalk Citizen Bakery",
+          "dishes": [
+            {
+              "name": "早午餐",
+              "price": "—"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "River Cafe",
+          "dishes": [
+            {
+              "name": "Prince's Island Park 內，旅程的告別晚餐",
+              "price": "—"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-12",
+      "weekday": "週一",
+      "theme": "賦歸",
+      "tips": [
+        "10/12 是加拿大感恩節（Thanksgiving Monday），部分商店與景點可能調整為假日時段，機場與市區交通也可能較忙碌。"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "悠閒早餐",
+          "time": "上午",
+          "lat": 51.0447,
+          "lng": -114.0719,
+          "review": "確認行李與證件"
+        },
+        {
+          "period": "noon",
+          "name": "YYC 機場",
+          "time": "建議 11:30 前抵達",
+          "lat": 51.1225,
+          "lng": -114.0203,
+          "review": "國際線建議提前約 3 小時",
+          "transport": {
+            "mode": "航班",
+            "duration": "14:50 WS080 起飛 → 10/13 16:20 抵達東京 NRT"
+          }
+        }
+      ],
+      "dining": []
+    }
+  ]
+}
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84）可单元测试；
+// initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
+
+// HTML 转义，防止 XSS
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 生成跳转手机地图导航的链接。
+// iOS 不识别 geo: scheme，用 Apple Maps 的 https 通用链接；其余平台用 geo:。
+// ua 可选（浏览器里传 navigator.userAgent），不传则回退 geo:。
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地图 App 的点位链接（免 key 的官方 URI 规范：高德 URI API、Google Maps URLs）。
+// 这不是 page-contract 的 actionLink——不承载实时数据主张，只是"打开地图看这个点"。
+// 境内点只给高德（Google 地图境内不可用、底图坐标系还会偏移）；境外点给 Google + 高德。
+// 输入坐标一律 WGS-84：高德 URI 用 coordinate=wgs84 声明由其换算，Google 本身即 WGS-84。
+// isInChinaBBox 声明在下方 GCJ 区块（函数声明有提升，此处可用）。
+function buildMapAppLinks(lat, lng, label) {
+  var amap = {
+    label: '高德地图',
+    url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+      + '&name=' + encodeURIComponent(label)
+      + '&coordinate=wgs84&callnative=1&src=travel-plan-aston',
+  };
+  var google = {
+    label: 'Google 地图',
+    url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
+  };
+  return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
+}
+
+// —— GCJ-02 → WGS-84 坐标转换 ——
+// 高德/腾讯地图返回的坐标是 GCJ-02（国测局加密），直接画在 OSM（WGS-84）瓦片上
+// 会偏移一百到几百米。凡坐标来自高德/腾讯类 skill，必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+
+function isInChinaBBox(lat, lng) {
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+}
+
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+
+// 从有序点位提取 [lat,lng] 数组，用于连线
+function routeCoordinates(points) {
+  return points.map(function (p) { return [p.lat, p.lng]; });
+}
+
+// 初始化地图：编号 divIcon 标记、按序虚线路线、点击弹出 名称+时间+导航链接。
+// elementId: 容器 id；points: [{lat, lng, name, time}]（按行程顺序，坐标须为 WGS-84）
+// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）。
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: opts.attribution || '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({
+      className: 'route-pin',
+      html: '<span class="route-pin__num">' + (i + 1) + '</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
+      + (p.time ? escapeHTML(p.time) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) {
+    L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
+  }
+  map.fitBounds(coords.length ? coords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
+    routeCoordinates: routeCoordinates,
+    gcj02ToWgs84: gcj02ToWgs84,
+    initTravelMap: initTravelMap,
+  };
+}
+
+</script>
+
+<script>
+// POI 卡片墙引擎：延伸推荐总览（trip-extras.md 第2节）与每站附近推荐面板（第3节）共用的纯函数。
+// 浏览器与 Node 双用。刻意不 require map.js/reminders.js（引擎文件互相独立，故意不合并去重，
+// 维护时保持这个边界）——需要 map.js 的 buildMapAppLinks 时由调用方显式传入。
+
+// HTML 转义，防止 XSS（与 map.js/reminders.js 各自一份，属故意重复，见 page-contract.md）
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  var R = 6371000;
+  var toRad = function (d) { return d * Math.PI / 180; };
+  var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDist(m) {
+  return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km';
+}
+
+// 同一地点常有不同写法（如「片瀬東浜海岸」vs「片瀬東浜海水浴場」），用宽松比对而非精确相等
+function normalizeName(s) {
+  return String(s || '').replace(/[（）()／/・\s]/g, '');
+}
+function sameCore(a, b) {
+  if (!a || !b) return false;
+  var na = normalizeName(a), nb = normalizeName(b);
+  if (!na || !nb) return false;
+  if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
+  var n = Math.min(4, na.length, nb.length);
+  return n >= 3 && na.slice(0, n) === nb.slice(0, n); // 前缀比对，兜住同地不同命名尾词的情况
+}
+function titleTokens(title) {
+  return String(title || '').replace(/[（）()]/g, '・').split(/[・／/]/).map(function (s) { return s.trim(); }).filter(Boolean);
+}
+function matchesStopTitle(name, tokens, fullTitle) {
+  if (!name) return false;
+  if (sameCore(name, fullTitle)) return true;
+  return tokens.some(function (tok) { return sameCore(name, tok); });
+}
+
+function linkOrText(label, url) {
+  return url
+    ? '<a href="' + escapeHTML(url) + '" target="_blank" rel="noopener">' + escapeHTML(label) + ' ↗</a>'
+    : escapeHTML(label);
+}
+
+// mapAppLinksFn：调用方传入 map.js 的 buildMapAppLinks（不在这里 require，保持引擎文件互相独立）。
+// 没有坐标或没传函式就不渲染这一行，不手拼地图连结。
+function mapLinkHTML(lat, lng, name, mapAppLinksFn) {
+  if (typeof lat !== 'number' || typeof lng !== 'number' || typeof mapAppLinksFn !== 'function') return '';
+  var links = mapAppLinksFn(lat, lng, name) || [];
+  if (!links.length) return '';
+  return '<p class="poi-maplink">' + links.map(function (l) {
+    return '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHTML(l.label) + '</a>';
+  }).join('') + '</p>';
+}
+
+// it: { name, url, note, shop, category, lat, lng }
+// sourceClass/sourceLabel：来源标签（'highlight'+'精選' 或 'transit'+'行程途經'，见 trip-extras.md 第2节「分组标记」）
+// distLabel：可选，附近推荐面板用（如 "190 m"），延伸推荐总览不传
+function poiCardHTML(it, sourceClass, sourceLabel, distLabel, mapAppLinksFn) {
+  return '<div class="hl-card poi-card"><span class="source-tag ' + escapeHTML(sourceClass) + '">' + escapeHTML(sourceLabel) + '</span>' +
+    '<h4>' + linkOrText(it.name, it.url) +
+    (it.category ? ' <span class="pill">' + escapeHTML(it.category) + '</span>' : '') +
+    (distLabel ? '<span class="dist-tag">' + escapeHTML(distLabel) + '</span>' : '') +
+    '</h4>' +
+    (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
+    (it.note ? '<p>' + escapeHTML(it.note) + '</p>' : '') +
+    mapLinkHTML(it.lat, it.lng, it.name, mapAppLinksFn) +
+    '</div>';
+}
+
+// 版面行数固定 3（trip-extras.md 第2节「版面」），超过 3 项才需要滑动提示
+var POI_GRID_ROWS = 3;
+function scrollHintHTML(itemCount) {
+  return itemCount > POI_GRID_ROWS ? '<p class="poi-scroll-hint">◂ 左右滑動查看更多 ▸</p>' : '';
+}
+
+// 延伸推荐总览／「行程途经」分组用：单纯把 items 渲染成卡片墙，不做距离排序或排除
+function poiWallHTML(items, sourceClass, sourceLabel, mapAppLinksFn) {
+  var list = items || [];
+  if (!list.length) return '';
+  var cards = list.map(function (it) {
+    return poiCardHTML(it, sourceClass, sourceLabel, null, mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(list.length) + '<div class="poi-grid">' + cards + '</div>';
+}
+
+// 每站附近推荐面板用：按距离排序、排除跟该站同名的项目，可选记录命中（供「行程途经」分组用）
+// opts: { sourceClass, sourceLabel, hitStore, mapAppLinksFn }
+function nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts) {
+  opts = opts || {};
+  var tokens = titleTokens(stopTitle);
+  var withDist = (items || [])
+    .filter(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; })
+    .filter(function (it) { return !matchesStopTitle(it.name, tokens, stopTitle) && !matchesStopTitle(it.shop, tokens, stopTitle); })
+    .map(function (it) { return { it: it, dist: haversineMeters(fromLat, fromLng, it.lat, it.lng) }; })
+    .sort(function (a, b) { return a.dist - b.dist; });
+  if (opts.hitStore) {
+    // 记录命中过的 day.slots 项目，跨全部站点去重（一个地点只记一次），供延伸推荐「行程途经」分组使用
+    withDist.forEach(function (row) {
+      var key = normalizeName(row.it.name);
+      if (key) opts.hitStore[key] = row.it;
+    });
+  }
+  if (!withDist.length) return '<p class="muted">暫無座標資料。</p>';
+  var cards = withDist.map(function (row) {
+    return poiCardHTML(row.it, opts.sourceClass || 'highlight', opts.sourceLabel || '精選', formatDist(row.dist), opts.mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(withDist.length) + '<div class="poi-grid">' + cards + '</div>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    escapeHTML: escapeHTML,
+    haversineMeters: haversineMeters,
+    formatDist: formatDist,
+    normalizeName: normalizeName,
+    sameCore: sameCore,
+    titleTokens: titleTokens,
+    matchesStopTitle: matchesStopTitle,
+    linkOrText: linkOrText,
+    mapLinkHTML: mapLinkHTML,
+    poiCardHTML: poiCardHTML,
+    poiWallHTML: poiWallHTML,
+    nearbyGridHTML: nearbyGridHTML,
+  };
+}
+
+</script>
+
+<script>
+// 出发前提醒：截止日期计算 + 渲染。浏览器与 Node 双用。
+
+// startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 为 'YYYY-MM-DD'
+// 用 UTC 做日期运算，避免本地时区导致的偏移。
+function computeReminders(startDateISO, items) {
+  return items
+    .map(function (it) {
+      var d = new Date(startDateISO + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - it.leadDays);
+      return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+    })
+    .sort(function (a, b) {
+      return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+    });
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item">'
+      + '<input type="checkbox"> '
+      + '<span class="todo-deadline">' + r.deadline + '前</span> '
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建议提前' + r.leadDays + '天）</span>'
+      + '</li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+
+function reminderBadgeHTML(leadDays) {
+  return '<span class="reminder-badge">⚠️ 建议提前' + leadDays + '天订</span>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    computeReminders: computeReminders,
+    renderChecklistHTML: renderChecklistHTML,
+    reminderBadgeHTML: reminderBadgeHTML,
+  };
+}
+
+</script>
+
+<script>
+
+(function () {
+  const trip = JSON.parse(document.getElementById('trip-data').textContent);
+
+  document.getElementById('trip-title').textContent = trip.title;
+  const reminders = computeReminders(trip.startDate, trip.reminders || []);
+  document.getElementById('checklist').innerHTML = reminders.length
+    ? renderChecklistHTML(reminders)
+    : '<p class="muted">目前沒有需要提前預訂的項目。</p>';
+
+  // ---- 行前须知 ----
+  const pt = trip.preTrip || {};
+  document.getElementById('pretrip-body').innerHTML = [
+    pt.weather ? '<div class="pretrip-row"><span class="pretrip-label">天氣</span><p>' + escapeHTML(pt.weather.summary || '') + '</p></div>' : '',
+    pt.weather && pt.weather.typhoon ? '<div class="pretrip-row"><span class="pretrip-label">留意</span><p>' + escapeHTML(pt.weather.typhoon) + '</p></div>' : '',
+    pt.packing ? '<div class="pretrip-row"><span class="pretrip-label">穿搭</span><p>' + escapeHTML(pt.packing) + '</p></div>' : '',
+    pt.payment ? '<div class="pretrip-row"><span class="pretrip-label">支付</span><p>' + escapeHTML(pt.payment) + '</p></div>' : '',
+    pt.apps && pt.apps.length ? '<div class="pretrip-row"><span class="pretrip-label">必備 App</span><p>' + pt.apps.map(escapeHTML).join('・') + '</p></div>' : '',
+    pt.ticketTip ? '<div class="pretrip-row"><span class="pretrip-label">購票時機</span><p>' + escapeHTML(pt.ticketTip) + '</p></div>' : '',
+  ].join('');
+
+  // ---- 航班 ----
+  const fl = trip.flights || {};
+  // 可选适配元素（page-contract.md）：candidates/booked 若带 actionLink={label,url}（来自用户已装的
+  // 官方旅行 skill，如飞猪返回的预订链接），渲染成明确的按钮；没有就不渲染，绝不为此手拼链接。
+  function actionLinkHTML(actionLink, label) {
+    if (!actionLink || !actionLink.url) return '';
+    return '<a class="action-link" href="' + escapeHTML(actionLink.url) + '" target="_blank" rel="noopener">'
+      + escapeHTML(label || actionLink.label || '前往') + ' →</a>';
+  }
+  function flightCard(f, booked) {
+    return '<div class="ticket"><div class="ticket-top"><span class="flight-label">' + escapeHTML(f.label) + '</span>' +
+      (booked ? '<span class="pill pill-warm">已預訂</span>' : '<span class="pill">待選・請自行核實</span>') + '</div>' +
+      '<p class="flight-code">' + escapeHTML(f.code) + '</p>' +
+      '<p class="flight-time">' + escapeHTML(f.time) + '</p>' +
+      (f.note ? '<p class="flight-note">' + escapeHTML(f.note) + '</p>' : '') +
+      actionLinkHTML(f.actionLink, '去預訂') +
+      '</div>';
+  }
+  const flightsHTML = (fl.booked || []).map(function (f) { return flightCard(f, true); }).join('') +
+    (fl.candidates || []).map(function (f) { return flightCard(f, false); }).join('');
+  document.getElementById('flights-grid').innerHTML = flightsHTML || '<p class="muted">無航班資訊。</p>';
+
+  // ---- 免责声明 ----
+  document.getElementById('disclaimer-text').textContent = trip.disclaimer;
+
+  // ---- 距离计算 + 每站「附近推荐」toggle 面板（trip-extras.md 第3节，不限行程类型） ----
+  // haversineMeters/formatDist/normalizeName/sameCore/titleTokens/matchesStopTitle/nearbyGridHTML
+  // 全部来自上面已内联的 assets/poi.js 引擎，这里不重刻。
+  var nearbyCounter = 0;
+  var hlForNearby = trip.highlights;
+
+  // 附近推荐候选池扩大：trip.highlights ∪ 全程 day.slots（trip-extras.md 第3节）。
+  // transitHitNames 记录「候选池里命中、且来源是 day.slots」的项目，供延伸推荐「行程途经」分组复用（第2节）。
+  var allSlotsPool = [];
+  (trip.days || []).forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') {
+        allSlotsPool.push({ name: s.name, note: s.review || '', url: s.url, lat: s.lat, lng: s.lng });
+      }
+    });
+  });
+  var transitHitNames = {};
+
+  function nearbyPanelHTML(s) {
+    if (typeof s.lat !== 'number' || typeof s.lng !== 'number' || !hlForNearby) return '';
+    nearbyCounter += 1;
+    var panelId = 'nearby-panel-' + nearbyCounter;
+    var otherSlots = allSlotsPool.filter(function (it) { return !sameCore(it.name, s.name); });
+    return '<button type="button" class="nearby-toggle" data-target="' + panelId + '" aria-expanded="false">▸ 顯示附近特色景點・餐廳</button>' +
+      '<div class="nearby-panel" id="' + panelId + '" hidden>' +
+      '<div class="nearby-sub"><h5>附近必去景點</h5>' + nearbyGridHTML(hlForNearby.spots, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選', mapAppLinksFn: buildMapAppLinks }) + '</div>' +
+      '<div class="nearby-sub"><h5>附近必吃餐廳</h5>' + nearbyGridHTML(hlForNearby.shops, s.lat, s.lng, s.name, { sourceClass: 'highlight', sourceLabel: '精選', mapAppLinksFn: buildMapAppLinks }) + '</div>' +
+      '<div class="nearby-sub"><h5>附近行程其他站點</h5>' + nearbyGridHTML(otherSlots, s.lat, s.lng, s.name, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHitNames, mapAppLinksFn: buildMapAppLinks }) + '</div>' +
+      '</div>';
+  }
+
+  // ---- 每日时间轴 + 餐饮 ----
+  const periodLabel = { morning: '上午', noon: '中午・午後', evening: '傍晚・晚間' };
+  const daysEl = document.getElementById('days');
+  daysEl.innerHTML = (trip.days || []).map(function (day) {
+    const bySlots = (day.slots || []).reduce(function (acc, s) {
+      (acc[s.period] = acc[s.period] || []).push(s);
+      return acc;
+    }, {});
+    const periodsHTML = Object.keys(periodLabel).filter(function (p) { return bySlots[p]; }).map(function (p) {
+      return '<div class="period"><h3 class="period-label">' + periodLabel[p] + '</h3><ol class="stops">' +
+        bySlots[p].map(function (s) {
+          const optional = [];
+          if (s.openingHours) optional.push('<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>');
+          if (s.ticketPrice) optional.push('<span class="pill">💴 ' + escapeHTML(s.ticketPrice) + '</span>');
+          if (s.seasonal) optional.push('<span class="pill pill-warm">⚠ ' + escapeHTML(s.seasonal) + '</span>');
+          const transportHTML = s.transport
+            ? '<p class="transport">🚗 ' + escapeHTML(s.transport.mode) + (s.transport.duration ? '・' + escapeHTML(s.transport.duration) : '') + '</p>'
+            : '';
+          const titleHTML = s.url
+            ? '<a href="' + escapeHTML(s.url) + '" target="_blank" rel="noopener">' + escapeHTML(s.name) + ' ↗</a>'
+            : escapeHTML(s.name);
+          return '<li class="stop">' +
+            '<span class="stop-time">' + escapeHTML(s.time || '') + '</span>' +
+            '<span class="stop-dot"></span>' +
+            '<span class="stop-body">' +
+            '<h4>' + titleHTML + '</h4>' +
+            (s.review ? '<p class="review">' + escapeHTML(s.review) + '</p>' : '') +
+            '<div class="pills">' + optional.join('') + '</div>' +
+            transportHTML +
+            mapLinkHTML(s.lat, s.lng, s.name, buildMapAppLinks) +
+            nearbyPanelHTML(s) +
+            '</span></li>';
+        }).join('') + '</ol></div>';
+    }).join('');
+
+    const diningHTML = (day.dining || []).map(function (d) {
+      return '<div class="dining-card"><h4>' + escapeHTML(d.meal) + '　' + escapeHTML(d.place) + '</h4>' +
+        (d.hours ? '<p class="hours">' + escapeHTML(d.hours) + '</p>' : '') +
+        '<ul class="dishes">' + (d.dishes || []).map(function (dd) {
+          return '<li>' + escapeHTML(dd.name) + (dd.price && dd.price !== '—' ? ' <span class="price">' + escapeHTML(dd.price) + '</span>' : '') + '</li>';
+        }).join('') + '</ul></div>';
+    }).join('');
+
+    const dayTipsHTML = (day.tips || []).length
+      ? '<ul class="day-tips">' + day.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('') + '</ul>'
+      : '';
+
+    return '<section class="day-card">' +
+      '<div class="day-head"><span class="day-date">' + escapeHTML(day.date) + '（' + escapeHTML(day.weekday || '') + '）</span>' +
+      (day.theme ? '<h2>' + escapeHTML(day.theme) + '</h2>' : '') + '</div>' +
+      dayTipsHTML +
+      periodsHTML +
+      (diningHTML ? '<h3 class="section-sub">當日餐飲</h3>' + diningHTML : '') +
+      '</section>';
+  }).join('');
+
+  // ---- 互动地图 ----
+  const allPoints = [];
+  (trip.days || []).forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') allPoints.push({ lat: s.lat, lng: s.lng, name: s.name, time: s.time });
+    });
+  });
+  if (allPoints.length && typeof L !== 'undefined') {
+    initTravelMap('map', allPoints);
+  }
+
+  // ---- 特色景點／餐廳總覽（trip-extras.md 第2節「卡片渲染規則」：分組標記＋3列橫向捲動＋地圖連結，皆由 poi.js 提供） ----
+  const hl = trip.highlights;
+  if (hl) {
+    if (hl.spots && hl.spots.length) {
+      document.getElementById('hl-spots-title').textContent = hl.spotsTitle || '必去景點總覽';
+      document.getElementById('hl-spots-list').innerHTML = poiWallHTML(hl.spots, 'highlight', '精選', buildMapAppLinks);
+    }
+    if (hl.shops && hl.shops.length) {
+      document.getElementById('hl-shops-title').textContent = hl.shopsTitle || '必吃餐廳總覽';
+      document.getElementById('hl-shops-list').innerHTML = poiWallHTML(hl.shops, 'highlight', '精選', buildMapAppLinks);
+    }
+  }
+
+  // ---- 延伸推薦「行程途經」分組：附近推薦面板實際命中過、但不在 highlights 內的其他行程站點 ----
+  var hlAllNames = [].concat((hl && hl.spots) || [], (hl && hl.shops) || []).map(function (it) { return it.name; });
+  var transitItems = Object.keys(transitHitNames)
+    .map(function (k) { return transitHitNames[k]; })
+    .filter(function (it) { return !hlAllNames.some(function (hn) { return sameCore(hn, it.name); }); });
+  if (transitItems.length) {
+    document.getElementById('hl-transit-block').removeAttribute('hidden');
+    document.getElementById('hl-transit-list').innerHTML = poiWallHTML(transitItems, 'transit', '行程途經', buildMapAppLinks);
+  }
+
+  // ---- 全程贴士 ----
+  document.getElementById('tips-list').innerHTML = (trip.tips || []).map(function (t) {
+    return '<li>' + escapeHTML(t) + '</li>';
+  }).join('');
+
+  // ---- 外文名词注解（页面最底部，trip-extras.md 第6节） ----
+  if (trip.glossary && trip.glossary.groups && trip.glossary.groups.length) {
+    document.getElementById('glossary-title').textContent = trip.glossary.title || '外文名詞註解';
+    document.getElementById('glossary-note').textContent = trip.glossary.note || '';
+    document.getElementById('glossary-groups').innerHTML = trip.glossary.groups.map(function (g) {
+      return '<div class="glossary-group"><h3>' + escapeHTML(g.category) + '</h3><dl class="glossary-list">' +
+        (g.items || []).map(function (it) {
+          return '<dt>' + escapeHTML(it.term) + '</dt><dd>' + escapeHTML(it.note) + '</dd>';
+        }).join('') + '</dl></div>';
+    }).join('');
+  }
+
+  // ---- 每站「附近推荐」显示/隐藏切换 ----
+  daysEl.addEventListener('click', function (e) {
+    const btn = e.target.closest && e.target.closest('.nearby-toggle');
+    if (!btn) return;
+    const panel = document.getElementById(btn.getAttribute('data-target'));
+    if (!panel) return;
+    const willShow = panel.hasAttribute('hidden');
+    if (willShow) {
+      panel.removeAttribute('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+      btn.textContent = '▾ 隱藏附近特色景點・餐廳';
+    } else {
+      panel.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.textContent = '▸ 顯示附近特色景點・餐廳';
+    }
+  });
+})();
+
+</script>
+
+</body>
+</html>
