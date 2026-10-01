@@ -518,6 +518,38 @@ function stopPlayback() {
   if (CAN_SPEAK) speechSynthesis.cancel();
   if (playingBtn) { playingBtn.classList.remove('playing'); playingBtn = null; }
 }
+/* 音檔預載：背景把 200 個 mp3 抓進 Cache API（https 才有），並在記憶體留 blob URL，
+   播放時同步取用、不必等網路；之後再開頁面直接從快取讀。file:// 或不支援時自動略過，仍照舊即時串流。 */
+const AUDIO_CACHE = 'dragon100-audio-v1';
+const audioUrl = (card, lang) => AUDIO_DIR + lang + '/' + String(card.id).padStart(3, '0') + '.mp3';
+const preloaded = new Map();
+async function preloadAudio() {
+  if (!('caches' in window) || !window.fetch) return;
+  if (navigator.connection && navigator.connection.saveData) return;
+  let cache;
+  try { cache = await caches.open(AUDIO_CACHE); } catch (e) { return; }
+  const start = Math.max(0, DECK.findIndex(d => d.id === currentId));
+  const urls = [];
+  for (let i = 0; i < DECK.length; i++) for (const lang of AUDIO_LANGS) urls.push(audioUrl(DECK[(start + i) % DECK.length], lang));
+  let next = 0;
+  const worker = async () => {
+    while (next < urls.length) {
+      const url = urls[next++];
+      if (preloaded.has(url)) continue;
+      try {
+        let res = await cache.match(url);
+        if (!res) {
+          const net = await fetch(url);
+          if (!net.ok) continue;
+          await cache.put(url, net.clone());
+          res = net;
+        }
+        preloaded.set(url, URL.createObjectURL(await res.blob()));
+      } catch (e) { /* 離線或單檔失敗：略過，播放時仍會即時串流 */ }
+    }
+  };
+  await Promise.all([worker(), worker()]);
+}
 function playClip(card, lang, btn) {
   if (playingBtn === btn) { stopPlayback(); return; }
   stopPlayback();
@@ -525,7 +557,8 @@ function playClip(card, lang, btn) {
   const fail = () => { if (playingBtn !== btn) return; stopPlayback(); speakFallback(card[lang], LANGS[lang].speech); };
   player.onended = stopPlayback;
   player.onerror = fail;
-  player.src = AUDIO_DIR + lang + '/' + String(card.id).padStart(3, '0') + '.mp3';
+  const url = audioUrl(card, lang);
+  player.src = preloaded.get(url) || url;
   const pr = player.play();
   if (pr && pr.catch) pr.catch(err => { if (err && err.name !== 'AbortError') fail(); });
 }
@@ -790,6 +823,8 @@ setInterval(() => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden && tab === 'study' && currentId == null) advance(); });
 
 setTab(location.hash.replace('#', ''));
+if (document.readyState === 'complete') setTimeout(preloadAudio, 500);
+else window.addEventListener('load', () => setTimeout(preloadAudio, 500));
 })();
 </script>
 </body>
