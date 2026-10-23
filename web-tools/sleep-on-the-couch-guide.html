@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>求生欲攻略</title>
+<meta name="description" content="逆向「今晚睡沙發？」的192題題庫與怒氣演算法，找出每一句的正確回法。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1b1726;
+    --surface:#262137;
+    --surface-2:#312a46;
+    --line:rgba(244,238,226,0.14);
+    --line-strong:rgba(244,238,226,0.24);
+    --text:#f4eee2;
+    --text-dim:#b7aec7;
+    --text-faint:#867d99;
+    --accent:#f2b544;
+    --accent-ink:#2a1c05;
+    --survive:#5fae87;
+    --survive-ink:#0d2018;
+    --plain:#9c93a8;
+    --plain-ink:#1c1826;
+    --oblivious:#e0954a;
+    --oblivious-ink:#2a1605;
+    --fake:#c96b8a;
+    --fake-ink:#2a0f18;
+    --mine:#e2483f;
+    --mine-ink:#2a0806;
+    --radius:14px;
+    --font-display:"LXGW WenKai TC",serif;
+    --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#1b1726; }
+  }
+  :root[data-theme="dark"]{ --bg:#1b1726; }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding:20px 16px calc(64px + env(safe-area-inset-bottom,0px));
+  }
+  a{color:inherit;}
+
+  /* ---------- header ---------- */
+  header.top{
+    padding-top:14px;
+  }
+  .brandrow{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(1.5rem,5vw,2.1rem);
+    margin:0;
+    letter-spacing:.02em;
+    text-wrap:balance;
+  }
+  h1 .dim{color:var(--text-dim);font-weight:400;font-size:.55em;display:block;margin-top:2px;}
+  .count-badge{
+    font-family:var(--font-mono);
+    font-variant-numeric:tabular-nums;
+    font-size:.8rem;
+    color:var(--accent);
+    background:rgba(242,181,68,0.12);
+    border:1px solid rgba(242,181,68,0.35);
+    border-radius:999px;
+    padding:4px 12px;
+    white-space:nowrap;
+  }
+
+  .lede{
+    color:var(--text-dim);
+    font-size:.92rem;
+    margin:10px 0 16px;
+    max-width:64ch;
+  }
+
+  /* ---------- callout ---------- */
+  .callout{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin:0 0 18px;
+  }
+  .callout h2{
+    font-family:var(--font-display);
+    font-size:1.05rem;
+    margin:0 0 8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p{margin:6px 0;color:var(--text-dim);font-size:.88rem;}
+  .callout strong{color:var(--text);font-weight:700;}
+  .callout .warn{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:10px;
+    background:rgba(226,72,63,0.12);
+    border:1px solid rgba(226,72,63,0.35);
+    color:#f1b3ae;
+    font-size:.85rem;
+  }
+
+  /* ---------- ending ladder ---------- */
+  .ladder-title{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-faint);
+    margin:18px 0 8px;
+  }
+  .ladder{
+    display:flex;
+    border-radius:10px;
+    overflow:hidden;
+    height:34px;
+    border:1px solid var(--line);
+  }
+  .ladder-seg{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.62rem;
+    font-family:var(--font-mono);
+    color:rgba(0,0,0,.55);
+    position:relative;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .ladder-marker{
+    position:absolute;
+    top:-9px;
+    transform:translateX(-50%);
+    font-size:.68rem;
+    color:var(--accent);
+    font-family:var(--font-mono);
+    white-space:nowrap;
+  }
+  .ladder-marker::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:16px;
+    width:2px;
+    height:20px;
+    background:var(--accent);
+  }
+  .ladder-wrap{position:relative;margin-bottom:6px;}
+  .ladder-legend{
+    display:flex;
+    justify-content:space-between;
+    font-size:.68rem;
+    color:var(--text-faint);
+    margin-top:2px;
+  }
+
+  /* ---------- endings gallery ---------- */
+  .endings-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:10px;
+    margin:10px 0 22px;
+  }
+  .ending-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--ending-color,var(--line));
+    border-radius:12px;
+    padding:12px 14px;
+  }
+  .ending-card .erow{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .ending-card .etitle{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1rem;
+  }
+  .ending-card .erange{
+    font-family:var(--font-mono);
+    font-size:.68rem;
+    color:var(--text-faint);
+    white-space:nowrap;
+  }
+  .ending-card .ebed{
+    font-size:.66rem;
+    color:var(--text-faint);
+    margin-bottom:6px;
+  }
+  .ending-card .everdict{
+    font-size:.82rem;
+    color:var(--text-dim);
+  }
+  .ending-card .eline{
+    font-size:.78rem;
+    color:var(--text-faint);
+    font-style:italic;
+    margin-top:6px;
+  }
+  .ending-card .eline::before{content:"「";}
+  .ending-card .eline::after{content:"」";}
+
+  /* ---------- controls ---------- */
+  .controls{
+    position:sticky;
+    top:env(safe-area-inset-top,0px);
+    z-index:15;
+    background:var(--bg);
+    padding:10px 0 10px;
+    margin-top:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .search{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:9px 16px;
+  }
+  .search input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--text);
+    font-size:.92rem;
+    font-family:var(--font-body);
+  }
+  .search input::placeholder{color:var(--text-faint);}
+  .search svg{flex-shrink:0;color:var(--text-faint);}
+
+  .chips{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    margin-top:10px;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0;
+    font-size:.78rem;
+    padding:6px 13px;
+    border-radius:999px;
+    border:1px solid var(--line-strong);
+    background:var(--surface);
+    color:var(--text-dim);
+    cursor:pointer;
+    white-space:nowrap;
+    font-family:var(--font-body);
+  }
+  .chip.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--accent-ink);
+    font-weight:700;
+  }
+
+  .result-count{
+    font-size:.78rem;
+    color:var(--text-faint);
+    margin:10px 2px 4px;
+    font-family:var(--font-mono);
+  }
+
+  /* ---------- question cards ---------- */
+  .qlist{display:flex;flex-direction:column;gap:14px;margin-top:8px;}
+  .qcard{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 14px 12px;
+  }
+  .qmeta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .qmeta .catchip{
+    font-size:.68rem;
+    font-weight:700;
+    color:var(--accent);
+    background:rgba(242,181,68,0.1);
+    border:1px solid rgba(242,181,68,0.28);
+    border-radius:999px;
+    padding:2px 9px;
+  }
+  .qmeta .scene{
+    font-size:.68rem;
+    color:var(--text-faint);
+    font-family:var(--font-mono);
+    text-align:right;
+  }
+  .bubble-in{
+    display:inline-block;
+    max-width:92%;
+    background:var(--surface-2);
+    border:1px solid var(--line-strong);
+    border-radius:16px 16px 16px 4px;
+    padding:10px 14px;
+    font-size:.98rem;
+    font-weight:500;
+  }
+  .silence-note{
+    font-size:.74rem;
+    color:var(--text-faint);
+    margin:6px 0 10px 4px;
+    font-style:italic;
+  }
+  .silence-note b{color:var(--text-dim);font-style:normal;font-weight:600;}
+
+  .opts{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .opt{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    border-radius:12px;
+    padding:9px 11px;
+    background:rgba(244,238,226,0.03);
+    border:1px solid transparent;
+    border-left:3px solid var(--tier-color,var(--line));
+  }
+  .opt.best{
+    background:rgba(95,174,135,0.1);
+    border-color:rgba(95,174,135,0.3);
+  }
+  .opt.tier-mine{
+    background:rgba(226,72,63,0.08);
+  }
+  .opt.chosen{
+    outline:1.5px solid var(--accent);
+    outline-offset:-1px;
+  }
+  .pickmark{color:var(--accent);font-weight:700;}
+  .topts-title{
+    font-size:.7rem;
+    color:var(--text-faint);
+    margin:14px 0 6px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+  .opt-text{flex:1;min-width:0;}
+  .opt-text .line{font-size:.9rem;}
+  .opt-text .resp{
+    font-size:.78rem;
+    color:var(--text-faint);
+    margin-top:3px;
+  }
+  .opt-text .resp::before{content:"→ ";}
+  .opt-text .note{
+    font-size:.78rem;
+    margin-top:5px;
+    color:var(--note-color,var(--text-dim));
+    line-height:1.45;
+  }
+  .opt-text .note b{font-weight:700;}
+  .opt-badges{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:3px;
+    flex-shrink:0;
+  }
+  .tag{
+    font-size:.64rem;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:6px;
+    white-space:nowrap;
+    font-family:var(--font-body);
+  }
+  .tag.tier-survive{background:var(--survive);color:var(--survive-ink);}
+  .tag.tier-plain{background:var(--plain);color:var(--plain-ink);}
+  .tag.tier-oblivious{background:var(--oblivious);color:var(--oblivious-ink);}
+  .tag.tier-fake{background:var(--fake);color:var(--fake-ink);}
+  .tag.tier-mine{background:var(--mine);color:#fff;}
+  .delta{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    font-variant-numeric:tabular-nums;
+    color:var(--text-faint);
+  }
+  .delta.neg{color:var(--survive);}
+  .delta.hi{color:var(--mine);}
+
+  .empty{
+    text-align:center;
+    color:var(--text-faint);
+    padding:40px 0;
+    font-size:.9rem;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--text-faint);
+    font-size:.72rem;
+    margin-top:28px;
+  }
+
+  /* ---------- tabs ---------- */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin:16px 0 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .tabbtn{
+    font-family:var(--font-body);
+    font-size:.88rem;
+    font-weight:700;
+    color:var(--text-faint);
+    background:transparent;
+    border:none;
+    padding:8px 4px 12px;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+  }
+  .tabbtn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  /* ---------- play mode ---------- */
+  .stage-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    text-align:center;
+  }
+  .stage-card p{color:var(--text-dim);font-size:.9rem;max-width:48ch;margin:0 auto 14px;}
+  .btn{
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:.92rem;
+    padding:11px 22px;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn.ghost{
+    background:transparent;
+    border:1px solid var(--line-strong);
+    color:var(--text);
+  }
+  .btnrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+
+  .angerbar-wrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .angerbar-label{
+    font-size:.72rem;
+    color:var(--text-faint);
+    white-space:nowrap;
+    font-family:var(--font-mono);
+  }
+  .angerbar{
+    flex:1;
+    height:10px;
+    border-radius:999px;
+    background:rgba(244,238,226,0.08);
+    overflow:hidden;
+  }
+  .angerbar-fill{
+    height:100%;
+    border-radius:999px;
+    transition:width .35s ease,background .35s ease;
+  }
+  .angerbar-val{
+    font-family:var(--font-mono);
+    font-size:.8rem;
+    font-variant-numeric:tabular-nums;
+    color:var(--text);
+    min-width:2.4em;
+    text-align:right;
+  }
+
+  .live-scene{
+    font-size:.68rem;
+    color:var(--text-faint);
+    font-family:var(--font-mono);
+    margin-bottom:6px;
+  }
+  .live-cat{
+    display:inline-block;
+    font-size:.68rem;
+    font-weight:700;
+    color:var(--accent);
+    background:rgba(242,181,68,0.1);
+    border:1px solid rgba(242,181,68,0.28);
+    border-radius:999px;
+    padding:2px 9px;
+    margin-bottom:8px;
+  }
+  .live-opts{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:14px;
+  }
+  .live-opt{
+    text-align:left;
+    background:var(--surface-2);
+    border:1px solid var(--line-strong);
+    border-radius:14px;
+    padding:11px 14px;
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:.92rem;
+    cursor:pointer;
+  }
+  .live-opt:hover{border-color:var(--accent);}
+  .live-opt:active{transform:scale(0.99);}
+
+  .end-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:4px solid var(--ending-color,var(--accent));
+    border-radius:var(--radius);
+    padding:20px;
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .end-card .etitle{
+    font-family:var(--font-display);
+    font-size:1.6rem;
+    font-weight:700;
+    margin:0 0 6px;
+  }
+  .end-card .erange{
+    font-family:var(--font-mono);
+    font-size:.78rem;
+    color:var(--text-faint);
+    margin-bottom:10px;
+  }
+  .end-card .everdict{color:var(--text-dim);font-size:.94rem;margin-bottom:8px;}
+  .end-card .eline{color:var(--text-faint);font-size:.85rem;font-style:italic;}
+  .end-card .eline::before{content:"「";}
+  .end-card .eline::after{content:"」";}
+
+  .transcript-title{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-faint);
+    margin:22px 0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    text-transform:none;
+  }
+  .transcript{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .tstep{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+  }
+  .tstep .tmeta{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    font-size:.68rem;
+    color:var(--text-faint);
+    font-family:var(--font-mono);
+    margin-bottom:8px;
+  }
+  .tstep .tscenario{margin-bottom:8px;}
+  .tstep .tchosen{
+    display:flex;
+    justify-content:flex-end;
+  }
+  .tstep .tchosen-inner{
+    max-width:88%;
+    background:var(--surface-2);
+    border:1px solid var(--line-strong);
+    border-radius:16px 16px 4px 16px;
+    padding:9px 13px;
+  }
+  .tstep .tchosen-inner .ttext{font-size:.9rem;}
+  .tstep .tchosen-inner .tnote{
+    font-size:.76rem;
+    margin-top:5px;
+    color:var(--note-color,var(--text-dim));
+  }
+  .tstep .tresp{
+    font-size:.8rem;
+    color:var(--text-faint);
+    margin-top:6px;
+    text-align:right;
+  }
+  .tstep .tanger{
+    font-family:var(--font-mono);
+    font-size:.68rem;
+    color:var(--text-faint);
+    margin-top:8px;
+    text-align:right;
+  }
+  .tstep.tier-mine{border-left:3px solid var(--mine);}
+  .tstep.tier-survive{border-left:3px solid var(--survive);}
+
+  @media (max-width:480px){
+    .qmeta{flex-direction:column;align-items:flex-start;gap:4px;}
+    .qmeta .scene{text-align:left;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brandrow">
+      <h1>求生欲攻略<span class="dim">「今晚睡沙發？」192 題逆向筆記</span></h1>
+      <span class="count-badge" id="totalBadge">192 題</span>
+    </div>
+    <p class="lede">從遊戲前端程式碼裡挖出每一題的怒氣演算法：哪一句會降怒氣、哪一句是地雷、哪一句只是聽起來體貼。搜尋對方那句話，直接看正確回法。</p>
+  </header>
+
+  <div class="tabs" id="viewTabs">
+    <button class="tabbtn active" data-view="lookup">📖 查表攻略</button>
+    <button class="tabbtn" data-view="play">🎮 實戰記錄</button>
+  </div>
+
+  <section id="lookupView">
+    <div class="callout">
+      <h2>🛋️ 破解重點</h2>
+      <p><strong>資料庫裡，每一題一定有一個「正確答案」</strong>：192 題裡，每一題都有一句話的怒氣變化量是全題最低（通常是唯一會讓怒氣<strong>下降</strong>的選項）。這句話在原始資料裡永遠被定義成該題的第一個選項。</p>
+      <p>約 82%（157/192）的題目還藏了一顆<strong style="color:var(--mine)">地雷 💣</strong>：選到它，怒氣直接鎖 100，當場出局（送去陽台/已讀不回）。</p>
+      <div class="warn">⚠️ 但遊戲畫面每一局都會<strong>隨機打亂選項的顯示順序</strong>——不能無腦點第一個按鈕。要靠<strong>對方那句話的文字</strong>去查、認出哪一句回覆才是對的。這正是下面這份表存在的意義：搜尋情境或選項文字，而不是背位置。</div>
+    </div>
+
+    <div class="ladder-title">怒氣值 → 結局（女友版起始怒氣 50，落在 PASS 區）</div>
+    <div class="ladder-wrap">
+      <div class="ladder-marker" id="startMarker">起始 50</div>
+      <div class="ladder" id="ladder"></div>
+    </div>
+    <div class="ladder-legend"><span>0（完美）</span><span>睡床上 ↔ 睡外面</span><span>100（出局）</span></div>
+
+    <div class="ladder-title">10 種可能結局</div>
+    <div class="endings-grid" id="endingsGrid"></div>
+
+    <div class="controls">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="搜尋對方說的話、你的回覆、或關鍵字…" autocomplete="off">
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="result-count" id="resultCount"></div>
+    <div class="qlist" id="qlist"></div>
+    <div class="empty" id="emptyState" hidden>沒有符合的題目，換個關鍵字試試。</div>
+  </section>
+
+  <section id="playView" hidden>
+    <div class="callout">
+      <h2>🎮 這是什麼</h2>
+      <p>用同一份 192 題題庫，在這裡重新玩一局——規則跟怒氣演算法都跟正式站一樣。原站結束後只給你「戰績」跟怒氣值，玩完就忘了對話內容；這裡玩完之後，<strong>完整對話紀錄會留在畫面上、也會存在這台裝置</strong>，關掉分頁、重新整理都還在，方便你事後回想每一句是怎麼接的。</p>
+    </div>
+    <div id="roundStage"></div>
+    <div id="transcriptWrap"></div>
+  </section>
+
+  <footer>資料來源：「今晚睡沙發？」(sleep-on-the-couch.lol) 前端程式碼逆向整理，資料擷取於 2026-10-23，僅供個人參考娛樂用。此頁面獨立運作，不會回傳任何資料到原站伺服器。</footer>
+</div>
+
+<script>
+const QUESTIONS=[{"id":1,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週三 21:08 · 你家客廳","scenario":"我今天心情不好，去買了一個麵包。","silence":"算了，你忙你的。","options":[{"id":"1a","text":"先抱一個。麵包等等再說，你先跟我講發生什麼事。","response":"……你怎麼知道我想要抱抱。","angerChange":-5,"tier":"survive","best":true},{"id":"1b","text":"什麼口味的？","response":"重點是麵包嗎？","angerChange":6,"tier":"plain","best":false},{"id":"1c","text":"心情不好就少吃甜的啦，對身體不好，這個我是為你想。","response":"我連吃個麵包都要被管了。","angerChange":18,"tier":"oblivious","best":false},{"id":"1d","text":"一個麵包多少？麵包也太貴了吧。","response":"（已將你設為靜音）","angerChange":100,"tier":"mine","best":false},{"id":"1e","text":"你心情不好我懂，但買麵包解決不了問題，想想根本原因？","response":"……你現在是在檢討我嗎。","angerChange":26,"tier":"fake","best":false}]},{"id":2,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週一 23:52 · 房間，燈關了一半","scenario":"沒事，我沒生氣。","silence":"你看，你連問都不想問。","options":[{"id":"2a","text":"那我坐過去陪你一下，不用講話也可以。","response":"……（把頭靠過來）","angerChange":-5,"tier":"survive","best":true},{"id":"2b","text":"好。那我先關燈，你早點睡。","response":"你關了燈。可是你沒有過來。","angerChange":6,"tier":"plain","best":false},{"id":"2c","text":"你說沒事我就相信你啊，你每次生氣都會直接講，這次你沒講。","response":"所以我要生氣還得先講一聲。","angerChange":18,"tier":"oblivious","best":false},{"id":"2d","text":"好，那我先去打個遊戲。","response":"你去啊。你今天跟你的遊戲睡。","angerChange":100,"tier":"mine","best":false}]},{"id":3,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週二 22:30 · 訊息","scenario":"你都不懂我在想什麼。","silence":"你看吧，連猜都不想猜。","options":[{"id":"3a","text":"那你講給我聽，我很想懂。","response":"……好啦。那你不要打斷我。","angerChange":-5,"tier":"survive","best":true},{"id":"3b","text":"我哪有不懂，我只是沒說。","response":"那你說說看我在想什麼。","angerChange":6,"tier":"plain","best":false},{"id":"3c","text":"你不講我怎麼會知道。","response":"什麼都要我講，那我幹嘛跟你在一起。","angerChange":18,"tier":"oblivious","best":false},{"id":"3d","text":"我也不用懂啊，反正你等下就好了。","response":"那我等下就好了。你不用管。","angerChange":100,"tier":"mine","best":false},{"id":"3e","text":"我很想懂你，但你什麼都不說，這樣要我怎麼辦？我也很努力了。","response":"原來努力的只有你。好，那我不為難你了。","angerChange":26,"tier":"fake","best":false}]},{"id":4,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週四 20:15 · 你下班回到家","scenario":"我最近壓力好大。","silence":"嗯，我知道你也很累。算了。","options":[{"id":"4a","text":"今天什麼都不用做，我去弄晚餐，你躺著。","response":"……可以再抱一下嗎。","angerChange":-5,"tier":"survive","best":true},{"id":"4b","text":"那你要不要請個假休息一下？","response":"請假就沒事了喔。","angerChange":6,"tier":"plain","best":false},{"id":"4c","text":"大家都很有壓力啊。這陣子每個人都在硬撐。","response":"喔，所以我不能累。","angerChange":18,"tier":"oblivious","best":false},{"id":"4d","text":"你就是想太多。","response":"對，我想太多。以後不跟你講了。","angerChange":100,"tier":"mine","best":false}]},{"id":5,"category":"LOOKS","categoryLabel":"外表","scene":"週六 10:22 · 全身鏡前","scenario":"你老實說，我是不是變胖了？","silence":"你不用回了，我看你的表情就知道。","options":[{"id":"5a","text":"你在我眼裡一直都很好看。最近是不是太累沒睡好？","response":"哼，算你會講話。","angerChange":-5,"tier":"survive","best":true},{"id":"5b","text":"有嗎？我完全沒注意欸。","response":"所以你平常都沒在看我。","angerChange":6,"tier":"plain","best":false},{"id":"5c","text":"還好啦，就一點點而已。","response":"一點點。你剛剛說一點點對吧。","angerChange":18,"tier":"oblivious","best":false},{"id":"5d","text":"對啊，我上禮拜就想說了。","response":"（把你的枕頭丟到客廳）","angerChange":100,"tier":"mine","best":false},{"id":"5e","text":"胖不胖真的不重要，我愛的是你的個性，外表本來就是會變的。","response":"所以你也覺得我變了。","angerChange":26,"tier":"fake","best":false}]},{"id":6,"category":"LOOKS","categoryLabel":"外表","scene":"週五 19:40 · 剛從髮廊出來","scenario":"我剪這個瀏海是不是很醜？","silence":"……很醜對不對。你不敢講。","options":[{"id":"6a","text":"很適合你欸，比之前更有精神。轉一下我看看。","response":"真的嗎（偷偷照鏡子）","angerChange":-5,"tier":"survive","best":true},{"id":"6b","text":"還好啊，會長回來的。過兩個月就看不出來。","response":"所以你也覺得要長回來才行。","angerChange":6,"tier":"plain","best":false},{"id":"6c","text":"我覺得你之前那個比較好看。","response":"謝謝喔，那我這兩個月都不要見人了。","angerChange":18,"tier":"oblivious","best":false},{"id":"6d","text":"你自己覺得呢？","response":"我問你欸。算了，不用回了。","angerChange":100,"tier":"mine","best":false}]},{"id":7,"category":"LOOKS","categoryLabel":"外表","scene":"週日 15:05 · 試衣間外","scenario":"這件跟剛剛那件，你覺得哪件好看？","silence":"好，我知道了，兩件都不好看。","options":[{"id":"7a","text":"兩件都好看，但這件更襯你今天的氣色，就這件。","response":"真的？那我兩件都買。","angerChange":-5,"tier":"survive","best":true},{"id":"7b","text":"這件吧。","response":"為什麼？你講個理由。","angerChange":6,"tier":"plain","best":false},{"id":"7c","text":"都可以啊，你自己決定就好。我看不出差別。","response":"那我問你幹嘛。","angerChange":18,"tier":"oblivious","best":false},{"id":"7d","text":"你衣櫃裡不是有一件很像的？","response":"（把衣服掛回去，走出店門）","angerChange":100,"tier":"mine","best":false},{"id":"7e","text":"你穿哪一件我都覺得好看，所以這種小事你自己決定就好。","response":"小事。原來這對你是小事。","angerChange":26,"tier":"fake","best":false}]},{"id":8,"category":"LOOKS","categoryLabel":"外表","scene":"週一 18:50 · 出門前","scenario":"我今天有哪裡不一樣嗎？","silence":"（在原地站了十秒）好，沒有。","options":[{"id":"8a","text":"你今天口紅顏色換了，很好看，襯得整個人很亮。","response":"你居然看得出來！","angerChange":-5,"tier":"survive","best":true},{"id":"8b","text":"有喔……（快速掃描全身）你換髮型？","response":"你是現在才在找對不對。","angerChange":6,"tier":"plain","best":false},{"id":"8c","text":"沒有啊，都一樣好看。你本來就這樣。","response":"都一樣。嗯。","angerChange":18,"tier":"oblivious","best":false},{"id":"8d","text":"不都長那樣？","response":"對，都長那樣。那你今天自己出門。","angerChange":100,"tier":"mine","best":false}]},{"id":9,"category":"TRAP","categoryLabel":"假設題","scene":"週一 01:14 · 熄燈後","scenario":"如果我跟你媽同時掉進水裡，你先救誰？","silence":"你想這麼久，答案我知道了。","options":[{"id":"9a","text":"這週末我先帶我媽去學游泳，這樣我永遠不用選。","response":"……好啦。（偷笑）","angerChange":-5,"tier":"survive","best":true},{"id":"9b","text":"這也太假設了吧，現實中又不會發生。","response":"我就問，你回答一下會死喔。","angerChange":6,"tier":"plain","best":false},{"id":"9c","text":"可是我媽不會游泳欸。你至少還浮得起來吧？","response":"所以我會游泳是我的錯。","angerChange":18,"tier":"oblivious","best":false},{"id":"9d","text":"媽只有一個啊。","response":"嗯。那你回去陪媽媽睡。","angerChange":100,"tier":"mine","best":false},{"id":"9e","text":"你這麼獨立一定沒問題，我媽真的什麼都不會，你體諒一下。","response":"所以要體諒的又是我。","angerChange":26,"tier":"fake","best":false}]},{"id":10,"category":"TRAP","categoryLabel":"假設題","scene":"週三 23:20 · 訊息","scenario":"如果我跟你前任同時參加比賽，你幫誰加油？","silence":"你要想這麼久喔。","options":[{"id":"10a","text":"我根本不會去看那場，我會在終點等你。","response":"……你很會欸。","angerChange":-5,"tier":"survive","best":true},{"id":"10b","text":"當然是你啊，這還用問。","response":"你回太快了，像背好的。","angerChange":6,"tier":"plain","best":false},{"id":"10c","text":"就看誰比較需要加油吧。你狀況比較好，他那組今年一直輸。","response":"你連他那組的戰績都知道。","angerChange":18,"tier":"oblivious","best":false},{"id":"10d","text":"我幹嘛提前任，是你自己提的。","response":"對，都是我的錯。晚安。","angerChange":100,"tier":"mine","best":false}]},{"id":11,"category":"TRAP","categoryLabel":"假設題","scene":"週一 02:03 · 睡不著","scenario":"如果我明天就消失，你會怎樣？","silence":"看來你會過得很好。","options":[{"id":"11a","text":"我會很難過。所以你不要消失，明天早餐我買你愛吃的。","response":"……你不要突然這樣講話。","angerChange":-5,"tier":"survive","best":true},{"id":"11b","text":"不要亂講這種話啦。","response":"我認真問的欸。","angerChange":6,"tier":"plain","best":false},{"id":"11c","text":"日子還是要過啊。難過歸難過，總不能停在那裡。","response":"嗯，你日子確實還是要過。","angerChange":18,"tier":"oblivious","best":false},{"id":"11d","text":"那我房間就變大了。","response":"好，那我現在就先消失。","angerChange":100,"tier":"mine","best":false},{"id":"11e","text":"你不要亂想這種事，我們現在好好的，幹嘛講這麼不吉利的話嚇自己。","response":"那我以後都不講了。","angerChange":26,"tier":"fake","best":false}]},{"id":12,"category":"TRAP","categoryLabel":"假設題","scene":"週五 21:47 · 吃完飯走路回家","scenario":"如果我跟你朋友吵架，你會挺誰？","silence":"這還要想喔。","options":[{"id":"12a","text":"我會先聽你講完，然後跟他說清楚。你不用自己面對。","response":"……有你這句就好。","angerChange":-5,"tier":"survive","best":true},{"id":"12b","text":"應該不會吵起來吧。真的吵了我再處理。","response":"等到那時候，我已經自己站了一整晚。","angerChange":6,"tier":"plain","best":false},{"id":"12c","text":"要看誰有道理啊。你們兩個我都認識，我不想在還沒聽完就先選邊。","response":"聽完再選。那我吵架的時候是一個人。","angerChange":18,"tier":"oblivious","best":false},{"id":"12d","text":"他跟我認識比較久欸。","response":"好啊，那你去找你那個認識比較久的。","angerChange":100,"tier":"mine","best":false}]},{"id":13,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週一 19:00 · 餐桌，有蠟燭","scenario":"我們今天在一起幾天了，你記得嗎？","silence":"（把蠟燭吹熄）","options":[{"id":"13a","text":"今天第 500 天，八點的位子我訂好了。","response":"你什麼時候訂的啦！","angerChange":-5,"tier":"survive","best":true},{"id":"13b","text":"我當然記得啊……（偷偷開日曆）","response":"你剛剛是不是在看手機。","angerChange":6,"tier":"plain","best":false},{"id":"13c","text":"這個也要記喔？我以為那是拿來過的，不是拿來數的。","response":"不用記。以後都不用記了。","angerChange":18,"tier":"oblivious","best":false},{"id":"13d","text":"你不是上個月才問過？","response":"（收起蠟燭，關燈）","angerChange":100,"tier":"mine","best":false},{"id":"13e","text":"我對你的感情不用靠數日子證明，對我來說每天都是紀念日。","response":"那今天也是普通的一天囉。","angerChange":26,"tier":"fake","best":false}]},{"id":14,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週二 12:30 · 路過花店","scenario":"你記得我最喜歡什麼花嗎？","silence":"不用回了，我自己買。","options":[{"id":"14a","text":"桔梗。你上次說它看起來很安靜。","response":"你連我為什麼喜歡都記得。","angerChange":-5,"tier":"survive","best":true},{"id":"14b","text":"玫瑰吧？你不是喜歡紅色的。","response":"玫瑰是你唯一想得到的花對不對。","angerChange":6,"tier":"plain","best":false},{"id":"14c","text":"你有說過嗎。我記東西比較差，你直接跟我講我就記起來。","response":"說過兩次。第三次不會有了。","angerChange":18,"tier":"oblivious","best":false},{"id":"14d","text":"花很快就謝了，買了浪費。","response":"對，跟你講話也很浪費。","angerChange":100,"tier":"mine","best":false}]},{"id":15,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週四 22:10 · 一起滑旅遊照","scenario":"上次我說我很想去一個地方，你記得是哪裡嗎？","silence":"你根本沒在聽對不對。","options":[{"id":"15a","text":"花蓮的那間海邊民宿。我把連結存起來了，要看嗎？","response":"你存起來了？！","angerChange":-5,"tier":"survive","best":true},{"id":"15b","text":"日本？還是你上次講的那個海邊。","response":"每次都日本。","angerChange":6,"tier":"plain","best":false},{"id":"15c","text":"你講過太多地方了。我記不住。","response":"所以一個都沒記住。","angerChange":18,"tier":"oblivious","best":false},{"id":"15d","text":"那種地方去了也是拍照。","response":"好，那我自己去拍。","angerChange":100,"tier":"mine","best":false},{"id":"15e","text":"你想去的地方太多了，我怕記錯讓你失望，你再說一次好嗎？","response":"不用了。我自己去。","angerChange":26,"tier":"fake","best":false}]},{"id":16,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週日 11:00 · 早餐店","scenario":"你知道下禮拜三是什麼日子嗎？","silence":"（放下筷子）沒事了。","options":[{"id":"16a","text":"你生日。我請好假了，那天不排事情。","response":"你居然請假……","angerChange":-5,"tier":"survive","best":true},{"id":"16b","text":"你生日。我記得，只是還沒安排。","response":"記得跟安排是兩件事。","angerChange":6,"tier":"plain","best":false},{"id":"16c","text":"禮拜三喔？我行事曆上沒寫，你上次好像也沒特別提。","response":"我提過。你那天在打字。","angerChange":18,"tier":"oblivious","best":false},{"id":"16d","text":"普通的禮拜三啊。","response":"對，普通的禮拜三。以後每天都很普通。","angerChange":100,"tier":"mine","best":false}]},{"id":17,"category":"FOOD","categoryLabel":"吃什麼","scene":"週五 19:12 · 機車停在路口等紅燈","scenario":"今天晚餐吃什麼？","silence":"綠燈了。你騎，我不餓了。後面那台在按你。","options":[{"id":"17a","text":"我訂了你上次說想吃的那家，八點。","response":"你有在聽我講話欸。……你是不是做錯什麼事。","angerChange":-5,"tier":"survive","best":true},{"id":"17b","text":"吃火鍋好不好？還是你想吃別的？","response":"火鍋喔。夏天欸。……好啦。","angerChange":6,"tier":"plain","best":false},{"id":"17c","text":"我現在把外送 app 打開給你看，你挑。","response":"每次都我決定。我這輩子已經幫你決定過四百多餐了。","angerChange":18,"tier":"oblivious","best":false},{"id":"17d","text":"隨便。","response":"「隨便」在下個路口。你自己去點。","angerChange":100,"tier":"mine","best":false},{"id":"17e","text":"我真的什麼都可以吃，你挑你想吃的，我不想讓你遷就我。","response":"你不想讓我遷就你，所以改成我遷就你的不想遷就。我自己吃。","angerChange":26,"tier":"fake","best":false}]},{"id":18,"category":"FOOD","categoryLabel":"吃什麼","scene":"週六 14:20 · 咖啡廳","scenario":"這個超好吃，你要不要吃一口？","silence":"（把盤子轉到自己那一側，順便轉了一百八十度）","options":[{"id":"18a","text":"好啊，那你也吃我這個。（把叉子遞過去）","response":"這樣才對嘛。（先挖了你那份最中間那一口）","angerChange":-5,"tier":"survive","best":true},{"id":"18b","text":"不用了。你吃就好。","response":"喔。好。（把叉子收回去，收得有點久）","angerChange":6,"tier":"plain","best":false},{"id":"18c","text":"看起來很甜欸。我對甜的真的沒辦法，你自己吃比較開心。","response":"所以我點的很甜。所以我很甜。所以我很難吃。","angerChange":18,"tier":"oblivious","best":false},{"id":"18d","text":"（直接挖了一大口）","response":"我說一口。你這個是一口的話，那我剛剛吃的是前菜。","angerChange":100,"tier":"mine","best":false}]},{"id":19,"category":"FOOD","categoryLabel":"吃什麼","scene":"週三 12:45 · 午餐","scenario":"我點的這個好像沒有你的好吃欸。","silence":"沒事。我自己吃完，包括你的。","options":[{"id":"19a","text":"那換啊，我這個給你，我吃你的。","response":"真的可以喔？（盤子已經在對面了，這句是禮貌問的）","angerChange":-5,"tier":"survive","best":true},{"id":"19b","text":"要不要吃一口我的？","response":"一口哪夠。我要三口，而且我自己挖。","angerChange":6,"tier":"plain","best":false},{"id":"19c","text":"就跟你說要點這個。我看菜單的時候就覺得那個比較穩。","response":"你早就知道。你就是沒有把你那盤推過來。","angerChange":18,"tier":"oblivious","best":false},{"id":"19d","text":"你自己選的啊。","response":"嗯，我自己選的。連你也是。","angerChange":100,"tier":"mine","best":false},{"id":"19e","text":"好不好吃很主觀啦，你要不要試著換個角度想，說不定會覺得不錯。","response":"我只是說我的比較不好吃。你回了我一篇。","angerChange":26,"tier":"fake","best":false}]},{"id":20,"category":"FOOD","categoryLabel":"吃什麼","scene":"週一 21:30 · 冰箱前，你手上還拿著叉子","scenario":"我放在冰箱的那個蛋糕呢？","silence":"……你嘴角。","options":[{"id":"20a","text":"我吃了，對不起。我現在下樓去買一模一樣的。","response":"要買兩個。一個賠我，一個賠我剛剛的表情。","angerChange":-5,"tier":"survive","best":true},{"id":"20b","text":"我以為那個沒人要吃。放很多天了。","response":"冰箱裡的東西什麼時候變沒人要的。以後每樣都寫名字，包括你。","angerChange":6,"tier":"plain","best":false},{"id":"20c","text":"我現在去買一個一樣的，不過那個本來就放到快壞了。","response":"所以是我的錯。我放的，我沒吃到，我的錯。","angerChange":18,"tier":"oblivious","best":false},{"id":"20d","text":"不好吃欸那個。","response":"你不但吃了，你還評分。","angerChange":100,"tier":"mine","best":false}]},{"id":21,"category":"PHONE","categoryLabel":"手機與社群","scene":"週四 23:05 · 沙發，兩人並排","scenario":"你剛剛滑手機在笑什麼？","silence":"（伸手把你的手機轉過來）","options":[{"id":"21a","text":"群組在傳梗圖，超好笑，來一起看。","response":"哈哈哈這什麼啦。","angerChange":-5,"tier":"survive","best":true},{"id":"21b","text":"工作群組啦。真的很無聊。","response":"好笑的事你都自己笑完了。","angerChange":6,"tier":"plain","best":false},{"id":"21c","text":"這有什麼好問的。我滑個手機也要報備嗎。","response":"報備。原來我在查勤。","angerChange":18,"tier":"oblivious","best":false},{"id":"21d","text":"沒有啊。（把手機蓋在桌上）","response":"手機拿來。……不拿是不是。","angerChange":100,"tier":"mine","best":false},{"id":"21e","text":"就一些很無聊的東西，你看了只會覺得幼稚，不用浪費你的時間。","response":"你都還沒給我看，怎麼知道我會覺得幼稚。","angerChange":26,"tier":"fake","best":false}]},{"id":22,"category":"PHONE","categoryLabel":"手機與社群","scene":"週二 18:40 · 訊息，上面有三個已讀","scenario":"你為什麼已讀我三個小時？","silence":"你現在又要已讀我了嗎。","options":[{"id":"22a","text":"剛剛在開會，手機放旁邊。我現在有空了，你說。","response":"好啦，那我從頭講。","angerChange":-5,"tier":"survive","best":true},{"id":"22b","text":"開會開到剛剛。有看到，但不方便回。","response":"那三個小時我一直在看那兩個字。","angerChange":6,"tier":"plain","best":false},{"id":"22c","text":"我現在不是回你了嗎。已讀又不代表我不理你，這種事真的沒必要吵。","response":"沒必要吵。所以是我在無理取鬧。","angerChange":18,"tier":"oblivious","best":false},{"id":"22d","text":"你也可以不要一直看啊。","response":"好，那我以後都不看了。","angerChange":100,"tier":"mine","best":false}]},{"id":23,"category":"PHONE","categoryLabel":"手機與社群","scene":"週一 00:30 · 你限動的觀看清單","scenario":"這個人是誰？你限動每次都他第一個看。","silence":"你在想怎麼解釋喔。","options":[{"id":"23a","text":"同事，坐我隔壁。我把他移出限動名單。","response":"不用移他。你早點講就好。","angerChange":-5,"tier":"survive","best":true},{"id":"23b","text":"就朋友啊。","response":"哪種朋友。","angerChange":6,"tier":"plain","best":false},{"id":"23c","text":"你會不會太敏感了？他就坐我隔壁，看限動不是很正常嗎。","response":"他坐你隔壁。所以你知道他是誰。","angerChange":18,"tier":"oblivious","best":false},{"id":"23d","text":"你現在是在查我？","response":"對，我在查你。查到了。","angerChange":100,"tier":"mine","best":false},{"id":"23e","text":"我現在就把他封鎖給你看，你想看什麼我都給你看，這種小事不值得你難過。","response":"我問他是誰。你到現在都還沒回答。","angerChange":26,"tier":"fake","best":false}]},{"id":24,"category":"PHONE","categoryLabel":"手機與社群","scene":"週一 20:15 · 你剛發完限動","scenario":"你限動怎麼沒有標我？","silence":"（已把你的限動截圖）","options":[{"id":"24a","text":"我漏了，等我。（三秒後重發並標記）","response":"這還差不多。","angerChange":-5,"tier":"survive","best":true},{"id":"24b","text":"真的漏了，對不起。我晚點補。","response":"晚點。你每次都晚點。","angerChange":6,"tier":"plain","best":false},{"id":"24c","text":"我現在補標，不過限動這種東西真的沒人在看。","response":"那你補標給誰看。","angerChange":18,"tier":"oblivious","best":false},{"id":"24d","text":"這需要標嗎？","response":"不需要。以後都不需要了。","angerChange":100,"tier":"mine","best":false}]},{"id":25,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"十二月的某個晚上 · 訂票頁面開著","scenario":"過年要回你家還是我家？","silence":"你不講我就自己買票了。","options":[{"id":"25a","text":"初一你家、初二我家，票我來訂。你先跟媽說。","response":"你什麼時候變這麼會安排。","angerChange":-5,"tier":"survive","best":true},{"id":"25b","text":"都可以啊，你想回哪？我都配合。","response":"又是我決定。","angerChange":6,"tier":"plain","best":false},{"id":"25c","text":"我現在訂回我家的票，我們每年不都這樣。","response":"每年。誰的每年。","angerChange":18,"tier":"oblivious","best":false},{"id":"25d","text":"我媽會希望我們回去。","response":"好，那你回去。我回我家。","angerChange":100,"tier":"mine","best":false},{"id":"25e","text":"兩邊都很重要，但我爸媽年紀大了，今年先回我家比較好。","response":"我爸媽就不會老嗎。","angerChange":26,"tier":"fake","best":false}]},{"id":26,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週一 21:50 · 從你家吃完飯回來的車上","scenario":"你媽剛剛那句話是什麼意思？","silence":"你不回答我就當我猜對了。","options":[{"id":"26a","text":"那句話確實不太好聽，我等下跟她說。你先別放心上。","response":"……你會說喔？","angerChange":-5,"tier":"survive","best":true},{"id":"26b","text":"她沒有惡意。她講話一直都這樣。","response":"沒有惡意就可以隨便講。","angerChange":6,"tier":"plain","best":false},{"id":"26c","text":"你可能想太多了。她那個年紀的人講話就是那樣，不用往心裡去。","response":"又是我想太多。","angerChange":18,"tier":"oblivious","best":false},{"id":"26d","text":"她就那樣講話，你習慣一下。","response":"好，我習慣。連你一起習慣。","angerChange":100,"tier":"mine","best":false}]},{"id":27,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週六 23:40 · 聚餐散場後","scenario":"你朋友是不是不喜歡我？","silence":"你連否認都要想。","options":[{"id":"27a","text":"他今天講話很白目，我下次會先講。你不用去猜他。","response":"有你這樣講就好。","angerChange":-5,"tier":"survive","best":true},{"id":"27b","text":"沒有吧，他對誰都那樣。你別多想。","response":"所以他對我沒有比較好。","angerChange":6,"tier":"plain","best":false},{"id":"27c","text":"這週末我約他們一起吃飯，多見幾次你就知道他沒惡意。","response":"所以問題在我不夠熟。","angerChange":18,"tier":"oblivious","best":false},{"id":"27d","text":"你也沒有很喜歡他啊。","response":"好，那以後我都不去。","angerChange":100,"tier":"mine","best":false},{"id":"27e","text":"他對誰都是那個樣子，你不用把他的話當真，多相處幾次就好。","response":"所以要多相處的是我，不是他。","angerChange":26,"tier":"fake","best":false}]},{"id":28,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週四 22:00 · 訊息","scenario":"這週末我朋友揪吃飯，你要不要一起？","silence":"好，我自己去。","options":[{"id":"28a","text":"好啊，幾點？我把那天空下來。","response":"我就知道你會去。","angerChange":-5,"tier":"survive","best":true},{"id":"28b","text":"應該可以。我看一下行事曆。","response":"每次都看一下。","angerChange":6,"tier":"plain","best":false},{"id":"28c","text":"你們自己去比較自在吧。","response":"所以你不想見我朋友。","angerChange":18,"tier":"oblivious","best":false},{"id":"28d","text":"又要去喔？","response":"對，又要去。這次不用你去了。","angerChange":100,"tier":"mine","best":false}]},{"id":29,"category":"CHORES","categoryLabel":"家事與生活","scene":"週一 20:05 · 垃圾車音樂已經在巷口","scenario":"你可以幫我倒個垃圾嗎？","silence":"（垃圾車開走了）","options":[{"id":"29a","text":"（已經穿好鞋）袋子在哪，我去追。","response":"快去快去！","angerChange":-5,"tier":"survive","best":true},{"id":"29b","text":"等一下，這局打完。","response":"車要走了欸。","angerChange":6,"tier":"plain","best":false},{"id":"29c","text":"我等等就拿下去，不是昨天才倒過而已嗎。","response":"垃圾會自己長，你知道嗎。","angerChange":18,"tier":"oblivious","best":false},{"id":"29d","text":"你倒比較快吧。","response":"對，我什麼都比較快。","angerChange":100,"tier":"mine","best":false},{"id":"29e","text":"我等一下一定去，你先坐著休息，這種小事真的不用你操心。","response":"你的等一下，是垃圾車開走以後。","angerChange":26,"tier":"fake","best":false}]},{"id":30,"category":"CHORES","categoryLabel":"家事與生活","scene":"週三 21:40 · 水槽","scenario":"這些碗放在這裡多久了？","silence":"（打開水龍頭，自己洗）","options":[{"id":"30a","text":"我的錯，我現在洗。你去坐著。","response":"……那我陪你站著。","angerChange":-5,"tier":"survive","best":true},{"id":"30b","text":"我等下就洗。先泡著。","response":"等下是多久。","angerChange":6,"tier":"plain","best":false},{"id":"30c","text":"我現在泡水，明天早上一起洗，放一個晚上又不會怎樣。","response":"對，什麼都明天。","angerChange":18,"tier":"oblivious","best":false},{"id":"30d","text":"你看到了怎麼不洗？","response":"這個家我一個人洗。","angerChange":100,"tier":"mine","best":false}]},{"id":31,"category":"CHORES","categoryLabel":"家事與生活","scene":"週五 23:15 · 地板上有一隻襪子","scenario":"你怎麼又把襪子丟在地上。","silence":"（把襪子放到你枕頭上）","options":[{"id":"31a","text":"對不起，我改。（撿起來丟進洗衣籃）","response":"這樣就好了嘛。","angerChange":-5,"tier":"survive","best":true},{"id":"31b","text":"我等下會撿喔。","response":"你上次也說等下。","angerChange":6,"tier":"plain","best":false},{"id":"31c","text":"就一隻襪子而已。我等一下洗澡出來會順手撿。","response":"每天一隻，一年三百六十五隻。","angerChange":18,"tier":"oblivious","best":false},{"id":"31d","text":"你不是也會亂丟。","response":"好，那我們一起亂丟。你睡地上。","angerChange":100,"tier":"mine","best":false},{"id":"31e","text":"我知道我這個習慣不好，但你也不用為了一隻襪子這麼生氣吧。","response":"我氣的不是那隻襪子，是每次都要我講。","angerChange":26,"tier":"fake","best":false}]},{"id":32,"category":"CHORES","categoryLabel":"家事與生活","scene":"週日 14:30 · 客廳，冷氣 22 度","scenario":"冷氣可以調高一點嗎？我很冷。","silence":"（把整條毯子捲走）","options":[{"id":"32a","text":"（已經拿了毯子過來）調到 26，你先蓋著。","response":"你怎麼這麼快。","angerChange":-5,"tier":"survive","best":true},{"id":"32b","text":"好。我調到 25，這樣行嗎。","response":"調了要等十分鐘。我現在就冷。","angerChange":6,"tier":"plain","best":false},{"id":"32c","text":"我拿件外套給你好不好？冷氣調高我等一下會流汗，換衣服比較快。","response":"你算得很清楚。要多穿的還是我。","angerChange":18,"tier":"oblivious","best":false},{"id":"32d","text":"會冷是你自己體質的問題。","response":"好，那我去房間，你自己吹。","angerChange":100,"tier":"mine","best":false}]},{"id":33,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週二 21:30 · 又一個包裹到了","scenario":"你又買這個？家裡不是已經有一個了。","silence":"（把包裹推到你面前）","options":[{"id":"33a","text":"這個我確實不該買，我去退。下次買之前先問你。","response":"……你這樣講我反而不好意思。","angerChange":-5,"tier":"survive","best":true},{"id":"33b","text":"這個不一樣啦。功能真的差很多。","response":"每次都不一樣。","angerChange":6,"tier":"plain","best":false},{"id":"33c","text":"這個真的比較好用。舊的那支握起來不太順。","response":"好用到要買第二個。","angerChange":18,"tier":"oblivious","best":false},{"id":"33d","text":"你上個月也買了三件外套。","response":"你居然在算我的。","angerChange":100,"tier":"mine","best":false},{"id":"33e","text":"我買之前有想過，這是我自己賺的錢，別的地方我都有省。","response":"省下來的錢就是拿來買這個的嗎。","angerChange":26,"tier":"fake","best":false}]},{"id":34,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週六 13:40 · 結帳櫃檯前","scenario":"這餐我們怎麼算？","silence":"（自己把卡拿出來了）","options":[{"id":"34a","text":"我請。上次你請的，這次換我。","response":"好啦，那下次我請。","angerChange":-5,"tier":"survive","best":true},{"id":"34b","text":"AA 好了。我等等轉給你。","response":"嗯，好。","angerChange":6,"tier":"plain","best":false},{"id":"34c","text":"你先付吧。這種小錢分那麼細其實有點傷感情。","response":"傷感情。是誰先講錢的。","angerChange":18,"tier":"oblivious","best":false},{"id":"34d","text":"你吃比較多。","response":"好，那我付我那份。你自己回家。","angerChange":100,"tier":"mine","best":false}]},{"id":35,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週日 16:20 · 專櫃前站了十分鐘","scenario":"我想買這個，會不會太貴了？","silence":"（把它放回架上）","options":[{"id":"35a","text":"你看了很久了。喜歡就買，你很久沒對自己好了。","response":"……那我買了喔。","angerChange":-5,"tier":"survive","best":true},{"id":"35b","text":"還好吧，你自己決定。","response":"我就是決定不了才問你。","angerChange":6,"tier":"plain","best":false},{"id":"35c","text":"這個價錢可以吃十頓飯欸。我不是不讓你買，只是算了一下。","response":"你換算了。你沒問我為什麼想要。","angerChange":18,"tier":"oblivious","best":false},{"id":"35d","text":"上次買的那個也沒在用。","response":"行啊，那我什麼都不要買了。","angerChange":100,"tier":"mine","best":false},{"id":"35e","text":"你當然值得更好的，只是這個價錢我覺得不太划算，再看看好嗎？","response":"所以你覺得我不值這個價錢。","angerChange":26,"tier":"fake","best":false}]},{"id":36,"category":"MONEY","categoryLabel":"金錢與消費","scene":"月底 23:10 · 對帳單攤在桌上","scenario":"你這個月的錢都花去哪了？","silence":"你自己也不知道對不對。","options":[{"id":"36a","text":"我列給你看。這個月確實花超過了，下個月我收斂。","response":"這樣才對，我們一起看。","angerChange":-5,"tier":"survive","best":true},{"id":"36b","text":"就吃飯跟一些雜支啊。","response":"雜支雜到八千。","angerChange":6,"tier":"plain","best":false},{"id":"36c","text":"你不要管這麼細啦。就是吃飯跟一些訂閱，加起來才那樣。","response":"我管這麼細是因為我在乎。","angerChange":18,"tier":"oblivious","best":false},{"id":"36d","text":"我的錢要你管？","response":"好，以後各管各的。","angerChange":100,"tier":"mine","best":false}]},{"id":37,"category":"WORK","categoryLabel":"工作與時間","scene":"週四 20:50 · 你傳訊說還在公司","scenario":"你今天又要加班？","silence":"不用回了，我先吃。","options":[{"id":"37a","text":"再一小時就好，買你愛吃的那家回去，等我喔。","response":"那我等你，不要太累。","angerChange":-5,"tier":"survive","best":true},{"id":"37b","text":"對啊，沒辦法。","response":"每次都沒辦法。","angerChange":6,"tier":"plain","best":false},{"id":"37c","text":"我現在叫外送給你，你先吃，不然你要我怎麼辦。","response":"我沒有在餓。","angerChange":18,"tier":"oblivious","best":false},{"id":"37d","text":"工作比較重要吧。","response":"好，那你跟工作過。","angerChange":100,"tier":"mine","best":false},{"id":"37e","text":"我也很想早點回去陪你，但這個案子沒有人接得了，我真的沒辦法。","response":"你哪一次有辦法。","angerChange":26,"tier":"fake","best":false}]},{"id":38,"category":"WORK","categoryLabel":"工作與時間","scene":"週日 22:00 · 你又打開筆電","scenario":"禮拜天你也要看公事？","silence":"（把房門帶上）","options":[{"id":"38a","text":"你說得對。（闔上筆電）明天再處理，現在陪你。","response":"這才像話。","angerChange":-5,"tier":"survive","best":true},{"id":"38b","text":"我看一下就好。五分鐘，真的。","response":"你的五分鐘。","angerChange":6,"tier":"plain","best":false},{"id":"38c","text":"不看完明天會更慘。","response":"所以我永遠排在後面。","angerChange":18,"tier":"oblivious","best":false},{"id":"38d","text":"你又不懂我的工作。","response":"對，我什麼都不懂。","angerChange":100,"tier":"mine","best":false}]},{"id":39,"category":"WORK","categoryLabel":"工作與時間","scene":"週三 12:10 · 訊息","scenario":"你上次答應我這禮拜要早點回來。","silence":"嗯，我知道了。","options":[{"id":"39a","text":"我記得。今天我六點半就走，不騙你。","response":"你敢騙我試試看。","angerChange":-5,"tier":"survive","best":true},{"id":"39b","text":"我盡量啦。今天有幾個會。","response":"盡量。好。","angerChange":6,"tier":"plain","best":false},{"id":"39c","text":"我今天盡量早走，不過這種事情本來就說不準。","response":"「盡量」我上禮拜也聽過。","angerChange":18,"tier":"oblivious","best":false},{"id":"39d","text":"我哪時候答應的？","response":"沒有。你什麼都沒答應過。","angerChange":100,"tier":"mine","best":false},{"id":"39e","text":"我有記得，但最近真的排不開，等這一波過去我一定補給你。","response":"你每一波都這樣說。","angerChange":26,"tier":"fake","best":false}]},{"id":40,"category":"WORK","categoryLabel":"工作與時間","scene":"週五 19:30 · 你講了半小時公司的事","scenario":"你可不可以不要一直講公司的事？","silence":"（開始滑手機）","options":[{"id":"40a","text":"抱歉，我講太多了。換你講，你今天怎麼樣？","response":"嗯……其實我今天也有事想講。","angerChange":-5,"tier":"survive","best":true},{"id":"40b","text":"好啦，那我不講了。你講。","response":"你這樣講好像我不讓你講。","angerChange":6,"tier":"plain","best":false},{"id":"40c","text":"好，我現在不講了，那你想聊什麼。","response":"你這樣講得好像是我在管你。","angerChange":18,"tier":"oblivious","best":false},{"id":"40d","text":"那你要我講什麼？","response":"不用講了，你安靜就好。","angerChange":100,"tier":"mine","best":false}]},{"id":41,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週二 22:40 · 行事曆開著","scenario":"這次旅行你要不要排一下行程？","silence":"好，那我自己排。","options":[{"id":"41a","text":"我來排。你把想去的地方傳給我，我今晚弄好。","response":"真的？那我傳囉。","angerChange":-5,"tier":"survive","best":true},{"id":"41b","text":"到時候再看啦。隨性一點比較好玩。","response":"你每次都隨性。","angerChange":6,"tier":"plain","best":false},{"id":"41c","text":"你排比較快啊，你比較會。","response":"所以又是我。","angerChange":18,"tier":"oblivious","best":false},{"id":"41d","text":"排那麼多幹嘛，去了再說。","response":"那不要去了。","angerChange":100,"tier":"mine","best":false},{"id":"41e","text":"你排的行程每次都比我好，我怕我排了你反而玩得不開心。","response":"你這句話講得好像在稱讚我。","angerChange":26,"tier":"fake","best":false}]},{"id":42,"category":"TRIP","categoryLabel":"出遊計畫","scene":"出發前三天 23:55","scenario":"住的地方你訂了嗎？","silence":"……你沒訂對不對。","options":[{"id":"42a","text":"訂好了，訂單截圖傳給你。可以取消，你看看喜不喜歡。","response":"你居然還留退路，有你的。","angerChange":-5,"tier":"survive","best":true},{"id":"42b","text":"還沒。我明天一定訂。","response":"剩三天了欸。","angerChange":6,"tier":"plain","best":false},{"id":"42c","text":"我以為你要訂。行程都是你排的，我以為住的地方也包在裡面。","response":"我以為你要訂。","angerChange":18,"tier":"oblivious","best":false},{"id":"42d","text":"現在訂應該還有吧。","response":"（已開始查自己一個人的房型）","angerChange":100,"tier":"mine","best":false}]},{"id":43,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週日 20:15 · 滑到別人的旅遊照","scenario":"我們多久沒出去玩了？","silence":"算了，我自己算。","options":[{"id":"43a","text":"七個月。下個連假我把假請好，我們去。","response":"你連幾個月都記得。","angerChange":-5,"tier":"survive","best":true},{"id":"43b","text":"有那麼久喔？我以為上次是過年。","response":"你完全沒感覺對吧。","angerChange":6,"tier":"plain","best":false},{"id":"43c","text":"最近不是都很忙。我以為你也累得不想出門。","response":"忙是永遠的理由。","angerChange":18,"tier":"oblivious","best":false},{"id":"43d","text":"在家不是也很好？","response":"好，那你在家。","angerChange":100,"tier":"mine","best":false},{"id":"43e","text":"我也很想帶你出去，但這陣子真的挪不出時間，你也知道的。","response":"我知道。我什麼都知道。","angerChange":26,"tier":"fake","best":false}]},{"id":44,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週六 15:00 · 手機遞到你面前","scenario":"這間民宿你覺得可以嗎？","silence":"（收回手機）不用看了。","options":[{"id":"44a","text":"這間好，離海很近。你想住哪一間房型？","response":"我就知道你會喜歡這間。","angerChange":-5,"tier":"survive","best":true},{"id":"44b","text":"看起來還可以。你決定就好。","response":"「你決定就好」。那我問你幹嘛。","angerChange":6,"tier":"plain","best":false},{"id":"44c","text":"這種東西差不多啦，睡一晚而已，重點是行程排得好不好。","response":"我問的是這一間。不是行程。","angerChange":18,"tier":"oblivious","best":false},{"id":"44d","text":"這個價錢住這樣喔？","response":"好，那你去找便宜的。","angerChange":100,"tier":"mine","best":false}]},{"id":45,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週一 01:20 · 兩個人都還沒睡","scenario":"你有想過我們以後嗎？","silence":"……看來是沒有。","options":[{"id":"45a","text":"有。我想過很多次，只是這種事想跟你一起決定，不想我一個人說了算。","response":"那我們現在講。","angerChange":-5,"tier":"survive","best":true},{"id":"45b","text":"有想過啊。順其自然。","response":"順其自然是什麼意思。","angerChange":6,"tier":"plain","best":false},{"id":"45c","text":"現在想這個會不會太早？我們認識才三年多。","response":"三年了還太早。","angerChange":18,"tier":"oblivious","best":false},{"id":"45d","text":"以後再說。","response":"好，那以後再說。晚安。","angerChange":100,"tier":"mine","best":false},{"id":"45e","text":"我很認真看待我們，只是我想等一切穩定下來再談，這樣才是真的對你負責。","response":"三年了還不夠穩定。好，我懂了。","angerChange":26,"tier":"fake","best":false}]},{"id":46,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週六 21:00 · 剛參加完婚禮回來","scenario":"我朋友這個月第三個結婚了。","silence":"（把捧花放在桌上）","options":[{"id":"46a","text":"我知道你在想什麼。這件事我們找個時間好好聊，我是認真的。","response":"……那你不要拖太久。","angerChange":-5,"tier":"survive","best":true},{"id":"46b","text":"大家都好快喔。我有看到你按讚。","response":"「大家」。那我們呢。","angerChange":6,"tier":"plain","best":false},{"id":"46c","text":"結婚也沒多好啊。","response":"所以你不想。","angerChange":18,"tier":"oblivious","best":false},{"id":"46d","text":"你今天沒接到捧花，可惜。","response":"對，可惜。你也不用回家了。","angerChange":100,"tier":"mine","best":false}]},{"id":47,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週三 23:30 · 看租屋網看到一半","scenario":"你覺得我們什麼時候可以住在一起？","silence":"你連想都不敢想。","options":[{"id":"47a","text":"我存到一個數字就開口。剩下不多了，我給你看我的計畫。","response":"你有在存？你都沒說。","angerChange":-5,"tier":"survive","best":true},{"id":"47b","text":"再看看吧。時機到了自然就會。","response":"什麼時機。","angerChange":6,"tier":"plain","best":false},{"id":"47c","text":"住一起很麻煩欸，習慣都不一樣。","response":"所以我很麻煩。","angerChange":18,"tier":"oblivious","best":false},{"id":"47d","text":"現在這樣不是很好？","response":"對你來說很好。","angerChange":100,"tier":"mine","best":false},{"id":"47e","text":"我很想跟你住，只是我怕生活習慣磨合起來，反而讓我們變得更糟。","response":"所以你想到的是會變糟。","angerChange":26,"tier":"fake","best":false}]},{"id":48,"category":"FUTURE","categoryLabel":"未來規劃","scene":"過年前的晚上 · 訊息","scenario":"我爸媽又問我們什麼時候。你要我怎麼回？","silence":"所以我要自己回。","options":[{"id":"48a","text":"你不用自己扛。下次我跟你一起回去，我來說。","response":"……你確定喔？","angerChange":-5,"tier":"survive","best":true},{"id":"48b","text":"你就說再過一陣子啊。他們問問而已。","response":"這句我已經講三年了。","angerChange":6,"tier":"plain","best":false},{"id":"48c","text":"長輩就是會問啦，別理他們。","response":"被問的是我不是你。","angerChange":18,"tier":"oblivious","best":false},{"id":"48d","text":"這是你家的事吧。","response":"對，是我家的事。跟你沒關係。","angerChange":100,"tier":"mine","best":false}]},{"id":49,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週二 23:58 · 你剛講完一句解釋","scenario":"你是不是覺得我很麻煩？","silence":"這種問題你要想這麼久喔。","options":[{"id":"49a","text":"不是你麻煩。是我剛剛那串解釋。我不解釋了。","response":"……那我講了。你不要接。","angerChange":6,"tier":"plain","best":true},{"id":"49b","text":"不會啊。你怎麼會突然這樣想。","response":"你回太快了。","angerChange":18,"tier":"oblivious","best":false},{"id":"49c","text":"是你自己這樣覺得的吧。我從頭到尾都沒有講過。","response":"所以是我的問題。","angerChange":22,"tier":"oblivious","best":false},{"id":"49d","text":"你一點都不麻煩，我從來沒有這樣想過，你不要給自己壓力。","response":"你連想都沒想過，代表你根本沒在意過。","angerChange":26,"tier":"fake","best":false}]},{"id":50,"category":"LOOKS","categoryLabel":"外表","scene":"週六 16:30 · 你剛回過頭，對方看到了","scenario":"你剛剛是不是在看那個人？是不是比我好看？","silence":"（停下腳步）你不用回了。","options":[{"id":"50a","text":"有看到。沒在比誰好看。剩下這段路我看你。","response":"……你至少沒有說你沒看到。","angerChange":6,"tier":"plain","best":true},{"id":"50b","text":"有人經過嗎。我沒注意到。","response":"你眼睛明明就轉過去了。","angerChange":18,"tier":"oblivious","best":false},{"id":"50c","text":"你為什麼要拿自己跟別人比？我又沒有講什麼。","response":"因為你在看啊。","angerChange":22,"tier":"oblivious","best":false},{"id":"50d","text":"全世界沒有人比你好看，我眼裡從頭到尾都只有你一個。","response":"這句話你講得太順了。你以前對誰講過。","angerChange":26,"tier":"fake","best":false}]},{"id":51,"category":"TRAP","categoryLabel":"假設題","scene":"週一 02:40 · 兩個人都醒著","scenario":"你是愛現在的我，還是愛以前那個我？","silence":"這種問題還要想喔。","options":[{"id":"51a","text":"兩個都是你。但我比較懂現在的你。","response":"「比較懂」。嗯。","angerChange":6,"tier":"plain","best":true},{"id":"51b","text":"你哪有變，你一直都一樣。","response":"我變很多，只是你沒發現。","angerChange":18,"tier":"oblivious","best":false},{"id":"51c","text":"這個問題沒有意義吧。","response":"對你來說沒有意義。","angerChange":22,"tier":"oblivious","best":false},{"id":"51d","text":"當然是現在的你，你比以前成熟太多了，我很喜歡這樣的你。","response":"所以以前的我很幼稚。","angerChange":26,"tier":"fake","best":false}]},{"id":52,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週四 22:55 · 翻到以前的對話紀錄","scenario":"你記得我們第一次吵架是為了什麼嗎？","silence":"（把手機轉回去）算了。","options":[{"id":"52a","text":"不記得了。你還記得，那是我的問題。你講，我聽。","response":"……你至少沒有硬掰一個。","angerChange":6,"tier":"plain","best":true},{"id":"52b","text":"太久了吧。後來又吵過幾次，我分不出是哪一次。","response":"我記得。而且我記得你那天說了什麼。","angerChange":18,"tier":"oblivious","best":false},{"id":"52c","text":"幹嘛翻舊帳。都過去的事，講了也只是再難過一次。","response":"我只是想到就問一下。","angerChange":22,"tier":"oblivious","best":false},{"id":"52d","text":"記得啊，但那都過去了，我們現在很好，何必再提那些。","response":"你講得出是什麼事嗎。講啊。","angerChange":26,"tier":"fake","best":false}]},{"id":53,"category":"FOOD","categoryLabel":"吃什麼","scene":"週三 20:20 · 你把碗放下","scenario":"你上次是不是覺得我煮的不好吃？","silence":"（把鍋子端走，連飯鍋一起）","options":[{"id":"53a","text":"上次那鍋不太合，我沒講。今天這鍋好吃，再一碗。","response":"……那上次哪裡不合，你現在講。","angerChange":6,"tier":"plain","best":true},{"id":"53b","text":"沒有啊。我那天是在外面吃過才回來的。","response":"所以你先在外面吃飽，再回來剩我煮的。","angerChange":18,"tier":"oblivious","best":false},{"id":"53c","text":"我今天全部吃完了啊。你自己不是也說過那次比較鹹？","response":"我可以說，你不行。這是煮的人的權利。","angerChange":22,"tier":"oblivious","best":false},{"id":"53d","text":"你煮的都好吃啦，是你自己太在意，下次不要問這種問題。","response":"好，下次不問。也不煮。","angerChange":26,"tier":"fake","best":false}]},{"id":54,"category":"PHONE","categoryLabel":"手機與社群","scene":"週五 23:20 · 手機在你手上","scenario":"如果我現在要看你的手機，你敢給我嗎？","silence":"（伸出手）","options":[{"id":"54a","text":"（把手機遞過去）沒什麼好看的。","response":"……不用了。你敢給就好。","angerChange":6,"tier":"plain","best":true},{"id":"54b","text":"這是隱私問題吧。不是有什麼，是原則問題。","response":"所以有東西不能看。","angerChange":18,"tier":"oblivious","best":false},{"id":"54c","text":"你為什麼會突然這樣問？","response":"你在反問我。","angerChange":22,"tier":"oblivious","best":false},{"id":"54d","text":"我當然敢，我對你完全沒有祕密，只是這樣做對彼此都不健康。","response":"前半句跟後半句，你選一個。","angerChange":26,"tier":"fake","best":false}]},{"id":55,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週一 22:40 · 從你家回來的路上","scenario":"你是不是覺得你家人比我重要？","silence":"看來是。","options":[{"id":"55a","text":"不一樣。今天我沒站在你這邊。換你講。","response":"你知道就好。那我講了。","angerChange":6,"tier":"plain","best":true},{"id":"55b","text":"你們兩邊一樣重要。我沒有想過要排順序。","response":"一樣重要就是沒有優先。","angerChange":22,"tier":"oblivious","best":false},{"id":"55c","text":"我明天就跟他們講清楚，但他們是我家人欸。","response":"你看，你還是先講了那個「但」。","angerChange":18,"tier":"oblivious","best":false},{"id":"55d","text":"你當然比較重要，只是家人不能選，你要體諒我的立場。","response":"所以我可以選，是嗎。","angerChange":26,"tier":"fake","best":false}]},{"id":56,"category":"CHORES","categoryLabel":"家事與生活","scene":"週六 11:15 · 你剛睡醒走出房間","scenario":"這個家是不是只有我一個人在管？","silence":"（繼續拖地）","options":[{"id":"56a","text":"這陣子是。浴室我現在去刷。","response":"……那浴室交給你。","angerChange":6,"tier":"plain","best":true},{"id":"56b","text":"我有做啊。你沒看到。","response":"我沒看到是因為沒有。","angerChange":18,"tier":"oblivious","best":false},{"id":"56c","text":"你也沒說要我做什麼啊。我又不會通靈。","response":"所以我還要當管家。","angerChange":22,"tier":"oblivious","best":false},{"id":"56d","text":"你把家裡顧得很好，我真的很感謝你，辛苦你了。","response":"我要的不是感謝，我要的是你動手。","angerChange":26,"tier":"fake","best":false}]},{"id":57,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週五 22:10 · 帳單攤在桌上","scenario":"你會不會覺得我很會花錢？","silence":"你不敢講就是會。","options":[{"id":"57a","text":"不會。桌上這疊我來對，下個月想買的現在一起看。","response":"……誰要你對了，我自己買得起。","angerChange":6,"tier":"plain","best":true},{"id":"57b","text":"剛才刷那筆我有算過。刷這張卡回饋比較高。","response":"我在問你會不會覺得，你在跟我講信用卡。","angerChange":18,"tier":"oblivious","best":false},{"id":"57c","text":"你自己心裡有數吧。我不好講，講了你又要說我計較。","response":"所以你就是覺得。","angerChange":22,"tier":"oblivious","best":false},{"id":"57d","text":"你賺的錢你想怎麼花都可以，我從來不會過問你的消費。","response":"「你賺的錢」。所以我們是分開的。","angerChange":26,"tier":"fake","best":false}]},{"id":58,"category":"WORK","categoryLabel":"工作與時間","scene":"週一 23:45 · 你正在收筆電","scenario":"我跟你的工作，哪一個比較重要？","silence":"你居然連猶豫都沒有。","options":[{"id":"58a","text":"你。我到現在還在收筆電。收好了，今天不開了。","response":"你收好了。明天再開一次就好了嘛。","angerChange":6,"tier":"plain","best":true},{"id":"58b","text":"這不能比吧。兩個都要啊，少一邊我們也過不下去。","response":"就是不能比你才選了工作。","angerChange":22,"tier":"oblivious","best":false},{"id":"58c","text":"我工作也是為了我們啊。這幾年不都這樣過來的。","response":"這句話我聽三年了。","angerChange":18,"tier":"oblivious","best":false},{"id":"58d","text":"當然是你重要。工作只是工作，隨時可以換——所以不用問。","response":"你連問都不讓我問。","angerChange":26,"tier":"fake","best":false}]},{"id":59,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週二 21:05 · 兩人在客廳，週末行程表還是空的","scenario":"你是不是根本就不想跟我出去？","silence":"（把行程表關掉）","options":[{"id":"59a","text":"想。是我沒動不是不想。行程表在這，我現在填。","response":"填了三個字就停了。","angerChange":6,"tier":"plain","best":true},{"id":"59b","text":"我當然想。只是最近真的沒空，案子壓著。","response":"你上個月也沒空。","angerChange":18,"tier":"oblivious","best":false},{"id":"59c","text":"是你自己一直改時間的。我每次都在配合你的時間。","response":"因為你都不給我時間。","angerChange":22,"tier":"oblivious","best":false},{"id":"59d","text":"我超想。只是我要等準備好，給你一趟完美的旅行，不要隨便湊一趟。","response":"我不要完美，我要你現在跟我出門。","angerChange":26,"tier":"fake","best":false}]},{"id":60,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週一 01:30 · 講完一段很長的沉默","scenario":"你是不是其實沒有打算跟我走下去？","silence":"這一題你不回，就是回答了。","options":[{"id":"60a","text":"我有。是我在拖。現在講：我要跟你走下去。","response":"……你等到一點半才講。","angerChange":6,"tier":"plain","best":true},{"id":"60b","text":"我當然有。你別亂想，我沒變。","response":"那你說說看是什麼打算。","angerChange":18,"tier":"oblivious","best":false},{"id":"60c","text":"你為什麼老是要問這個？我每次講的你都不信。","response":"因為你從來沒回答過。","angerChange":22,"tier":"oblivious","best":false},{"id":"60d","text":"我一直都把你放在我的未來裡。只是有些事我還不想講，講了只會給你壓力。","response":"你所謂的不給壓力，就是什麼都不說。","angerChange":26,"tier":"fake","best":false}]},{"id":61,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週一 22:40 · 你剛進門，玄關只開一盞燈","scenario":"你今天有想我嗎？","silence":"算了，這種問題本來就不該問。","options":[{"id":"61a","text":"有啊，開會開到一半還在想你中午到底有沒有吃。","response":"……那你有沒有順便想晚餐。","angerChange":-5,"tier":"survive","best":true},{"id":"61b","text":"當然有啊。","response":"喔。就這樣喔。","angerChange":6,"tier":"plain","best":false},{"id":"61c","text":"我上班很忙欸。今天從早到晚都在開會，哪有空想這個。","response":"喔，所以想我是要有空的。","angerChange":18,"tier":"oblivious","best":false},{"id":"61d","text":"有想啊，想說今天家裡怎麼這麼安靜。","response":"（把你的枕頭搬到沙發上）","angerChange":100,"tier":"mine","best":false},{"id":"61e","text":"我知道你需要被在乎，但我們都成年人了，感情不用一直確認吧。","response":"所以我是在無理取鬧。","angerChange":26,"tier":"fake","best":false}]},{"id":62,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週日 14:30 · 你在打遊戲，對方站在旁邊","scenario":"我剛剛講的你有在聽嗎？","silence":"你連頭都沒有轉過來。","options":[{"id":"62a","text":"沒有，我剛剛分心了。你再講一次，我先關掉。","response":"……好，算你老實。","angerChange":-5,"tier":"survive","best":true},{"id":"62b","text":"有啊。你說那個什麼的。","response":"哪個什麼的。","angerChange":6,"tier":"plain","best":false},{"id":"62c","text":"你講的時候我在打團戰啊。","response":"喔，團戰比較重要。","angerChange":18,"tier":"oblivious","best":false},{"id":"62d","text":"你剛剛有講話喔？","response":"（把電源線拔掉）","angerChange":100,"tier":"mine","best":false},{"id":"62e","text":"我當然有在聽，我可以同時做兩件事，這不代表我不重視你。","response":"所以是我不懂你的厲害。","angerChange":26,"tier":"fake","best":false}]},{"id":63,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週五 23:50 · 你剛洗完澡出來","scenario":"你是不是覺得我最近很情緒化？","silence":"你想這麼久，答案很明顯了。","options":[{"id":"63a","text":"你最近壓力很大吧。要不要講講看，我不插話。","response":"……你今天怎麼這麼會講話。","angerChange":-5,"tier":"survive","best":true},{"id":"63b","text":"沒有啦。還好。","response":"還好是什麼意思。","angerChange":6,"tier":"plain","best":false},{"id":"63c","text":"你自己也知道喔。最近是不是睡不好，睡飽一點就沒事了。","response":"喔，所以我真的有。","angerChange":18,"tier":"oblivious","best":false},{"id":"63d","text":"你不是本來就這樣嗎。","response":"情緒穩定的人今天自己睡。","angerChange":100,"tier":"mine","best":false},{"id":"63e","text":"情緒化不是壞事，只是你要學著控制，不然最後受傷的是你自己。","response":"你現在是在上課嗎。","angerChange":26,"tier":"fake","best":false}]},{"id":64,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週二 20:15 · 你剛進門，對方縮在沙發上","scenario":"沒事，我只是有點累。","silence":"你看，你連問一句都不想。","options":[{"id":"64a","text":"那你先躺著，晚餐我弄。想講的時候再講。","response":"……嗯。（把腳縮上沙發）","angerChange":-5,"tier":"survive","best":true},{"id":"64b","text":"好，那你休息。晚餐我叫外送喔。","response":"你解決了晚餐。我說的是累。","angerChange":6,"tier":"plain","best":false},{"id":"64c","text":"你每天都說累。是不是該跟主管講一下工作量。","response":"我不是要你幫我解決工作。","angerChange":18,"tier":"oblivious","best":false},{"id":"64d","text":"那我不吵你，我去打球。","response":"去啊。今天不用回來了。","angerChange":100,"tier":"mine","best":false},{"id":"64e","text":"累就少熬夜少喝咖啡，身體是自己的，我也是為你好。","response":"所以我累是我自己的錯。","angerChange":26,"tier":"fake","best":false}]},{"id":65,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週六 09:40 · 早餐店，兩碗鹹豆漿","scenario":"你昨天是不是在生氣？","silence":"你不講話我就當是了。","options":[{"id":"65a","text":"有一點，睡一覺就好了。我更在意你有沒有被我影響。","response":"……下次直接講。","angerChange":-5,"tier":"survive","best":true},{"id":"65b","text":"沒有啊，我哪有生氣。","response":"你昨天一句話都沒講。","angerChange":6,"tier":"plain","best":false},{"id":"65c","text":"我生氣是因為你先開始的。那句話我聽了很難受。","response":"喔，所以是我先開始。","angerChange":18,"tier":"oblivious","best":false},{"id":"65d","text":"我生氣關你什麼事？","response":"那你今天睡沙發，也不關我的事。","angerChange":100,"tier":"mine","best":false}]},{"id":66,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週三 21:55 · 房間，對方背對著你","scenario":"你抱我一下會怎樣嗎。","silence":"（把被子拉過頭）","options":[{"id":"66a","text":"（走過去從後面抱住）我在。","response":"……早點抱不就好了。","angerChange":-5,"tier":"survive","best":true},{"id":"66b","text":"好。（伸手抱了一下）","response":"抱完就放。你在完成一件事。","angerChange":6,"tier":"plain","best":false},{"id":"66c","text":"你剛剛叫我不要靠過去，我以為你想自己靜一下。","response":"靜一下跟不要碰我，不一樣。","angerChange":18,"tier":"oblivious","best":false},{"id":"66d","text":"等一下，我這局快結束了。","response":"（把被子抱走，去客房）","angerChange":100,"tier":"mine","best":false}]},{"id":67,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週四 00:20 · 訊息，對方今晚回娘家","scenario":"我今天很不開心，你都不知道。","silence":"你已讀了。","options":[{"id":"67a","text":"我現在打給你，你講給我聽。","response":"（接了，講了四十分鐘）","angerChange":-5,"tier":"survive","best":true},{"id":"67b","text":"怎麼了？發生什麼事。","response":"現在才問。","angerChange":6,"tier":"plain","best":false},{"id":"67c","text":"你沒說我怎麼知道。","response":"所以要我教你怎麼關心我。","angerChange":18,"tier":"oblivious","best":false},{"id":"67d","text":"不開心就早點睡，明天就忘了。","response":"那我明天也把你忘了。","angerChange":100,"tier":"mine","best":false}]},{"id":68,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週二 18:30 · 你在看球賽重播","scenario":"你可以陪我講一下話嗎？","silence":"（把電視關掉）","options":[{"id":"68a","text":"可以，等我一下。（關掉電視）你說。","response":"……重播你不是看過了。","angerChange":-5,"tier":"survive","best":true},{"id":"68b","text":"好啊。（把音量轉小）你說。","response":"你把聲音關小了。眼睛還在那邊。","angerChange":6,"tier":"plain","best":false},{"id":"68c","text":"現在？這節剩三分鐘，打完我整個人都空出來。","response":"三分鐘。我等的是你現在看著我。","angerChange":18,"tier":"oblivious","best":false},{"id":"68d","text":"重播而已等等再看，你先講重點。","response":"重點。原來我講話要有重點。","angerChange":100,"tier":"mine","best":false}]},{"id":69,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週一 23:30 · 你剛說完「我沒有那個意思」","scenario":"你有沒有想過，沒有我你會比較輕鬆？","silence":"你想這麼久，我懂了。","options":[{"id":"69a","text":"不會，過來坐好手給我，我哪裡都不會去。","response":"……你抓這麼緊幹嘛。（眼眶紅了）","angerChange":6,"tier":"plain","best":true},{"id":"69b","text":"一個人生活哪有比較輕鬆？房租水電都要自己扛欸。","response":"你腦袋裡只剩房租水電是不是。","angerChange":18,"tier":"oblivious","best":false},{"id":"69c","text":"你今天是不是又看了什麼影片。你以前根本不會這樣想。","response":"所以我的想法都是別人給的。","angerChange":22,"tier":"oblivious","best":false},{"id":"69d","text":"輕鬆不代表比較好，人生本來就要有承擔，我不會逃避責任。","response":"我是責任喔。","angerChange":26,"tier":"fake","best":false}]},{"id":70,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週三 01:40 · 兩人都躺著，手機都還亮著","scenario":"你剛剛那句話是什麼意思？","silence":"你不解釋，我就照我想的理解。","options":[{"id":"70a","text":"沒有別的意思。我重新講一次好不好。","response":"重新講就變另一句了。","angerChange":6,"tier":"plain","best":true},{"id":"70b","text":"就字面上的意思啊。我沒有在講第二層。","response":"字面上的意思很難聽你知道嗎。","angerChange":18,"tier":"oblivious","best":false},{"id":"70c","text":"你想太多了。我講的時候真的沒有想那麼多。","response":"你沒想那麼多。所以要我自己想。","angerChange":22,"tier":"oblivious","best":false},{"id":"70d","text":"我的意思是希望你不要那麼敏感，這樣你比較不會受傷。","response":"所以我受傷是因為我敏感。","angerChange":26,"tier":"fake","best":false}]},{"id":71,"category":"LOOKS","categoryLabel":"外表","scene":"週六 11:05 · 剛剪完頭髮回到家","scenario":"我剪了頭髮，你覺得怎樣？","silence":"你連看都沒看。","options":[{"id":"71a","text":"耳朵這邊這樣很好看，臉的線條整個出來了。","response":"你居然看得出來差在哪。","angerChange":-5,"tier":"survive","best":true},{"id":"71b","text":"不錯啊。很好看。","response":"你根本沒看清楚吧。","angerChange":6,"tier":"plain","best":false},{"id":"71c","text":"跟之前差不多啊。你的頭髮本來就好看，差不多啦。","response":"我剪掉五公分。","angerChange":18,"tier":"oblivious","best":false},{"id":"71d","text":"這樣多少錢？","response":"一千二。你今天睡沙發。","angerChange":100,"tier":"mine","best":false},{"id":"71e","text":"頭髮長長就好了，反正你怎樣都好看，不用太在意這種事。","response":"所以你覺得現在不好看。","angerChange":26,"tier":"fake","best":false}]},{"id":72,"category":"LOOKS","categoryLabel":"外表","scene":"週五 20:10 · 婚宴出發前，對方在換第三套","scenario":"我穿這件會不會太胖？","silence":"算了，我換回第一件。","options":[{"id":"72a","text":"這件的腰身最好看，就這件。我們現在出門還來得及。","response":"……那就這件。","angerChange":-5,"tier":"survive","best":true},{"id":"72b","text":"不會啦，很好看。","response":"你每件都說好看。","angerChange":6,"tier":"plain","best":false},{"id":"72c","text":"你不是問過了嗎？我剛剛說了好看，我以為那句就是答案。","response":"我問的是不一樣的件。你連換了都沒看出來。","angerChange":18,"tier":"oblivious","best":false},{"id":"72d","text":"那你穿第一件吧，第一件比較看不出來。","response":"看不出來什麼。","angerChange":100,"tier":"mine","best":false},{"id":"72e","text":"衣服不重要，重點是自信，你抬頭挺胸就沒人會注意這些。","response":"所以是我不夠有自信。","angerChange":26,"tier":"fake","best":false}]},{"id":73,"category":"LOOKS","categoryLabel":"外表","scene":"週一 22:50 · 洗手台前，兩支牙刷","scenario":"我是不是開始有點老了？","silence":"你不用回，我照鏡子就好。","options":[{"id":"73a","text":"你笑起來跟三年前一模一樣，這個我最清楚。","response":"……這句話我可以錄下來嗎。","angerChange":-5,"tier":"survive","best":true},{"id":"73b","text":"沒有啦，還很年輕。","response":"「還」是什麼意思。","angerChange":6,"tier":"plain","best":false},{"id":"73c","text":"大家都會老啊。這是自然的事，我沒有在講你。","response":"是自然的事，但先說我老的是你。","angerChange":18,"tier":"oblivious","best":false},{"id":"73d","text":"你要不要去打一下那個，同事都有在打。","response":"（把你的牙刷放到客廳）","angerChange":100,"tier":"mine","best":false},{"id":"73e","text":"老是自然的事，內在比外表重要多了，我不會因為這個少愛你。","response":"所以外表已經沒救了。","angerChange":26,"tier":"fake","best":false}]},{"id":74,"category":"LOOKS","categoryLabel":"外表","scene":"週四 19:40 · 你在滑手機，對方湊過來","scenario":"你剛剛在看誰的照片？","silence":"（把你的手機拿走）","options":[{"id":"74a","text":"同事婚禮的合照。你看，這桌菜比我們那天還少。","response":"真的欸。哈哈哈哈。","angerChange":-5,"tier":"survive","best":true},{"id":"74b","text":"就朋友的貼文。","response":"哪個朋友。","angerChange":6,"tier":"plain","best":false},{"id":"74c","text":"看一下也不行喔？就是滑過去看到的，我沒有點進去。","response":"你沒點進去。可是你看了很久。","angerChange":18,"tier":"oblivious","best":false},{"id":"74d","text":"就一個以前認識的，沒什麼。","response":"以前認識的。好，你今天睡外面。","angerChange":100,"tier":"mine","best":false},{"id":"74e","text":"我看照片跟我愛你是兩件事，你不要把兩件事混在一起。","response":"你現在是在幫我分類喔。","angerChange":26,"tier":"fake","best":false}]},{"id":75,"category":"LOOKS","categoryLabel":"外表","scene":"週六 15:20 · 試衣間外，你手上掛著兩件","scenario":"這件跟上一件，你選哪一件？","silence":"你不選我就兩件都不買了。","options":[{"id":"75a","text":"藍的那件。你剛剛穿出來的時候，自己在鏡子前多站了兩秒。","response":"……你有在看喔。","angerChange":-5,"tier":"survive","best":true},{"id":"75b","text":"藍的那件。那件版型比較合你。","response":"版型。你剛剛連我轉身都沒看。","angerChange":6,"tier":"plain","best":false},{"id":"75c","text":"兩件我看起來差不多耶。你穿什麼都好看，所以我真的選不出來。","response":"一件是襯衫一件是洋裝。你連這個都沒看出來。","angerChange":18,"tier":"oblivious","best":false},{"id":"75d","text":"買便宜的那件就好。","response":"那我什麼都不買，你也不用陪了。","angerChange":100,"tier":"mine","best":false}]},{"id":76,"category":"LOOKS","categoryLabel":"外表","scene":"週三 07:50 · 出門前，對方對著鏡子","scenario":"我今天不化妝出門會不會很可怕？","silence":"（把粉底蓋子蓋回去）","options":[{"id":"76a","text":"不會。而且你這樣我比較好親。","response":"……走了走了。（耳朵紅）","angerChange":-5,"tier":"survive","best":true},{"id":"76b","text":"不會啦，看不出來。","response":"看不出來我有化還是沒化。","angerChange":6,"tier":"plain","best":false},{"id":"76c","text":"會喔，你還是化一下比較好。","response":"謝謝你的誠實。","angerChange":18,"tier":"oblivious","best":false},{"id":"76d","text":"有差嗎？反正路上又沒人在看你。","response":"對，只有你不看。你今天自己回家。","angerChange":100,"tier":"mine","best":false}]},{"id":77,"category":"LOOKS","categoryLabel":"外表","scene":"週日 12:10 · 街上，一個女生剛走過去","scenario":"你剛剛是不是在看她？","silence":"你不用回答，我看到你的眼睛了。","options":[{"id":"77a","text":"有，她那件外套跟你上次說想買的很像。","response":"……哪一件？拍給我看。","angerChange":-5,"tier":"survive","best":true},{"id":"77b","text":"沒有啊，我在看店家招牌。","response":"招牌在另一邊。","angerChange":6,"tier":"plain","best":false},{"id":"77c","text":"看一下會怎樣嗎。我又沒有做什麼。","response":"好，又是我小題大作。","angerChange":18,"tier":"oblivious","best":false},{"id":"77d","text":"她很正啊，這有什麼不能承認的。","response":"可以。你今天可以睡外面。","angerChange":100,"tier":"mine","best":false}]},{"id":78,"category":"LOOKS","categoryLabel":"外表","scene":"週五 22:30 · 對方剛從體重計上下來","scenario":"我這個月又重了兩公斤。","silence":"你已讀是什麼意思。","options":[{"id":"78a","text":"那明天早上陪你走一走，順便去吃你想吃的那家早餐。","response":"……你只是想吃早餐吧。","angerChange":-5,"tier":"survive","best":true},{"id":"78b","text":"兩公斤還好啦。","response":"還好是誰說的。","angerChange":6,"tier":"plain","best":false},{"id":"78c","text":"你最近宵夜是不是吃太多。","response":"原來是我自己的問題。","angerChange":18,"tier":"oblivious","best":false},{"id":"78d","text":"難怪我最近抱起來比較有份量。","response":"（把體重計放在你的枕頭上）","angerChange":100,"tier":"mine","best":false}]},{"id":79,"category":"LOOKS","categoryLabel":"外表","scene":"週二 23:15 · 你剛說完「你今天很好看」","scenario":"你是不是想要什麼才這樣講？","silence":"你看。被我說中了。","options":[{"id":"79a","text":"沒有想要什麼。但你要給我什麼我也不會拒絕。","response":"果然。","angerChange":6,"tier":"plain","best":true},{"id":"79b","text":"我就不能單純誇你喔。","response":"你平常都不誇。","angerChange":18,"tier":"oblivious","best":false},{"id":"79c","text":"你怎麼這麼難相信人。","response":"現在變成我的問題了。","angerChange":22,"tier":"oblivious","best":false},{"id":"79d","text":"我講這句沒有任何目的，你不用一直懷疑別人的好意，這樣很累。","response":"所以是我把自己搞得很累。","angerChange":26,"tier":"fake","best":false}]},{"id":80,"category":"LOOKS","categoryLabel":"外表","scene":"週二 20:00 · 舊照片翻到一半","scenario":"我以前是不是比現在好看？","silence":"你不用回了，我自己看得出來。","options":[{"id":"80a","text":"現在。（照片蓋在桌上，握你的手）現在更讓我心動。","response":"……油嘴滑舌。（把照片收進抽屜）","angerChange":6,"tier":"plain","best":true},{"id":"80b","text":"我看起來都一樣啊。我沒有在比。","response":"一樣就是沒有變好。","angerChange":18,"tier":"oblivious","best":false},{"id":"80c","text":"你自己覺得呢？你看照片的時候在想什麼。","response":"我問你，你反問我。","angerChange":22,"tier":"oblivious","best":false},{"id":"80d","text":"外表本來就會變，重要的是我們一起經歷過的那些，那比好看重要。","response":"所以現在不好看，只剩回憶。","angerChange":26,"tier":"fake","best":false}]},{"id":81,"category":"TRAP","categoryLabel":"假設題","scene":"週三 00:30 · 熄燈後，對方突然轉過來","scenario":"如果我明天變成一隻貓，你還會養我嗎？","silence":"你想這麼久，是在想怎麼丟掉我嗎。","options":[{"id":"81a","text":"會。而且我會把沙發讓給你，我睡地板。","response":"……那我現在可以先睡沙發嗎。","angerChange":-5,"tier":"survive","best":true},{"id":"81b","text":"會啊，當然會養。","response":"養多久。","angerChange":6,"tier":"plain","best":false},{"id":"81c","text":"養貓不是要花很多錢嗎？我上次查過，一年也要好幾萬。","response":"你查過。你只是沒想過那是我。","angerChange":18,"tier":"oblivious","best":false},{"id":"81d","text":"貓不會問這種問題。","response":"（跳下床，把房門關上）","angerChange":100,"tier":"mine","best":false},{"id":"81e","text":"這種假設沒有意義，我們應該討論比較實際的事，這樣比較健康。","response":"跟你講話真的很健康。","angerChange":26,"tier":"fake","best":false}]},{"id":82,"category":"TRAP","categoryLabel":"假設題","scene":"週三 23:20 · 訊息，對方剛看完一部電影","scenario":"如果我跟你前任同時生病，你先照顧誰？","silence":"你連想都要想這麼久。","options":[{"id":"82a","text":"你。這題沒有第二個選項，我連想都不用。","response":"……回太快了，但我接受。","angerChange":-5,"tier":"survive","best":true},{"id":"82b","text":"當然是你啊。這還用問。","response":"「當然」聽起來很像應付。","angerChange":6,"tier":"plain","best":false},{"id":"82c","text":"為什麼要假設這種事。這種事又不會真的同時發生。","response":"因為我想知道。","angerChange":18,"tier":"oblivious","best":false},{"id":"82d","text":"她一個人住欸。","response":"她一個人住，你去。我自己買藥。","angerChange":100,"tier":"mine","best":false},{"id":"82e","text":"照顧誰要看誰比較需要，感情不該影響判斷，你這麼成熟一定懂。","response":"我不懂。我一點都不成熟。","angerChange":26,"tier":"fake","best":false}]},{"id":83,"category":"TRAP","categoryLabel":"假設題","scene":"週六 16:45 · 車上，等紅燈","scenario":"如果我跟你媽吵架，你會站哪一邊？","silence":"綠燈了。你不用回答了。","options":[{"id":"83a","text":"我會先把你帶離現場，剩下的我回去跟我媽講。","response":"……這個答案我給過。","angerChange":-5,"tier":"survive","best":true},{"id":"83b","text":"我會勸兩邊都不要吵。","response":"所以你不站。","angerChange":6,"tier":"plain","best":false},{"id":"83c","text":"為什麼一定要吵架？她講話就那樣，你別往心裡去。","response":"我是說如果。","angerChange":18,"tier":"oblivious","best":false},{"id":"83d","text":"那要看誰有道理啊。","response":"你今天回去有道理的那邊睡。","angerChange":100,"tier":"mine","best":false},{"id":"83e","text":"站邊只會讓事情更糟，我會保持中立，這樣對大家都好。","response":"中立。你真的很中立。","angerChange":26,"tier":"fake","best":false}]},{"id":84,"category":"TRAP","categoryLabel":"假設題","scene":"週五 01:10 · 兩人都睡不著","scenario":"如果我先走了，你會再找一個嗎？","silence":"你不回答，我就當你已經在想了。","options":[{"id":"84a","text":"我不知道。但我知道那個人不會是你，所以我不想討論。","response":"……不要講這個了。過來。","angerChange":-5,"tier":"survive","best":true},{"id":"84b","text":"當然不會啊。","response":"你回這麼快，一定沒想過。","angerChange":6,"tier":"plain","best":false},{"id":"84c","text":"半夜問這個幹嘛。明天起來你就不會想了。","response":"因為半夜才敢問。","angerChange":18,"tier":"oblivious","best":false},{"id":"84d","text":"會吧，人總要往前走。","response":"（起床，把房門從外面關上）","angerChange":100,"tier":"mine","best":false},{"id":"84e","text":"人生要往前看，你也不會希望我一直難過，這才是對彼此最好的。","response":"你已經想好台詞了。","angerChange":26,"tier":"fake","best":false}]},{"id":85,"category":"TRAP","categoryLabel":"假設題","scene":"週六 23:10 · 對方看著手機在笑","scenario":"如果有學弟追我，你會怎樣？","silence":"你連想都不用想喔。","options":[{"id":"85a","text":"那我明天開始去接你，讓他看到。","response":"……幼稚欸。（笑）幾點？","angerChange":-5,"tier":"survive","best":true},{"id":"85b","text":"我相信你啊，你又不會理他。","response":"所以都我自己擋就好。","angerChange":6,"tier":"plain","best":false},{"id":"85c","text":"他長怎樣？照片給我評估一下。","response":"你要評估的是你自己吧。","angerChange":18,"tier":"oblivious","best":false},{"id":"85d","text":"你想怎樣，我又管不了。","response":"好，那你就不要管。","angerChange":100,"tier":"mine","best":false}]},{"id":86,"category":"TRAP","categoryLabel":"假設題","scene":"週日 14:00 · 咖啡廳，對方攪著杯子","scenario":"如果重來一次，你還會選我嗎？","silence":"你這樣我懂了。","options":[{"id":"86a","text":"會。而且我這次會早一點跟你講。","response":"……早一點是多早。","angerChange":-5,"tier":"survive","best":true},{"id":"86b","text":"會啊，一定會。想都不用想。","response":"太快了，聽起來像敷衍。","angerChange":6,"tier":"plain","best":false},{"id":"86c","text":"這種問題有答案嗎。","response":"有。你剛剛那句就是。","angerChange":18,"tier":"oblivious","best":false},{"id":"86d","text":"重來一次我可能會先去做別的事。","response":"那些事現在就可以去做，不用等重來。","angerChange":100,"tier":"mine","best":false}]},{"id":87,"category":"TRAP","categoryLabel":"假設題","scene":"週二 23:45 · 房間，燈剛關","scenario":"如果我變得很醜，你還會喜歡我嗎？","silence":"你不用回了。","options":[{"id":"87a","text":"會。真的變醜我也會，我留下來不是因為好看。","response":"……你想過我變醜的樣子。","angerChange":-5,"tier":"survive","best":true},{"id":"87b","text":"會啊，當然會。這種事不會變。","response":"「當然」又出現了。","angerChange":6,"tier":"plain","best":false},{"id":"87c","text":"你不會變醜啦，不要亂想。","response":"我問的是如果。","angerChange":18,"tier":"oblivious","best":false},{"id":"87d","text":"應該會吧，但你可以不要變嗎。","response":"（把你的被子踢下床）","angerChange":100,"tier":"mine","best":false}]},{"id":88,"category":"TRAP","categoryLabel":"假設題","scene":"週六 12:30 · 兩人在逛家具店","scenario":"如果我叫你搬過來住，你會答應嗎？","silence":"你不回答，我就知道答案了。","options":[{"id":"88a","text":"會。這週末就可以開始整理，你想從哪一間開始？","response":"……你認真的喔。","angerChange":-5,"tier":"survive","best":true},{"id":"88b","text":"可以啊。看你想什麼時候。","response":"看我。永遠都是看我。","angerChange":6,"tier":"plain","best":false},{"id":"88c","text":"現在這樣不是也很好嗎。我們也沒有卡在哪裡。","response":"講這麼多，就是不想。","angerChange":18,"tier":"oblivious","best":false},{"id":"88d","text":"那我的東西要放哪？","response":"放你家。你就繼續住你家。","angerChange":100,"tier":"mine","best":false}]},{"id":89,"category":"TRAP","categoryLabel":"假設題","scene":"週一 00:40 · 你剛把手機放下","scenario":"如果我現在說要分開，你會挽留我嗎？","silence":"你連這個都不回。","options":[{"id":"89a","text":"會。但我更想知道你為什麼會問這句。","response":"問就是問，哪有為什麼。","angerChange":6,"tier":"plain","best":true},{"id":"89b","text":"你不要亂講話。這種事講出來就回不去了。","response":"所以我連講都不能講。","angerChange":18,"tier":"oblivious","best":false},{"id":"89c","text":"你是不是又在測試我？上禮拜也問過類似的。","response":"測試。原來我在測試你。","angerChange":22,"tier":"oblivious","best":false},{"id":"89d","text":"如果你真的想要，我不會勉強你，我尊重你的每一個決定。","response":"你尊重得好快。","angerChange":26,"tier":"fake","best":false}]},{"id":90,"category":"TRAP","categoryLabel":"假設題","scene":"週四 21:30 · 客廳，電視播著別人的婚禮","scenario":"如果我們最後沒有在一起，你覺得是誰的問題？","silence":"你想這麼久，看來心裡有答案。","options":[{"id":"90a","text":"我的問題。很多話沒說。電視關了，現在講。","response":"電視你倒是關得很快。","angerChange":6,"tier":"plain","best":true},{"id":"90b","text":"怎麼可能沒有在一起。我沒有往那邊想過。","response":"你連想都不敢想。","angerChange":18,"tier":"oblivious","best":false},{"id":"90c","text":"為什麼要現在講這個？我們今天不是好好的嗎。","response":"因為現在才有機會講。","angerChange":22,"tier":"oblivious","best":false},{"id":"90d","text":"感情本來就沒有誰對誰錯，我們都要學習，這樣才會成長。","response":"你這句可以印在馬克杯上。","angerChange":26,"tier":"fake","best":false}]},{"id":91,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週四 20:00 · 你剛進門，餐桌上有一個蛋糕","scenario":"你知道今天是什麼日子嗎？","silence":"（把蛋糕收進冰箱）","options":[{"id":"91a","text":"你上這份工作滿一年。禮物在我包包裡。","response":"你怎麼會記得這個！","angerChange":-5,"tier":"survive","best":true},{"id":"91b","text":"今天是……我們的紀念日？","response":"疑問句喔。","angerChange":6,"tier":"plain","best":false},{"id":"91c","text":"不是上禮拜才過嗎？那天有蛋糕，我以為就是那次。","response":"上禮拜是我生日。你連那個都算成這個。","angerChange":18,"tier":"oblivious","best":false},{"id":"91d","text":"星期四啊。","response":"（把蛋糕整個丟進垃圾桶）","angerChange":100,"tier":"mine","best":false},{"id":"91e","text":"日子只是形式，我在意的是每一天，不是特定的某一天。","response":"所以今天也只是某一天。","angerChange":26,"tier":"fake","best":false}]},{"id":92,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週六 11:00 · 對方翻著行事曆","scenario":"你上次答應我的那件事，做了嗎？","silence":"你連是哪一件都不記得吧。","options":[{"id":"92a","text":"濾水器的濾芯。昨天換好了，舊的還在陽台等你檢查。","response":"……你居然真的做了。","angerChange":-5,"tier":"survive","best":true},{"id":"92b","text":"哪一件？你提醒我一下。","response":"我提醒過三次了。","angerChange":6,"tier":"plain","best":false},{"id":"92c","text":"我什麼時候答應過？我以為那天只是聊到，又沒有真的講定。","response":"上個月三號，在這張桌子。你說了「好」。","angerChange":18,"tier":"oblivious","best":false},{"id":"92d","text":"等我有空再說。","response":"那我們也等你有空再在一起。","angerChange":100,"tier":"mine","best":false},{"id":"92e","text":"我沒做是因為那件事不急，你不要把小事放大，我們都輕鬆一點。","response":"所以答應我是小事。","angerChange":26,"tier":"fake","best":false}]},{"id":93,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週五 22:15 · 對方拿手機給你看一張照片","scenario":"這張是我們第一次出去玩拍的，你記得在哪嗎？","silence":"算了，我自己記得就好。","options":[{"id":"93a","text":"九份。那天下雨，你把我的外套穿走，到現在還沒還。","response":"……那件外套現在在我家。","angerChange":-5,"tier":"survive","best":true},{"id":"93b","text":"台北附近吧？","response":"台北附近很大。","angerChange":6,"tier":"plain","best":false},{"id":"93c","text":"照片這麼舊我怎麼記得？那幾年去了很多地方。","response":"才三年。而且只有那一次下雨。","angerChange":18,"tier":"oblivious","best":false},{"id":"93d","text":"這張是跟我拍的嗎？","response":"（把照片刪掉，然後把你設成靜音）","angerChange":100,"tier":"mine","best":false},{"id":"93e","text":"我記得的是那天的感覺。地點不重要，感情又不是在考記憶力。","response":"那你講一下感覺。","angerChange":26,"tier":"fake","best":false}]},{"id":94,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週三 07:30 · 廚房，對方在等你反應","scenario":"你有沒有發現我今天不一樣？","silence":"沒關係，本來就沒人會發現。","options":[{"id":"94a","text":"你換成隱形眼鏡了，而且今天綁了頭髮。","response":"……你居然兩個都看到。","angerChange":-5,"tier":"survive","best":true},{"id":"94b","text":"有喔，感覺不太一樣。","response":"哪裡不一樣。","angerChange":6,"tier":"plain","best":false},{"id":"94c","text":"有嗎？我看不出來。你每天都差不多好看。","response":"算了。","angerChange":18,"tier":"oblivious","best":false},{"id":"94d","text":"你是不是沒睡好？","response":"（把早餐端走，只留你那個空盤子）","angerChange":100,"tier":"mine","best":false},{"id":"94e","text":"我不需要靠外在的變化來注意你，你本來就很特別。","response":"所以你根本沒發現。","angerChange":26,"tier":"fake","best":false}]},{"id":95,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週一 19:20 · 餐廳，服務生剛走開","scenario":"我最不喜歡吃什麼，你記得嗎？","silence":"你不用想了，我自己跟服務生說。","options":[{"id":"95a","text":"香菜。而且你討厭的是味道，所以挑掉也沒用。","response":"……連這個你都記得。","angerChange":-5,"tier":"survive","best":true},{"id":"95b","text":"香菜。等一下我跟服務生講。","response":"講了他也只是挑掉。味道還在。","angerChange":6,"tier":"plain","best":false},{"id":"95c","text":"你不是什麼都吃嗎？我印象中你只是有幾樣比較不愛，沒到討厭。","response":"我什麼都吃，除了那一個。而那一個你剛剛還在問。","angerChange":18,"tier":"oblivious","best":false},{"id":"95d","text":"有這種東西嗎？","response":"有。你今天也可以不用吃了。","angerChange":100,"tier":"mine","best":false}]},{"id":96,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週二 21:40 · 對方剛掛掉一通電話","scenario":"下週六你會幫我留時間吧？","silence":"你已讀。那我自己去。","options":[{"id":"96a","text":"會，你妹的畢業典禮。我班已經調好了。","response":"……你什麼時候調的。","angerChange":-5,"tier":"survive","best":true},{"id":"96b","text":"下週六喔？我看一下行程。","response":"你要看行程。","angerChange":6,"tier":"plain","best":false},{"id":"96c","text":"你有跟我說過嗎。我行事曆上完全沒有。","response":"說過兩次。","angerChange":18,"tier":"oblivious","best":false},{"id":"96d","text":"下週六我要跟同事去釣魚。","response":"可以啊，那你釣到週日再回來。","angerChange":100,"tier":"mine","best":false}]},{"id":97,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週二 23:00 · 對方在整理抽屜","scenario":"這條項鍊是你哪一年送的？","silence":"算了。我自己記得就好。","options":[{"id":"97a","text":"交往第一年你生日。你戴著它睡覺，隔天纏在頭髮上。","response":"……不要講那件事。","angerChange":-5,"tier":"survive","best":true},{"id":"97b","text":"交往第一年你生日。細節我有點忘了。","response":"對。可是你只記得年份。","angerChange":6,"tier":"plain","best":false},{"id":"97c","text":"前年吧？還是去年，我真的記不太清楚，那陣子事情有點多。","response":"你連年都記錯。而且你在解釋為什麼可以忘。","angerChange":18,"tier":"oblivious","best":false},{"id":"97d","text":"這條看起來很便宜，應該不是我送的。","response":"（把項鍊放回抽屜，鎖起來）","angerChange":100,"tier":"mine","best":false}]},{"id":98,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週四 08:10 · 出門前，對方站在門口","scenario":"今天晚上有什麼事，你記得嗎？","silence":"（把你的傘拿走）","options":[{"id":"98a","text":"六點半你爸媽來吃飯。我下班先去買水果。","response":"……那你買貴一點的。","angerChange":-5,"tier":"survive","best":true},{"id":"98b","text":"今天晚上……是不是要吃飯？還是有別的。","response":"跟誰吃。","angerChange":6,"tier":"plain","best":false},{"id":"98c","text":"沒有吧，我今天很閒。","response":"你很閒。好。","angerChange":18,"tier":"oblivious","best":false},{"id":"98d","text":"我今天約了朋友打球欸。","response":"打完就住那邊吧。","angerChange":100,"tier":"mine","best":false}]},{"id":99,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週一 23:50 · 對方剛翻完聊天紀錄","scenario":"你可以記得球員的數據，怎麼記不得我的事？","silence":"你連這個都要想。","options":[{"id":"99a","text":"因為那個不用花心思，你的事會。這是我的問題。","response":"至少你知道是你的問題。","angerChange":6,"tier":"plain","best":true},{"id":"99b","text":"那種東西是自然就記住的啊。看久了自己就在腦子裡。","response":"所以我的事要用力才記得。","angerChange":18,"tier":"oblivious","best":false},{"id":"99c","text":"你也記得一些我不記得的事吧。","response":"現在是要比嗎。","angerChange":22,"tier":"oblivious","best":false},{"id":"99d","text":"記性跟在意是兩件事，你不要用這個衡量我對你的感情。","response":"那我要用什麼衡量。","angerChange":26,"tier":"fake","best":false}]},{"id":100,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週三 22:20 · 對方拿出一本舊筆記本","scenario":"我以前寫給你的那張紙，你放哪了？","silence":"你不用找了。","options":[{"id":"100a","text":"在我抽屜裡，但我要找一下。我現在去翻。","response":"「找一下」就是不知道在哪。","angerChange":6,"tier":"plain","best":true},{"id":"100b","text":"應該還在吧。搬家的時候我有收起來。","response":"你有收。可是你不知道收去哪。","angerChange":18,"tier":"oblivious","best":false},{"id":"100c","text":"那張紙很久了欸。那時候我們還在租那間套房。","response":"你記得那間套房。你不記得那張紙。","angerChange":22,"tier":"oblivious","best":false},{"id":"100d","text":"東西丟了不代表心意不見，我留在心裡的比那張紙多很多。","response":"那你講一句上面寫什麼。","angerChange":26,"tier":"fake","best":false}]},{"id":101,"category":"FOOD","categoryLabel":"吃什麼","scene":"週四 18:40 · 廚房，對方又炒了上次那道菜","scenario":"你吃一口，跟上次比有沒有進步？","silence":"你連筷子都沒拿起來。這也是一種評分。","options":[{"id":"101a","text":"有，鹹度剛好，而且這次肉沒有老。再給我一碗飯。","response":"……你要吃兩碗喔。那我承認有進步。","angerChange":-5,"tier":"survive","best":true},{"id":"101b","text":"好吃啊。跟上次差不多。","response":"差不多就是沒有進步。你這句上次也講過，差不多。","angerChange":6,"tier":"plain","best":false},{"id":"101c","text":"我覺得可以再鹹一點。我口味本來就比較重，這不算難吃。","response":"喔。再鹹一點。鹽在那邊，你自己加，加完你自己吃完。","angerChange":18,"tier":"oblivious","best":false},{"id":"101d","text":"上次是這一道嗎？","response":"（把整盤端走，倒進垃圾桶，倒得很慢）","angerChange":100,"tier":"mine","best":false},{"id":"101e","text":"煮飯不用跟別人比，你有煮就很棒了，不要一直給自己壓力好不好。","response":"所以你也覺得沒進步。","angerChange":26,"tier":"fake","best":false}]},{"id":102,"category":"FOOD","categoryLabel":"吃什麼","scene":"週五 12:05 · 訊息，你在公司","scenario":"我在你公司樓下，要不要一起吃？","silence":"沒關係。我在你公司樓下自己吃完，你同事都看到了。","options":[{"id":"102a","text":"要。你先進去坐，我五分鐘下來，順便幫你點你愛的那個。","response":"……你動作快一點。我已經在幫你排隊了。","angerChange":-5,"tier":"survive","best":true},{"id":"102b","text":"我等等下來。快了。","response":"等等是多久。你上次的等等，我在樓下背完了一首歌。","angerChange":6,"tier":"plain","best":false},{"id":"102c","text":"你怎麼不先跟我說。我等一下還有一個會，時間卡得很死欸。","response":"我想給你驚喜。驚喜已經沒了，只剩驚。","angerChange":18,"tier":"oblivious","best":false},{"id":"102d","text":"我跟同事訂便當。","response":"喔。那你跟便當吃。我自己走。","angerChange":100,"tier":"mine","best":false},{"id":"102e","text":"你下次先說一聲我才好安排，我不是不想見你，這樣兩人都好。","response":"以後我都先報備。","angerChange":26,"tier":"fake","best":false}]},{"id":103,"category":"FOOD","categoryLabel":"吃什麼","scene":"週日 13:20 · 一攤大腸包小腸前面","scenario":"你都不吃大腸包小腸，是不是覺得很髒？","silence":"算了。我自己吃，吃兩份。","options":[{"id":"103a","text":"不是。我先吃這個，剩下的等一下再一起買回來。","response":"（把整份塞到你手上）你講的喔。","angerChange":-5,"tier":"survive","best":true},{"id":"103b","text":"沒有啊。我只是不餓。","response":"你剛剛還說想吃。走到門口就不餓，你的胃很有原則。","angerChange":6,"tier":"plain","best":false},{"id":"103c","text":"這個看起來就不太乾淨啊。","response":"我從小吃到大，原來都是吃髒的。","angerChange":18,"tier":"oblivious","best":false},{"id":"103d","text":"你們家都吃這種東西長大的？","response":"（把整份吃完，自己走去搭車，公車來了也沒回頭）","angerChange":100,"tier":"mine","best":false},{"id":"103e","text":"我尊重你的口味，只是我比較注意飲食健康，你也可以試試看。","response":"謝謝你的健康建議。我會轉達給我全家。","angerChange":26,"tier":"fake","best":false}]},{"id":104,"category":"FOOD","categoryLabel":"吃什麼","scene":"週四 21:50 · 你剛把外送放到桌上","scenario":"你怎麼又點這家？","silence":"你不講話。那這袋就放在這裡涼，跟我一起。","options":[{"id":"104a","text":"因為你上次說這家的湯還可以。你不想吃我去煮麵。","response":"……湯可以，麵不行。你記一半，比沒記還危險。","angerChange":-5,"tier":"survive","best":true},{"id":"104b","text":"這家不是很方便嗎。送得也快。","response":"方便的是你。","angerChange":6,"tier":"plain","best":false},{"id":"104c","text":"我現在改點別家，反正你上次也是說隨便。","response":"我什麼時候說隨便。你把我的隨便存檔了喔。","angerChange":18,"tier":"oblivious","best":false},{"id":"104d","text":"你很難搞欸。","response":"（把整袋外送提到門外，放在你的鞋子旁邊）","angerChange":100,"tier":"mine","best":false},{"id":"104e","text":"我點什麼你都有意見，那你自己決定，這樣比較不會抱怨。","response":"以後我自己決定，自己吃，自己抱怨。","angerChange":26,"tier":"fake","best":false}]},{"id":105,"category":"FOOD","categoryLabel":"吃什麼","scene":"週六 09:20 · 兩人剛醒","scenario":"早餐我不吃了，你自己去買。","silence":"你已讀。那早餐、午餐、晚餐都這樣。","options":[{"id":"105a","text":"那我買回來放桌上，你等等餓了就有。","response":"……你買我那份幹嘛。（十分鐘後吃完了）","angerChange":-5,"tier":"survive","best":true},{"id":"105b","text":"好啊，那我出門了。","response":"嗯。（沒有抬頭）","angerChange":6,"tier":"plain","best":false},{"id":"105c","text":"我現在順路買一份放著，不吃早餐對身體真的不好。","response":"喔。現在開始關心我的身體了。我的心情呢。","angerChange":18,"tier":"oblivious","best":false},{"id":"105d","text":"那我就買我自己的。","response":"對。你只買你自己的。我記性很好，比你好。","angerChange":100,"tier":"mine","best":false}]},{"id":106,"category":"FOOD","categoryLabel":"吃什麼","scene":"週三 19:30 · 餐桌，盤子裡只剩最後一塊","scenario":"這塊你要吃嗎？","silence":"（把最後一塊吃掉，慢慢吃，看著你）","options":[{"id":"106a","text":"你吃。你剛剛吃兩塊，我吃了四塊。","response":"……你有在數喔。（把那塊夾一半給你）","angerChange":-5,"tier":"survive","best":true},{"id":"106b","text":"都可以。你先。","response":"又是我先。你的「都可以」真的很萬用。","angerChange":6,"tier":"plain","best":false},{"id":"106c","text":"你不是說在減肥。","response":"所以你在幫我減肥。用一塊的份量幫。","angerChange":18,"tier":"oblivious","best":false},{"id":"106d","text":"那我吃好了。","response":"以後都你吃。冰箱我也留給你。","angerChange":100,"tier":"mine","best":false}]},{"id":107,"category":"FOOD","categoryLabel":"吃什麼","scene":"週日 11:40 · 火鍋店，對方正在夾肉","scenario":"你剛剛是不是嫌我吃太多？","silence":"你的表情已經回答了。","options":[{"id":"107a","text":"沒有。我在算夠不夠，等等再加一盤。","response":"……那加梅花。兩盤。","angerChange":-5,"tier":"survive","best":true},{"id":"107b","text":"沒有啊。我什麼都沒說。","response":"你剛剛看了我一眼。零點五秒。我看到了。","angerChange":6,"tier":"plain","best":false},{"id":"107c","text":"我只是覺得你今天胃口很好。","response":"胃口很好。這四個字我會記到明年。","angerChange":18,"tier":"oblivious","best":false},{"id":"107d","text":"會不會太多啊，這樣吃不完。","response":"吃不完你打包。我先回去，湯你自己收。","angerChange":100,"tier":"mine","best":false}]},{"id":108,"category":"FOOD","categoryLabel":"吃什麼","scene":"週五 23:30 · 你剛從冰箱拿出東西","scenario":"那是我明天要吃的，你知道嗎？","silence":"你已經咬了。而且你還在咬。","options":[{"id":"108a","text":"現在知道了。我明天早上去買一樣的，還你兩份。","response":"……要一樣那家。而且兩份，一份現在吃。","angerChange":-5,"tier":"survive","best":true},{"id":"108b","text":"喔，抱歉。我不知道。","response":"冰箱門上有貼紙條。你關門的時候還把它壓平了。","angerChange":6,"tier":"plain","best":false},{"id":"108c","text":"我明天買一份還你，但你也沒有講那是你的。","response":"我貼了紙條。你的手經過它，你的眼睛沒有。","angerChange":18,"tier":"oblivious","best":false},{"id":"108d","text":"放太久了啦，本來就要吃掉。","response":"那你今天在客廳吃，也在客廳睡。","angerChange":100,"tier":"mine","best":false}]},{"id":109,"category":"FOOD","categoryLabel":"吃什麼","scene":"週二 20:10 · 對方看著桌上兩份餐點","scenario":"為什麼你點的看起來都比較好吃？","silence":"你不用回。（盤子已經換過來了）","options":[{"id":"109a","text":"那我們換。我吃你那份。","response":"換了你又會說我點的比較好吃。這是一個循環。","angerChange":6,"tier":"plain","best":true},{"id":"109b","text":"是你自己選的啊。","response":"對。我自己選的。菜單是你遞給我的。","angerChange":22,"tier":"oblivious","best":false},{"id":"109c","text":"看起來而已，吃起來一樣。","response":"那你怎麼不早點說。我剛剛看了它三分鐘。","angerChange":18,"tier":"oblivious","best":false},{"id":"109d","text":"食物本來就是主觀的，你不要什麼都跟我比，這樣吃飯很累。","response":"所以是我讓吃飯變累。","angerChange":26,"tier":"fake","best":false}]},{"id":110,"category":"FOOD","categoryLabel":"吃什麼","scene":"週日 12:50 · 你剛說完第三次「都可以」","scenario":"你每次都說都可以，那你到底想吃什麼？","silence":"你連現在都不回。那我幫你決定：你今天不吃。","options":[{"id":"110a","text":"我真的沒有特別想吃的。但我可以現在挑一家。","response":"現在挑只是想結束對話。你連結束都要我配合。","angerChange":6,"tier":"plain","best":true},{"id":"110b","text":"都可以就是都可以啊。你選的我真的都吃。","response":"這句我聽了三年。三年，一千多次，都可以。","angerChange":18,"tier":"oblivious","best":false},{"id":"110c","text":"那你想吃什麼我就吃什麼。這樣比較快啊。","response":"又推回來給我。這顆球我們打三年了，網子都鬆了。","angerChange":22,"tier":"oblivious","best":false},{"id":"110d","text":"我讓你決定是想尊重你的口味，這樣不好嗎。","response":"尊重到我每天要想菜單。你要不要也尊重一下我的腦。","angerChange":26,"tier":"fake","best":false}]},{"id":111,"category":"PHONE","categoryLabel":"手機與社群","scene":"週四 22:40 · 沙發，對方的手機震了一下","scenario":"你剛剛偷看我手機喔？","silence":"你不否認就是有。","options":[{"id":"111a","text":"沒有，它亮起來我剛好在旁邊。你要看的話我的給你。","response":"……不用。你放回去。","angerChange":-5,"tier":"survive","best":true},{"id":"111b","text":"它亮起來我剛好在旁邊。我沒有點開。","response":"所以你看到了。你只是沒有點開。","angerChange":6,"tier":"plain","best":false},{"id":"111c","text":"看一下也不會怎樣吧。就是亮了我剛好看到。","response":"喔。所以你有看。","angerChange":18,"tier":"oblivious","best":false},{"id":"111d","text":"你有什麼不能看的嗎？","response":"（把手機收進包包，然後把房門鎖起來）","angerChange":100,"tier":"mine","best":false},{"id":"111e","text":"情侶之間本來就該透明，我沒有要查你，只是想有安全感。","response":"所以你已經在查了。","angerChange":26,"tier":"fake","best":false}]},{"id":112,"category":"PHONE","categoryLabel":"手機與社群","scene":"週一 01:20 · 兩人躺著，對方在滑限時動態","scenario":"你為什麼追蹤她？","silence":"你想這麼久，一定有事。","options":[{"id":"112a","text":"同一個社團的，五年前就追蹤了。你要我退我現在就退。","response":"……不用退。但你不要再按讚。","angerChange":-5,"tier":"survive","best":true},{"id":"112b","text":"同社團的，五年前追蹤的。沒有別的。","response":"你講得很清楚。我還是不舒服。","angerChange":6,"tier":"plain","best":false},{"id":"112c","text":"追蹤而已，有這麼嚴重嗎。我追蹤的人有三百多個。","response":"三百多個，就我一個嚴重。","angerChange":18,"tier":"oblivious","best":false},{"id":"112d","text":"她的貼文很好看啊。","response":"（把你的枕頭丟到客廳）","angerChange":100,"tier":"mine","best":false},{"id":"112e","text":"我追蹤誰是我的自由，你一個一個管，最後兩個人都會很累。","response":"你的自由我收到了。今晚也還你一個人。","angerChange":26,"tier":"fake","best":false}]},{"id":113,"category":"PHONE","categoryLabel":"手機與社群","scene":"週日 15:00 · 咖啡廳，對方剛拍完一張照","scenario":"你為什麼從來不發我們的合照？","silence":"算了。我自己發。","options":[{"id":"113a","text":"因為我都存起來自己看。你挑一張，我現在就發。","response":"……那張不要，我眼睛閉起來。","angerChange":-5,"tier":"survive","best":true},{"id":"113b","text":"我都存在相簿裡，常常自己翻。","response":"你自己翻。那別人怎麼知道你有我。","angerChange":6,"tier":"plain","best":false},{"id":"113c","text":"發那個要幹嘛。我本來就很少發東西。","response":"我們不用給別人知道就對了。","angerChange":18,"tier":"oblivious","best":false},{"id":"113d","text":"你拍的從來沒一張好看。","response":"那你以後不用拍了。","angerChange":100,"tier":"mine","best":false},{"id":"113e","text":"感情是我們兩個的事，不用給別人看，這樣才不會被打擾。","response":"你保護得真好。","angerChange":26,"tier":"fake","best":false}]},{"id":114,"category":"PHONE","categoryLabel":"手機與社群","scene":"週三 23:10 · 對方把手機轉過來給你看","scenario":"這個人是誰，你認識嗎？","silence":"（把手機收起來，翻過身）","options":[{"id":"114a","text":"認識，我大學同學。她剛生小孩，訊息整段可以給你看。","response":"……不用整段。前面那句就好。","angerChange":-5,"tier":"survive","best":true},{"id":"114b","text":"大學同學。她剛生小孩，傳照片來報喜。","response":"你講完了。那我在不安什麼，你要問嗎。","angerChange":6,"tier":"plain","best":false},{"id":"114c","text":"你怎麼會看到？那則通知我自己都還沒點開。","response":"你先問的是我怎麼看到，不是那是誰。","angerChange":18,"tier":"oblivious","best":false},{"id":"114d","text":"你翻我手機？","response":"對。而且還要繼續翻。你今天睡外面。","angerChange":100,"tier":"mine","best":false},{"id":"114e","text":"我沒有做任何對不起你的事，你要學會相信我，不然很辛苦。","response":"又變成我不相信你。","angerChange":26,"tier":"fake","best":false}]},{"id":115,"category":"PHONE","categoryLabel":"手機與社群","scene":"週五 20:50 · 你剛把手機翻面蓋在桌上","scenario":"你為什麼要把手機蓋起來？","silence":"你已讀。手機拿來。","options":[{"id":"115a","text":"習慣而已。（把手機翻回來）你要看就看。","response":"……我才不看。","angerChange":-5,"tier":"survive","best":true},{"id":"115b","text":"習慣而已，我從以前就這樣，你也知道。","response":"我知道。我還是每次都會想一下。","angerChange":6,"tier":"plain","best":false},{"id":"115c","text":"我蓋手機也要報告喔？桌面反光，我一直都是這樣放的。","response":"反光。你解釋得很快。","angerChange":18,"tier":"oblivious","best":false},{"id":"115d","text":"你很沒有安全感欸。","response":"對。那你今天去沙發上找安全感。","angerChange":100,"tier":"mine","best":false}]},{"id":116,"category":"PHONE","categoryLabel":"手機與社群","scene":"週日 10:15 · 對方剛醒，第一句就是這個","scenario":"你昨天半夜還在跟誰講話？","silence":"你想這麼久喔。","options":[{"id":"116a","text":"我弟。他跟他女朋友吵架，我勸到兩點，紀錄給你看。","response":"……你怎麼不叫我一起勸。","angerChange":-5,"tier":"survive","best":true},{"id":"116b","text":"我弟。他失戀，細節我不太想替他講。","response":"你護著他，我就活該猜一整晚。","angerChange":6,"tier":"plain","best":false},{"id":"116c","text":"半夜講話也要報備喔？我以為這種事講出來反而像在解釋。","response":"解釋。你自己選了這個字。","angerChange":18,"tier":"oblivious","best":false},{"id":"116d","text":"你昨天不是睡了，你怎麼知道。","response":"我知道。你今天可以繼續熬夜，在客廳。","angerChange":100,"tier":"mine","best":false}]},{"id":117,"category":"PHONE","categoryLabel":"手機與社群","scene":"週二 21:30 · 對方把手機遞出來，螢幕朝上","scenario":"你的手機密碼是什麼？","silence":"你不說我就知道了。","options":[{"id":"117a","text":"你生日。你要不要現在解開看看。","response":"……你什麼時候改的。","angerChange":-5,"tier":"survive","best":true},{"id":"117b","text":"你生日啊。我以為你早就知道了。","response":"知道密碼，跟你把手機給我，不一樣。","angerChange":6,"tier":"plain","best":false},{"id":"117c","text":"為什麼要知道我的密碼。","response":"原來是不能知道的。","angerChange":18,"tier":"oblivious","best":false},{"id":"117d","text":"手機是我的隱私。","response":"那你抱著你的隱私去睡沙發。","angerChange":100,"tier":"mine","best":false}]},{"id":118,"category":"PHONE","categoryLabel":"手機與社群","scene":"週二 22:00 · 你剛按掉一則通知","scenario":"你剛剛按掉的是什麼？","silence":"（把你的手機拿走，自己看）","options":[{"id":"118a","text":"遊戲的活動通知。我按掉是因為在跟你講話。","response":"……那你繼續講。","angerChange":-5,"tier":"survive","best":true},{"id":"118b","text":"遊戲的活動通知。這種我每天按掉十次。","response":"我問的不是那則通知。","angerChange":6,"tier":"plain","best":false},{"id":"118c","text":"就一則通知而已。我沒想到你會盯著我按掉的那一下。","response":"我看到的是你按得很快。","angerChange":18,"tier":"oblivious","best":false},{"id":"118d","text":"沒什麼，你不要一直看我手機。","response":"以後都不看。你也不用回房間了。","angerChange":100,"tier":"mine","best":false}]},{"id":119,"category":"PHONE","categoryLabel":"手機與社群","scene":"週一 23:40 · 對方剛滑完你的社群","scenario":"你為什麼會按她的貼文讚？","silence":"你連這個都要想很久。","options":[{"id":"119a","text":"我滑到就按了，沒有想那麼多。這是我不夠小心。","response":"「沒想那麼多」就是根本沒在想我。","angerChange":6,"tier":"plain","best":true},{"id":"119b","text":"按讚而已啊。我看到就順手按了。","response":"按讚而已，順手而已。","angerChange":18,"tier":"oblivious","best":false},{"id":"119c","text":"那你也按過別人的啊。我沒有覺得那有什麼。","response":"現在要比嗎。","angerChange":22,"tier":"oblivious","best":false},{"id":"119d","text":"你不用因為一個讚就這樣，你自己也會很痛苦。","response":"所以我痛苦是我自己造成的。","angerChange":26,"tier":"fake","best":false}]},{"id":120,"category":"PHONE","categoryLabel":"手機與社群","scene":"週三 00:10 · 兩人並排坐著，各滑各的","scenario":"你有沒有發現我們最近都只在滑手機？","silence":"你連這個都要滑完才回。","options":[{"id":"120a","text":"有。剛剛想放下來但沒有放。（放下手機）","response":"「沒有放」你倒是很誠實。","angerChange":6,"tier":"plain","best":true},{"id":"120b","text":"還好吧，我們也有講話。剛剛不是還在聊。","response":"講幾句。","angerChange":18,"tier":"oblivious","best":false},{"id":"120c","text":"兩個人都這樣啊。大家回家不都是這樣。","response":"大家都這樣，所以是我的問題。","angerChange":22,"tier":"oblivious","best":false},{"id":"120d","text":"現代人都這樣，這不是我們的問題，你不用想太多。","response":"所以連這個都不是問題。","angerChange":26,"tier":"fake","best":false}]},{"id":121,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週日 17:30 · 從你家吃完飯，回程的車上","scenario":"你媽今天那句話，你有聽到嗎？","silence":"你不用回答了，你當然有聽到。","options":[{"id":"121a","text":"有。我等等就打電話跟她說，這種話不要再講。","response":"……你會不會太衝。","angerChange":-5,"tier":"survive","best":true},{"id":"121b","text":"有啊，她講話就那樣。","response":"所以我要習慣。","angerChange":6,"tier":"plain","best":false},{"id":"121c","text":"你不要放在心上啦。她那個年紀的人講話都這樣。","response":"那就是我玻璃心囉。","angerChange":18,"tier":"oblivious","best":false},{"id":"121d","text":"我沒聽到，你會不會太敏感。","response":"（下車，自己搭捷運回家）","angerChange":100,"tier":"mine","best":false},{"id":"121e","text":"長輩的觀念本來就不一樣，你多體諒一點，家裡才會和睦。","response":"體諒的永遠是我。","angerChange":26,"tier":"fake","best":false}]},{"id":122,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週五 21:00 · 訊息，對方在你朋友的聚會上","scenario":"你朋友剛剛那個玩笑，你覺得好笑嗎？","silence":"你已讀。那我知道了。","options":[{"id":"122a","text":"不好笑。我剛剛就叫他別講了，等等我再跟他講一次。","response":"……你剛剛有講喔。","angerChange":-5,"tier":"survive","best":true},{"id":"122b","text":"他就那樣啦。沒有惡意。","response":"沒有惡意就可以亂講。","angerChange":6,"tier":"plain","best":false},{"id":"122c","text":"大家都在笑啊。那桌很吵，我以為你沒放在心上就沒接話。","response":"對。只有我沒有笑。","angerChange":18,"tier":"oblivious","best":false},{"id":"122d","text":"還可以吧。","response":"（提早離場，把你的東西放到門口）","angerChange":100,"tier":"mine","best":false},{"id":"122e","text":"朋友之間開玩笑很正常，你太在意反而讓大家尷尬，下次放輕鬆點。","response":"所以尷尬是我造成的。","angerChange":26,"tier":"fake","best":false}]},{"id":123,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週六 12:00 · 你剛掛掉你媽的電話","scenario":"你媽說過年要我們回去住五天，你答應了？","silence":"你不回答，我就當你答應了。","options":[{"id":"123a","text":"還沒。我說要先問你，你想住幾天我們就住幾天。","response":"……那兩天。","angerChange":-5,"tier":"survive","best":true},{"id":"123b","text":"我還沒回她。","response":"「還沒」的意思就是會答應。","angerChange":6,"tier":"plain","best":false},{"id":"123c","text":"五天而已啊。我媽一年就見這麼一次，你當去玩幾天。","response":"五天而已。你講得好輕鬆。","angerChange":18,"tier":"oblivious","best":false},{"id":"123d","text":"都講好了啦。車票也訂了。","response":"都聽你的，那你自己回去住十天。","angerChange":100,"tier":"mine","best":false},{"id":"123e","text":"一年就這麼一次，你稍微忍一下，大家都好過，也是為了這個家。","response":"忍。這個字你用得很順。","angerChange":26,"tier":"fake","best":false}]},{"id":124,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週三 22:20 · 對方剛從她家回來","scenario":"我爸問你什麼時候要來吃飯，你怎麼一直躲？","silence":"你連這個都不敢回。","options":[{"id":"124a","text":"我沒有躲，這週日就可以。要我帶什麼水果？","response":"……你直接說週日就好了嘛。","angerChange":-5,"tier":"survive","best":true},{"id":"124b","text":"最近比較忙。這陣子案子壓著。","response":"你忙三個月了。","angerChange":6,"tier":"plain","best":false},{"id":"124c","text":"去了又要被問一堆事。","response":"我家很煩，你直說就好。","angerChange":18,"tier":"oblivious","best":false},{"id":"124d","text":"你爸每次都在問工作，我不想去。","response":"那你以後都不用去了。","angerChange":100,"tier":"mine","best":false},{"id":"124e","text":"我不是不想去，只是覺得不用那麼頻繁，這樣比較有空間。","response":"空間。你需要很多空間。","angerChange":26,"tier":"fake","best":false}]},{"id":125,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週四 20:40 · 客廳，對方剛看完手機","scenario":"你朋友又約你去喝了？","silence":"你已讀。那你去。","options":[{"id":"125a","text":"約了，我還沒回。你要不要一起去，還是我改約下次？","response":"……你去啦，記得回來。","angerChange":-5,"tier":"survive","best":true},{"id":"125b","text":"約了，難得他們有空。我大概十一點回來。","response":"你排好了時間。沒有一格是留給我的。","angerChange":6,"tier":"plain","best":false},{"id":"125c","text":"我也需要一點自己的時間吧？平常都在家，難得他們約。","response":"我沒有說不行。我問的是你有沒有想過我。","angerChange":18,"tier":"oblivious","best":false},{"id":"125d","text":"我等等就出門了。","response":"你說了算，那你喝到明天早上再回來。","angerChange":100,"tier":"mine","best":false}]},{"id":126,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週四 19:50 · 你剛講完一通電話","scenario":"你跟你媽講話都比跟我講話溫柔。","silence":"你不用回，我聽了三分鐘。","options":[{"id":"126a","text":"被你抓到了。那我現在重講一次，你聽這樣有沒有比較好。","response":"……你很噁心。（笑）","angerChange":-5,"tier":"survive","best":true},{"id":"126b","text":"有嗎？我沒有欸。","response":"你剛剛的聲音差很多。","angerChange":6,"tier":"plain","best":false},{"id":"126c","text":"那是我媽啊。我對她講話一直都是這樣。","response":"你媽是你媽，我不是。","angerChange":18,"tier":"oblivious","best":false},{"id":"126d","text":"你連這個都要比喔。","response":"對。我要比。你今天睡外面。","angerChange":100,"tier":"mine","best":false}]},{"id":127,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週六 14:10 · 婚宴會場外","scenario":"剛剛我一個人被丟在那桌，你知道嗎？","silence":"那一桌你也是這樣。","options":[{"id":"127a","text":"知道。我看到的時候就該回去了，是我不對。下一場我不走開。","response":"……講到做到。","angerChange":-5,"tier":"survive","best":true},{"id":"127b","text":"我剛剛去跟同學聊天啊。","response":"聊了四十分鐘。","angerChange":6,"tier":"plain","best":false},{"id":"127c","text":"你也可以自己跟人家聊啊。那桌的人都很好聊。","response":"那桌很好聊，是我不會社交。","angerChange":18,"tier":"oblivious","best":false},{"id":"127d","text":"那桌不是都你認識的人嗎。","response":"一個都不認識。你今天自己回家。","angerChange":100,"tier":"mine","best":false}]},{"id":128,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週二 21:15 · 對方剛跟她妹通完電話","scenario":"我妹說想來跟我們一起住一個月。","silence":"你不講話就是不願意。","options":[{"id":"128a","text":"可以。這一個月我洗碗跟倒垃圾，你排她的房間。","response":"……好。那我跟她講房間的事。","angerChange":-5,"tier":"survive","best":true},{"id":"128b","text":"一個月喔……好啊。","response":"你那個「喔」是什麼意思。","angerChange":6,"tier":"plain","best":false},{"id":"128c","text":"為什麼要住我們家。她自己不是有租房子。","response":"因為她是我妹。","angerChange":18,"tier":"oblivious","best":false},{"id":"128d","text":"你們家的人是不是都這樣。","response":"「你們家的人」。你再講一次。","angerChange":100,"tier":"mine","best":false}]},{"id":129,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週一 23:00 · 剛從家族聚餐回來","scenario":"你家沒有一個人站在我這邊，你知道嗎？","silence":"所以你也不站。","options":[{"id":"129a","text":"我知道。我今天也沒做好，但我沒有站在他們那邊。","response":"沒站他們那邊，也沒站我這邊。","angerChange":6,"tier":"plain","best":true},{"id":"129b","text":"他們沒有針對你啦。他們對我也是這樣講話。","response":"所以是我想像出來的。","angerChange":18,"tier":"oblivious","best":false},{"id":"129c","text":"你也可以主動一點跟他們聊。多講幾次就熟了。","response":"喔。是我不夠努力。","angerChange":22,"tier":"oblivious","best":false},{"id":"129d","text":"家人的相處要時間，你慢慢就會習慣，不用急著融入。","response":"所以我要習慣被這樣講。","angerChange":26,"tier":"fake","best":false}]},{"id":130,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週五 00:30 · 你從婚禮講她講到家門口","scenario":"你朋友的老婆很好，我是不是不夠好？","silence":"你朋友應該不用想這麼久。","options":[{"id":"130a","text":"是我一路在講她。我不講了。今天我看的是你。","response":"……車上那麼久，怎麼不講。","angerChange":6,"tier":"plain","best":true},{"id":"130b","text":"怎麼會這樣想。你很好啊，真的。","response":"你回得太快了。","angerChange":18,"tier":"oblivious","best":false},{"id":"130c","text":"你今天是不是喝了。你平常不會講這種話，真的。","response":"所以我講真心話要靠喝酒。","angerChange":22,"tier":"oblivious","best":false},{"id":"130d","text":"每個人都有自己的優點，你不用拿別人的標準要求自己。","response":"所以我確實比不上。","angerChange":26,"tier":"fake","best":false}]},{"id":131,"category":"CHORES","categoryLabel":"家事與生活","scene":"週六 11:20 · 廚房，水槽堆到滿出來","scenario":"這些碗是誰的？","silence":"（把碗一個一個放到你的桌上）","options":[{"id":"131a","text":"我的。我現在洗，順便把昨天的鍋子一起刷。","response":"……你昨天也是這樣說。","angerChange":-5,"tier":"survive","best":true},{"id":"131b","text":"我等等就洗。","response":"「等等」是幾點。","angerChange":6,"tier":"plain","best":false},{"id":"131c","text":"放著又不會怎樣。泡著比較好洗，我本來想晚上一起弄。","response":"泡水軟化是物理學，泡了兩天那是細菌培養皿。","angerChange":18,"tier":"oblivious","best":false},{"id":"131d","text":"你不是比較會洗嗎。","response":"（把碗放到你的枕頭邊）","angerChange":100,"tier":"mine","best":false},{"id":"131e","text":"家事本來就該一起做，只是我今天真的很累，你多做一點吧。","response":"「多做一點」是你在說。","angerChange":26,"tier":"fake","best":false}]},{"id":132,"category":"CHORES","categoryLabel":"家事與生活","scene":"週三 22:05 · 客廳地板上有一雙襪子","scenario":"這是第幾次了？","silence":"你不回答，我就直接丟掉。","options":[{"id":"132a","text":"第三次。我現在拿去洗，然後我把洗衣籃搬到門口。","response":"……搬到門口這招不錯。","angerChange":-5,"tier":"survive","best":true},{"id":"132b","text":"我忘記了啦。","response":"你每次都忘記。","angerChange":6,"tier":"plain","best":false},{"id":"132c","text":"一雙襪子而已欸。我今天很累，本來想睡醒再一起收。","response":"睡醒再一起收。前兩次也是這樣講的。","angerChange":18,"tier":"oblivious","best":false},{"id":"132d","text":"你幫我丟一下不就好了。","response":"（把襪子放進你的枕頭套）","angerChange":100,"tier":"mine","best":false},{"id":"132e","text":"這種小事你不要一直記在心裡，記這麼多對你自己的身體也不好。","response":"所以我不該記。","angerChange":26,"tier":"fake","best":false}]},{"id":133,"category":"CHORES","categoryLabel":"家事與生活","scene":"週日 09:50 · 對方拿著吸塵器站在你面前","scenario":"我一個人打掃，你都不覺得怪嗎？","silence":"（把吸塵器放在你腳邊）","options":[{"id":"133a","text":"覺得。浴室給我，我現在刷，你去坐著。","response":"……浴室是最難的欸。","angerChange":-5,"tier":"survive","best":true},{"id":"133b","text":"那我等等幫你。","response":"「等等」我就掃完了。","angerChange":6,"tier":"plain","best":false},{"id":"133c","text":"你打掃比較快啊。我上次弄反而被你重做一次。","response":"比較快的那個，就活該一直掃。","angerChange":18,"tier":"oblivious","best":false},{"id":"133d","text":"家裡本來就沒那麼髒。","response":"那你自己住在不髒的地方。","angerChange":100,"tier":"mine","best":false},{"id":"133e","text":"我也想幫，但我週末真的需要休息，你應該可以理解。","response":"你需要休息，我不需要。","angerChange":26,"tier":"fake","best":false}]},{"id":134,"category":"CHORES","categoryLabel":"家事與生活","scene":"週四 07:40 · 出門前，垃圾袋還在門邊","scenario":"垃圾昨天沒有拿下去吧？","silence":"（把垃圾袋掛在你的機車上）","options":[{"id":"134a","text":"沒有，我睡著了。我現在拿，你先出門不用等我。","response":"……你要遲到了。","angerChange":-5,"tier":"survive","best":true},{"id":"134b","text":"我昨天太晚回來了。","response":"你前天也太晚。","angerChange":6,"tier":"plain","best":false},{"id":"134c","text":"今天再拿也可以吧。反正明天早上也要下樓，一次拿兩包。","response":"喔。所以放兩天沒差。","angerChange":18,"tier":"oblivious","best":false},{"id":"134d","text":"你早上不是也要出門。順便啊。","response":"（把垃圾袋掛在你的機車手把上）","angerChange":100,"tier":"mine","best":false},{"id":"134e","text":"我不是故意的，你不要為了一包垃圾一大早不開心，一整天都毀了。","response":"所以是垃圾的錯。","angerChange":26,"tier":"fake","best":false}]},{"id":135,"category":"CHORES","categoryLabel":"家事與生活","scene":"週六 20:30 · 對方剛把衣服收進來","scenario":"你的衣服我幫你收了，你知道嗎？","silence":"連謝謝都要我自己說。","options":[{"id":"135a","text":"知道，謝謝。我去摺，你的我一起摺。","response":"……我的不用，你會摺壞。","angerChange":-5,"tier":"survive","best":true},{"id":"135b","text":"知道，謝謝。我等等摺。","response":"等等是幾點。上次那袋還在椅子上。","angerChange":6,"tier":"plain","best":false},{"id":"135c","text":"你放著我自己會收啊，我本來想等下班回來一起弄的。","response":"放三天了。你下了三次班。","angerChange":18,"tier":"oblivious","best":false},{"id":"135d","text":"以後不用幫我收啦。","response":"以後什麼都不幫你收。連被子也是。","angerChange":100,"tier":"mine","best":false}]},{"id":136,"category":"CHORES","categoryLabel":"家事與生活","scene":"週二 23:50 · 浴室，地板還是濕的","scenario":"你洗完澡不會刮一下地板嗎？","silence":"你不用回了，我自己刮。","options":[{"id":"136a","text":"會，我剛剛忘了。我現在去，順便把排水口洗一下。","response":"……排水口不用你洗。","angerChange":-5,"tier":"survive","best":true},{"id":"136b","text":"喔，抱歉，我下次注意。","response":"下次。","angerChange":6,"tier":"plain","best":false},{"id":"136c","text":"地板本來就會乾啊。等一下就沒了。","response":"等一下就乾，是我多事。","angerChange":18,"tier":"oblivious","best":false},{"id":"136d","text":"你不是每次洗完都會刮嗎。","response":"對。所以以後我洗完就鎖門。","angerChange":100,"tier":"mine","best":false}]},{"id":137,"category":"CHORES","categoryLabel":"家事與生活","scene":"週日 16:00 · 對方站在打開的冰箱前","scenario":"冰箱裡過期的東西是誰放的？","silence":"（把過期的東西放進你的碗裡）","options":[{"id":"137a","text":"我。我現在清，順便把冰箱擦一遍。","response":"……擦一遍就不用了。","angerChange":-5,"tier":"survive","best":true},{"id":"137b","text":"應該是我吧。","response":"「應該」。","angerChange":6,"tier":"plain","best":false},{"id":"137c","text":"過期一天還可以吃啦。","response":"可以吃的話，那你吃。","angerChange":18,"tier":"oblivious","best":false},{"id":"137d","text":"冰箱不是你在整理嗎。","response":"對。以後我只整理我那一層。","angerChange":100,"tier":"mine","best":false}]},{"id":138,"category":"CHORES","categoryLabel":"家事與生活","scene":"週五 21:40 · 對方剛拖完地","scenario":"你踩過去了，你有看到我在拖地嗎？","silence":"你連退回去都不會。","options":[{"id":"138a","text":"有，我沒注意到還沒乾。我退回去，這一塊我重拖。","response":"……不用重拖，你站著不要動。","angerChange":-5,"tier":"survive","best":true},{"id":"138b","text":"喔，抱歉。","response":"抱歉完還站在那裡。","angerChange":6,"tier":"plain","best":false},{"id":"138c","text":"會乾啦，踩一下而已。這麼熱的天很快就沒了。","response":"喔。踩一下而已。","angerChange":18,"tier":"oblivious","best":false},{"id":"138d","text":"你拖地怎麼不先講。","response":"我拖了二十分鐘。你今天不要進來。","angerChange":100,"tier":"mine","best":false}]},{"id":139,"category":"CHORES","categoryLabel":"家事與生活","scene":"週二 22:40 · 對方剛把家事分工表貼在冰箱上","scenario":"為什麼每次都要我開口你才做？","silence":"這題也要我開口。","options":[{"id":"139a","text":"因為我沒有主動去看家裡缺什麼。這是我的問題。","response":"你講得很順，但明天還是一樣。","angerChange":6,"tier":"plain","best":true},{"id":"139b","text":"你講我就做了啊。我沒有不做，只是沒有先看到。","response":"我講你才做，那我要一直講。","angerChange":18,"tier":"oblivious","best":false},{"id":"139c","text":"你也可以不要那麼急啊。放到晚上我一樣會做。","response":"所以是我太急。","angerChange":22,"tier":"oblivious","best":false},{"id":"139d","text":"每個人對整潔的標準不一樣，你不要用你的標準要求我。","response":"所以標準是我的問題。","angerChange":26,"tier":"fake","best":false}]},{"id":140,"category":"CHORES","categoryLabel":"家事與生活","scene":"週六 13:10 · 兩人剛為家事吵完一輪","scenario":"你覺得我們家誰做得比較多？","silence":"你想這麼久，答案很明顯。","options":[{"id":"140a","text":"你。這個我沒有要爭。","response":"承認完，然後呢。","angerChange":6,"tier":"plain","best":true},{"id":"140b","text":"應該差不多吧。","response":"差不多。你真的這樣覺得。","angerChange":22,"tier":"oblivious","best":false},{"id":"140c","text":"我上班比較久啊。","response":"所以上班可以換家事。","angerChange":18,"tier":"oblivious","best":false},{"id":"140d","text":"做多做少不用算得那麼清楚，家人本來就不該計較這個。","response":"不計較的都是做比較少的人。","angerChange":26,"tier":"fake","best":false}]},{"id":141,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週六 15:30 · 對方手上提著一個紙袋","scenario":"我今天買了一個包，你猜多少？","silence":"你不猜，那我自己去退掉。","options":[{"id":"141a","text":"猜不出來。但你背著好看，那就值得。你現在背給我看。","response":"……你先猜一個啦。","angerChange":-5,"tier":"survive","best":true},{"id":"141b","text":"看起來不便宜。","response":"所以你覺得我亂花。","angerChange":6,"tier":"plain","best":false},{"id":"141c","text":"又買包喔？上個月不是才買了一個。","response":"「又」是什麼意思。","angerChange":18,"tier":"oblivious","best":false},{"id":"141d","text":"這材質看起來很普通，怎麼會這麼貴。","response":"（把紙袋收起來，把你的東西放到門外）","angerChange":100,"tier":"mine","best":false},{"id":"141e","text":"你開心就好，只是我們最近在存錢，這種東西你自己拿捏一下比較好。","response":"「自己拿捏」翻譯成不要買。","angerChange":26,"tier":"fake","best":false}]},{"id":142,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週四 22:30 · 對方剛打開記帳 App","scenario":"這個月你花在遊戲上多少，你知道嗎？","silence":"你已讀。那我唸給你聽。","options":[{"id":"142a","text":"兩千八。我下個月砍一半，省下來的去你想去的那家。","response":"……你居然算得出來。","angerChange":-5,"tier":"survive","best":true},{"id":"142b","text":"應該沒有很多吧。","response":"「應該」。","angerChange":6,"tier":"plain","best":false},{"id":"142c","text":"我自己賺的錢欸。我又沒有花到家用。","response":"你自己賺的，我連問都不能問。","angerChange":18,"tier":"oblivious","best":false},{"id":"142d","text":"你買的那些不是更貴嗎。","response":"（把記帳 App 關掉，把房門也關掉）","angerChange":100,"tier":"mine","best":false},{"id":"142e","text":"花錢是我的自由，我沒有干涉你的消費，你也不要管我的。","response":"那我們各自自由。從今晚各睡各的開始。","angerChange":26,"tier":"fake","best":false}]},{"id":143,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週三 19:00 · 餐廳門口，兩人在看價目表","scenario":"這家有點貴，我們要不要換一家？","silence":"算了。我們回家吃。","options":[{"id":"143a","text":"不用換。你這週上了六天班，這餐我請，我們進去。","response":"……那我要點兩份甜點。","angerChange":-5,"tier":"survive","best":true},{"id":"143b","text":"你決定就好。","response":"又是我決定。","angerChange":6,"tier":"plain","best":false},{"id":"143c","text":"是有點貴。這個價錢吃兩餐都夠了，換一家也一樣飽。","response":"所以你也覺得。","angerChange":18,"tier":"oblivious","best":false},{"id":"143d","text":"那換旁邊那家。那家便宜多了。","response":"那你自己去那家吃。","angerChange":100,"tier":"mine","best":false},{"id":"143e","text":"省錢是好習慣，現在多存一點，以後才輕鬆，你應該懂我的意思。","response":"以後。永遠都是以後。","angerChange":26,"tier":"fake","best":false}]},{"id":144,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週三 21:10 · 對方剛拆開你的生日禮物","scenario":"這個……你在哪裡買的？","silence":"你連這個都不敢說。","options":[{"id":"144a","text":"你上次看的那家。收據我留著，尺寸不對可以換。","response":"……你居然記得是哪一家。","angerChange":-5,"tier":"survive","best":true},{"id":"144b","text":"網路上買的。","response":"網路上。","angerChange":6,"tier":"plain","best":false},{"id":"144c","text":"怎樣，不喜歡喔？我挑了很久欸。","response":"我還沒說不喜歡。","angerChange":18,"tier":"oblivious","best":false},{"id":"144d","text":"同事幫我挑的，他說女生都喜歡這個。","response":"（把禮物放回袋子，放到門外）","angerChange":100,"tier":"mine","best":false},{"id":"144e","text":"禮物是心意，價格跟牌子不重要，你不要太在意這些。","response":"所以你買了便宜的。","angerChange":26,"tier":"fake","best":false}]},{"id":145,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週五 20:20 · 對方剛結完帳","scenario":"剛剛那餐是我付的，你有發現嗎？","silence":"你已讀。那我記在我自己名下。","options":[{"id":"145a","text":"有，我剛剛在停車。下一餐我付，而且我要選你想吃的那家。","response":"……那家很貴喔。","angerChange":-5,"tier":"survive","best":true},{"id":"145b","text":"有，我剛沒注意。那餐我轉給你。","response":"錢回來了。你還是沒發現我在說什麼。","angerChange":6,"tier":"plain","best":false},{"id":"145c","text":"我們不是都各付各的嗎？我以為這樣比較清楚，才不用去算誰欠誰。","response":"今天不是。今天是我在等你抬頭。","angerChange":18,"tier":"oblivious","best":false},{"id":"145d","text":"反正錢都是一起花的啊。","response":"行啊，那以後都你花。你今天睡外面。","angerChange":100,"tier":"mine","best":false}]},{"id":146,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週日 11:00 · 對方在看兩人的存款數字","scenario":"我們這樣存，你覺得夠嗎？","silence":"你不回答，那我自己想辦法。","options":[{"id":"146a","text":"不夠。我這個月開始把獎金全部放進來，我們一起看數字。","response":"……你要不要留一點零用錢。","angerChange":-5,"tier":"survive","best":true},{"id":"146b","text":"應該夠吧。","response":"「應該」是誰算的。","angerChange":6,"tier":"plain","best":false},{"id":"146c","text":"現在想這個太早了啦。我們才剛開始存而已。","response":"好，是我想太多。","angerChange":18,"tier":"oblivious","best":false},{"id":"146d","text":"你不是有你爸媽可以幫忙嗎。","response":"那你去靠你爸媽。","angerChange":100,"tier":"mine","best":false}]},{"id":147,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週六 17:40 · 對方手上拿著一張帳單","scenario":"這筆是什麼？我沒有印象。","silence":"你不解釋，我就當我不用知道。","options":[{"id":"147a","text":"我幫我弟繳的學費，忘了跟你講。明細我現在給你看。","response":"……你要先講啊。","angerChange":-5,"tier":"survive","best":true},{"id":"147b","text":"喔，那個是我朋友的。","response":"哪個朋友。","angerChange":6,"tier":"plain","best":false},{"id":"147c","text":"一筆帳單也要交代喔。金額也沒有很大啊。","response":"喔。所以是我在查你。","angerChange":18,"tier":"oblivious","best":false},{"id":"147d","text":"你管這麼細幹嘛。","response":"以後什麼都不管。你也不用回房間。","angerChange":100,"tier":"mine","best":false}]},{"id":148,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週二 22:50 · 門口多了一個長條紙箱","scenario":"你又買了一支球拍？","silence":"你不用回了，箱子還在門口。","options":[{"id":"148a","text":"買了。舊的斷了，這支比較便宜。我這個月不吃宵夜補回來。","response":"……宵夜跟球拍差多少你知道嗎。","angerChange":-5,"tier":"survive","best":true},{"id":"148b","text":"這支很便宜。","response":"多便宜。","angerChange":6,"tier":"plain","best":false},{"id":"148c","text":"我自己的興趣也不行喔？我沒有花到別的地方。","response":"喔。所以我在剝奪你。","angerChange":18,"tier":"oblivious","best":false},{"id":"148d","text":"你買的保養品比這個貴很多啊。","response":"那你抱著球拍去客廳睡。","angerChange":100,"tier":"mine","best":false}]},{"id":149,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週四 23:20 · 兩人剛對完這個月的帳","scenario":"你覺得我是不是很會亂花錢？","silence":"你想這麼久，答案很清楚。","options":[{"id":"149a","text":"沒有。帳上我花的比你多，要省先省我的。","response":"……你把自己的也算進去了。","angerChange":6,"tier":"plain","best":true},{"id":"149b","text":"沒有啦，你花得很省。買的都是要用的。","response":"你剛剛才在算我的帳。","angerChange":18,"tier":"oblivious","best":false},{"id":"149c","text":"你買的時候都很開心啊。花多一點也沒關係。","response":"所以你也覺得我花很多。","angerChange":22,"tier":"oblivious","best":false},{"id":"149d","text":"錢是拿來讓自己開心的，只是要有計畫，你可以慢慢學。","response":"所以我不會算錢。","angerChange":26,"tier":"fake","best":false}]},{"id":150,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週五 21:00 · 對方剛看完你們的房租單","scenario":"如果我明天不工作了，你養得起我嗎？","silence":"這張單我自己收好。","options":[{"id":"150a","text":"養得起。房租單先放下，明天先請假休息。","response":"……誰說要請假了。不過單子你收好。","angerChange":6,"tier":"plain","best":true},{"id":"150b","text":"當然養得起啊。我薪水夠我們兩個過。","response":"你連數字都沒算。","angerChange":18,"tier":"oblivious","best":false},{"id":"150c","text":"怎麼突然想這個？是不是公司有人又在背後亂講話。","response":"你在替我找藉口。我在問你會不會。","angerChange":22,"tier":"oblivious","best":false},{"id":"150d","text":"經濟獨立對你比較好，我不希望你以後沒有選擇的能力。","response":"所以你不想養。","angerChange":26,"tier":"fake","best":false}]},{"id":151,"category":"WORK","categoryLabel":"工作與時間","scene":"週三 23:40 · 你剛進門，飯還在桌上","scenario":"你說九點回來的。","silence":"菜我收起來了。","options":[{"id":"151a","text":"對不起，會議延到十一點。我現在洗碗，你先去躺著。","response":"……你先吃啦，都冷了。","angerChange":-5,"tier":"survive","best":true},{"id":"151b","text":"臨時被叫住了。","response":"你可以傳一句訊息。","angerChange":6,"tier":"plain","best":false},{"id":"151c","text":"加班又不是我願意的。會議延了我也走不了。","response":"你走不了，我就不能不高興。","angerChange":18,"tier":"oblivious","best":false},{"id":"151d","text":"你不用等我吃啊。","response":"（把你的碗收進櫃子）","angerChange":100,"tier":"mine","best":false},{"id":"151e","text":"工作忙也是為了我們的未來，你體諒一點，不要讓我兩邊都累。","response":"所以我是你的另一邊。","angerChange":26,"tier":"fake","best":false}]},{"id":152,"category":"WORK","categoryLabel":"工作與時間","scene":"週五 22:30 · 訊息，你在外地出差第四天","scenario":"你一個人在外地，根本不會想到我吧。","silence":"你已讀。那我先睡了。","options":[{"id":"152a","text":"行李箱裡都是你放的維他命，怎麼沒想你。","response":"……算你還有看見。","angerChange":-5,"tier":"survive","best":true},{"id":"152b","text":"想啊。等我下週回去，帶你去吃好吃的。","response":"每次都用吃好吃的打發我。","angerChange":6,"tier":"plain","best":false},{"id":"152c","text":"白天開了一整天會，哪有時間東想西想。","response":"「東想西想」。我是你的東想西想。","angerChange":18,"tier":"oblivious","best":false},{"id":"152d","text":"我出差很累，可以不要無理取鬧嗎。","response":"無理取鬧？好，那你永遠不用回來了。","angerChange":100,"tier":"mine","best":false},{"id":"152e","text":"我出差也是為了我們的未來，你在家要懂得體諒。","response":"又是為了我們。你未來裡到底有沒有我？","angerChange":26,"tier":"fake","best":false}]},{"id":153,"category":"WORK","categoryLabel":"工作與時間","scene":"週六 10:30 · 對方看到你手機上的通知","scenario":"你同事週末也找你？","silence":"你先回他好了。","options":[{"id":"153a","text":"她是要問交接。我現在回一句，然後把手機放桌上。","response":"……你回快一點。","angerChange":-5,"tier":"survive","best":true},{"id":"153b","text":"就工作的事。","response":"哪一種工作的事。","angerChange":6,"tier":"plain","best":false},{"id":"153c","text":"同事找我也要報告喔。","response":"問一句就變成我很煩。","angerChange":18,"tier":"oblivious","best":false},{"id":"153d","text":"她只是比較依賴我。","response":"（把你的手機丟到沙發上，鎖房門）","angerChange":100,"tier":"mine","best":false},{"id":"153e","text":"工作跟感情要分開，你不要把兩件事混在一起，這樣很不成熟。","response":"我不成熟。好。","angerChange":26,"tier":"fake","best":false}]},{"id":154,"category":"WORK","categoryLabel":"工作與時間","scene":"週日 14:20 · 你在家裡開視訊會議","scenario":"今天是休假，你知道嗎？","silence":"（把你的筆電闔起來）","options":[{"id":"154a","text":"知道。這場十五分鐘，結束我就收電腦，下午都給你。","response":"……我會算時間。","angerChange":-5,"tier":"survive","best":true},{"id":"154b","text":"很快就好了啦。","response":"上次你也說很快。","angerChange":6,"tier":"plain","best":false},{"id":"154c","text":"我在家開會不行喔？我人就在客廳，你要講隨時可以叫我。","response":"你在客廳。可是你整個人不在。","angerChange":18,"tier":"oblivious","best":false},{"id":"154d","text":"你不是也可以做你自己的事。","response":"（把你的筆電闔起來，抱走）","angerChange":100,"tier":"mine","best":false},{"id":"154e","text":"我在家工作已經算是陪你了，你要知道有些人忙起來根本不回家的。","response":"所以我要感謝你回家。","angerChange":26,"tier":"fake","best":false}]},{"id":155,"category":"WORK","categoryLabel":"工作與時間","scene":"週四 21:30 · 你剛講完一通工作電話","scenario":"你講電話的聲音跟平常差很多。","silence":"你不用回，我聽出來了。","options":[{"id":"155a","text":"那是客戶。等等我用平常的聲音跟你講一個小時。","response":"……一個小時要講什麼。","angerChange":-5,"tier":"survive","best":true},{"id":"155b","text":"有嗎？我沒感覺。","response":"差很多。","angerChange":6,"tier":"plain","best":false},{"id":"155c","text":"工作當然要有工作的樣子。","response":"工作要有樣子，家裡就不用。","angerChange":18,"tier":"oblivious","best":false},{"id":"155d","text":"你不要連這個都要挑。","response":"那我以後什麼都不挑。你今天睡客廳。","angerChange":100,"tier":"mine","best":false}]},{"id":156,"category":"WORK","categoryLabel":"工作與時間","scene":"週二 07:20 · 你在穿外套，對方還在床上","scenario":"你今天幾點回來？","silence":"（把你的鑰匙收進抽屜）","options":[{"id":"156a","text":"七點。如果會晚我一定先傳訊息，不會讓你等。","response":"……七點就是七點。","angerChange":-5,"tier":"survive","best":true},{"id":"156b","text":"應該正常時間。有變我再說。","response":"「應該」。","angerChange":6,"tier":"plain","best":false},{"id":"156c","text":"這種事哪講得準。事情做完就回去了，我又不會故意拖。","response":"所以我問了就是在懷疑你。","angerChange":18,"tier":"oblivious","best":false},{"id":"156d","text":"你問這個要幹嘛。","response":"沒事。你今天不用回來了。","angerChange":100,"tier":"mine","best":false}]},{"id":157,"category":"WORK","categoryLabel":"工作與時間","scene":"週一 23:10 · 兩人躺著，你還在看工作訊息","scenario":"躺在床上還在看公事？","silence":"你已讀我，也已讀他。","options":[{"id":"157a","text":"最後一則。（把手機放到床頭櫃）好，關掉了。","response":"……你居然真的關。","angerChange":-5,"tier":"survive","best":true},{"id":"157b","text":"看一下就好。","response":"「一下」二十分鐘。","angerChange":6,"tier":"plain","best":false},{"id":"157c","text":"我明天要交。這一份卡著整組人。","response":"所以明天可以，今天不行。","angerChange":18,"tier":"oblivious","best":false},{"id":"157d","text":"你不要一直看我在幹嘛。","response":"那你去客廳看。不用回來。","angerChange":100,"tier":"mine","best":false}]},{"id":158,"category":"WORK","categoryLabel":"工作與時間","scene":"週二 18:50 · 對方剛講完公司的事","scenario":"我今天升上組長了，你怎麼沒反應？","silence":"沒關係。本來就沒人會在意。","options":[{"id":"158a","text":"我在想要訂哪一家慶祝。你先講你怎麼跟主管講的。","response":"……那家很難訂喔。","angerChange":-5,"tier":"survive","best":true},{"id":"158b","text":"喔，恭喜。","response":"就這樣。","angerChange":6,"tier":"plain","best":false},{"id":"158c","text":"組長會不會更累啊。要開的會一定變多。","response":"升組長你也能挑出不好。","angerChange":18,"tier":"oblivious","best":false},{"id":"158d","text":"你們公司升職很快欸，是不是沒人要做。","response":"那你去沒人要做的地方睡。","angerChange":100,"tier":"mine","best":false}]},{"id":159,"category":"WORK","categoryLabel":"工作與時間","scene":"週一 23:55 · 客廳，對方看著你放假都在滑手機、行事曆排滿公事","scenario":"你的時間到底有沒有留給我？","silence":"這幾秒也沒有。","options":[{"id":"159a","text":"沒有留很多。我不會拿忙當理由，這件事我要改。","response":"你每次都說要改。","angerChange":6,"tier":"plain","best":true},{"id":"159b","text":"我週末不是都在家。人在家就算有留啊。","response":"人在家。眼睛在手機上。","angerChange":22,"tier":"oblivious","best":false},{"id":"159c","text":"我也要賺錢啊。這些加班換來的也是我們的日子。","response":"我們的日子。裡面有一格是我嗎。","angerChange":18,"tier":"oblivious","best":false},{"id":"159d","text":"陪伴的品質比時間長短重要，我們不用計較幾個小時。","response":"品質。你連時間都沒有。","angerChange":26,"tier":"fake","best":false}]},{"id":160,"category":"WORK","categoryLabel":"工作與時間","scene":"週二 20:15 · 你進門，包還沒放下","scenario":"你在公司受的氣，回家對我發。","silence":"你現在這個表情就是答案。","options":[{"id":"160a","text":"對，是我帶回來的。不是你的問題。我現在就把包放下跟你講。","response":"……好吧，你坐下來講。","angerChange":-5,"tier":"survive","best":true},{"id":"160b","text":"抱歉，我今天真的很煩。","response":"那我呢。我今天也不是很好。","angerChange":6,"tier":"plain","best":false},{"id":"160c","text":"我又沒有對你怎樣。我只是不想講話而已。","response":"你進門到現在講了三句話。","angerChange":18,"tier":"oblivious","best":false},{"id":"160d","text":"你不要跟我講話。","response":"（把你的碗收進冰箱）","angerChange":100,"tier":"mine","best":false},{"id":"160e","text":"我把情緒帶回家是因為只有你這裡我可以放鬆，這代表你是我最信任的人。","response":"所以我是你的垃圾桶，還要謝謝你。","angerChange":26,"tier":"fake","best":false}]},{"id":161,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週四 22:00 · 對方打開一份行程表","scenario":"這次的行程你都沒有意見嗎？","silence":"你不講話，那我全部自己排。","options":[{"id":"161a","text":"有。第二天太趕，我把下午那站砍掉，多留兩小時給你逛。","response":"……你居然有看。","angerChange":-5,"tier":"survive","best":true},{"id":"161b","text":"你排的都很好啊。","response":"所以你沒看。","angerChange":6,"tier":"plain","best":false},{"id":"161c","text":"我都可以，你決定。你排的行程一向比較準。","response":"又是我決定。","angerChange":18,"tier":"oblivious","best":false},{"id":"161d","text":"行程這種東西到現場再說啦。","response":"（把行程表刪掉，車票也退掉）","angerChange":100,"tier":"mine","best":false},{"id":"161e","text":"我相信你的安排，你本來就比較會規劃，我不想干擾你自己的節奏。","response":"所以又是我一個人做。","angerChange":26,"tier":"fake","best":false}]},{"id":162,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週六 09:10 · 車上，導航剛重新規劃路線","scenario":"我們是不是走錯了？","silence":"你不講話，我就自己看地圖。","options":[{"id":"162a","text":"是。我剛剛沒注意，下個路口迴轉，會多十分鐘。","response":"……那路上買杯咖啡。","angerChange":-5,"tier":"survive","best":true},{"id":"162b","text":"應該還在路上吧。","response":"「應該」。","angerChange":6,"tier":"plain","best":false},{"id":"162c","text":"導航就是這樣啊。這一段它本來就常常抓錯。","response":"所以是導航的錯。","angerChange":18,"tier":"oblivious","best":false},{"id":"162d","text":"你剛剛不是說你在看地圖嗎。","response":"（把導航關掉，一路不講話）","angerChange":100,"tier":"mine","best":false},{"id":"162e","text":"迷路也是旅行的一部分，你放輕鬆，不要什麼都照計畫。","response":"所以是我太緊張。","angerChange":26,"tier":"fake","best":false}]},{"id":163,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週日 16:30 · 景點前，對方把手機遞過來","scenario":"幫我拍一張，可以嗎？","silence":"算了。我自己自拍。","options":[{"id":"163a","text":"好。我蹲下來拍，這個角度比較好看。要幾張都可以。","response":"……你怎麼知道這個角度。","angerChange":-5,"tier":"survive","best":true},{"id":"163b","text":"好啊。（喀）","response":"一張就好了喔。","angerChange":6,"tier":"plain","best":false},{"id":"163c","text":"又要拍喔？剛剛那家店你就拍了十幾張，我以為那些夠用了。","response":"你數過。你就是沒有按下去。","angerChange":18,"tier":"oblivious","best":false},{"id":"163d","text":"拍這個要幹嘛。反正都差不多。","response":"（把手機收起來，自己走去下一站）","angerChange":100,"tier":"mine","best":false},{"id":"163e","text":"我覺得用眼睛看比拍照重要，回憶不用靠照片留著，這樣才是真的在玩。","response":"那你幫我拍一張很難嗎。","angerChange":26,"tier":"fake","best":false}]},{"id":164,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週三 21:40 · 對方在看訂房頁面","scenario":"這間房你覺得可以嗎？","silence":"你已讀。那我訂便宜的那間。","options":[{"id":"164a","text":"可以。而且它離你想去的那家早餐店走五分鐘，我查過了。","response":"……你什麼時候查的。","angerChange":-5,"tier":"survive","best":true},{"id":"164b","text":"看起來不錯啊。","response":"你有點進去看嗎。","angerChange":6,"tier":"plain","best":false},{"id":"164c","text":"都可以啦，反正只是睡覺。","response":"反正只是睡覺，住哪都一樣嘛。","angerChange":18,"tier":"oblivious","best":false},{"id":"164d","text":"有沒有更便宜的？我們又不會待在房間。","response":"那你自己睡便宜的。","angerChange":100,"tier":"mine","best":false},{"id":"164e","text":"住宿不用太講究，反正只是睡覺，錢留下來玩比較實在，你也會同意吧。","response":"我不同意。","angerChange":26,"tier":"fake","best":false}]},{"id":165,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週五 19:50 · 對方剛提到下個月的連假","scenario":"連假你要回家，還是跟我出去？","silence":"你不用回了，我自己安排。","options":[{"id":"165a","text":"跟你出去。我媽那邊我今晚打電話，改到連假後那個週末。","response":"……那你現在打，我在旁邊聽。","angerChange":-5,"tier":"survive","best":true},{"id":"165b","text":"都可以，你想去哪。","response":"又要我想。","angerChange":6,"tier":"plain","best":false},{"id":"165c","text":"我媽那邊也要顧啊。她一個人在家，連假不回去她會念一整年。","response":"所以要被念的是你，要排後面的是我。","angerChange":18,"tier":"oblivious","best":false},{"id":"165d","text":"我答應我媽了，你自己找朋友去啊。","response":"那就這樣，我找朋友，你找你媽。","angerChange":100,"tier":"mine","best":false}]},{"id":166,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週日 11:30 · 機場，對方在翻包包","scenario":"我的證件是不是在你身上？","silence":"你不回答，我開始緊張了。","options":[{"id":"166a","text":"在，我早上收的，兩本都在我這。（拿出來給你看）","response":"……你嚇死我了。","angerChange":-5,"tier":"survive","best":true},{"id":"166b","text":"應該在我這，我找一下。","response":"「應該」。","angerChange":6,"tier":"plain","best":false},{"id":"166c","text":"你自己的東西怎麼會不知道。","response":"東西是我的，粗心也是我的。","angerChange":18,"tier":"oblivious","best":false},{"id":"166d","text":"我沒有拿啊，你自己再找找看。","response":"（自己走去櫃檯，不等你）","angerChange":100,"tier":"mine","best":false}]},{"id":167,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週三 22:20 · 民宿房間，對方剛洗完澡","scenario":"今天你一整天都在跟你朋友傳訊息。","silence":"你連現在都在看手機。","options":[{"id":"167a","text":"對，我不該這樣。（把手機關機）剩下兩天都不看。","response":"……關機是不是太誇張。","angerChange":-5,"tier":"survive","best":true},{"id":"167b","text":"他們在問我這邊好不好玩。","response":"所以你在幫他們規劃。","angerChange":6,"tier":"plain","best":false},{"id":"167c","text":"我也不能跟朋友講話喔。他最近剛好有事。","response":"喔。所以我很小氣。","angerChange":18,"tier":"oblivious","best":false},{"id":"167d","text":"你不是也在滑。","response":"對。那我滑到明天，你自己出去玩。","angerChange":100,"tier":"mine","best":false}]},{"id":168,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週四 20:30 · 對方在看一張別人上傳的旅遊照","scenario":"你上次跟同事去的那趟，怎麼沒跟我說？","silence":"你不解釋，我就自己想。","options":[{"id":"168a","text":"公司的團建，臨時通知。照片跟名單我現在給你看。","response":"……你當時可以講一句。","angerChange":-5,"tier":"survive","best":true},{"id":"168b","text":"公司的團建，臨時通知的。我以為我有跟你講。","response":"你沒講。而且是我先看到照片。","angerChange":6,"tier":"plain","best":false},{"id":"168c","text":"就一般的團建啊，全公司都去，我沒想到這種事還要特地報備。","response":"報備。你用了這個字。","angerChange":18,"tier":"oblivious","best":false},{"id":"168d","text":"跟同事出去而已，你不要想太多。","response":"可以啊，那你以後都跟同事出去。","angerChange":100,"tier":"mine","best":false}]},{"id":169,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週日 20:00 · 剛從三天的旅行回到家","scenario":"這趟你玩得開心嗎？","silence":"你想這麼久，我知道了。","options":[{"id":"169a","text":"還可以。第二天有點累，但你在海邊那個表情讓我覺得值得。","response":"「還可以」才是你的實話吧。","angerChange":6,"tier":"plain","best":true},{"id":"169b","text":"很開心啊，超好玩。行程都照你想的走。","response":"照我想的走。所以你自己想的是什麼。","angerChange":18,"tier":"oblivious","best":false},{"id":"169c","text":"你不是也很累嗎？我看你第二天都在車上睡。","response":"我問你，你反問我。","angerChange":22,"tier":"oblivious","best":false},{"id":"169d","text":"旅行本來就會累，重要的是一起經歷，不用追求完美。","response":"所以這趟不完美。","angerChange":26,"tier":"fake","best":false}]},{"id":170,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週五 23:30 · 對方在看明年的月曆","scenario":"為什麼每次都要我開口才有旅行？","silence":"月曆我收起來了。","options":[{"id":"170a","text":"因為我沒有主動去查。這件事我接過來，下一趟我開口。","response":"你這句我三年前也聽過。","angerChange":6,"tier":"plain","best":true},{"id":"170b","text":"你提我都答應了啊。我以為那樣就算一起。","response":"答應只要動嘴，查行程要動腦。你那叫跟團，不叫一起。","angerChange":22,"tier":"oblivious","best":false},{"id":"170c","text":"我工作很忙啊。查機票飯店真的要花時間。","response":"工作很忙。那三年的機票飯店是精靈半夜自己訂好的嗎？","angerChange":18,"tier":"oblivious","best":false},{"id":"170d","text":"有一個人規劃就好，兩個人做同一件事沒有效率，我是想讓你不用那麼累。","response":"效率。原來你是在替我著想。","angerChange":26,"tier":"fake","best":false}]},{"id":171,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週四 23:50 · 兩人躺著，對方轉過來","scenario":"你有想過我們五年後會在哪裡嗎？","silence":"你連想都沒想過吧。","options":[{"id":"171a","text":"有。同一間房子、同一張床，你在旁邊嫌我打呼。","response":"……你打呼是真的。","angerChange":-5,"tier":"survive","best":true},{"id":"171b","text":"應該還是在一起吧。","response":"「應該」。","angerChange":6,"tier":"plain","best":false},{"id":"171c","text":"五年太久了，誰知道。這種事講了也不會照著走。","response":"喔。所以你沒把握。","angerChange":18,"tier":"oblivious","best":false},{"id":"171d","text":"我連明年都還沒想。","response":"（起床，去客廳睡）","angerChange":100,"tier":"mine","best":false},{"id":"171e","text":"未來想太多沒有用，過好現在比較實際，你不要焦慮。","response":"所以我在焦慮。","angerChange":26,"tier":"fake","best":false}]},{"id":172,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週日 15:20 · 兩人在看別人的婚紗照","scenario":"你覺得我們什麼時候可以到那一步？","silence":"你不回答，我就當沒有那一步。","options":[{"id":"172a","text":"我想。這禮拜我們挑一天，把時間認真排出來。","response":"……好啊，那你現在跟我挑。","angerChange":-5,"tier":"survive","best":true},{"id":"172b","text":"時間到了就會啦。","response":"「時間到了」是誰決定。","angerChange":6,"tier":"plain","best":false},{"id":"172c","text":"現在這樣不是很好嗎？我們也沒少什麼。","response":"沒少什麼，那就什麼都不用改。","angerChange":18,"tier":"oblivious","best":false},{"id":"172d","text":"結婚很麻煩啊。","response":"那你就不用麻煩了。","angerChange":100,"tier":"mine","best":false},{"id":"172e","text":"形式不重要，我們現在的關係已經很穩定了，這種事比一張紙有意義多了。","response":"那張紙我想要。","angerChange":26,"tier":"fake","best":false}]},{"id":173,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週四 22:40 · 對方剛看完一支小孩的影片","scenario":"你以後想生小孩嗎？","silence":"你想這麼久，等於不想。","options":[{"id":"173a","text":"想。但我更在意你想不想，因為辛苦的是你。我們慢慢談。","response":"……你這句我要記下來。","angerChange":-5,"tier":"survive","best":true},{"id":"173b","text":"應該會想吧。","response":"「應該」。","angerChange":6,"tier":"plain","best":false},{"id":"173c","text":"現在養小孩很貴欸。光是保母就要一大筆，我們現在存得不夠。","response":"所以是錢的問題。","angerChange":18,"tier":"oblivious","best":false},{"id":"173d","text":"生小孩很麻煩啦。你生你顧。","response":"（把影片關掉，把房門鎖上）","angerChange":100,"tier":"mine","best":false},{"id":"173e","text":"這種事我不會給你壓力，你想生就生，不想生就不生，跟我說一聲。","response":"說一聲。所以你是等通知的那個。","angerChange":26,"tier":"fake","best":false}]},{"id":174,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週六 14:00 · 兩人剛看完一間房子","scenario":"剛剛那間你覺得怎樣？","silence":"你不講話，我就自己跟仲介說。","options":[{"id":"174a","text":"採光很好，但主臥太小。我想再看兩間再決定，這不能急。","response":"……你居然有在看主臥。","angerChange":-5,"tier":"survive","best":true},{"id":"174b","text":"還不錯啊。","response":"哪裡不錯。","angerChange":6,"tier":"plain","best":false},{"id":"174c","text":"都可以，你喜歡就好。我看不出哪裡差。","response":"又是我喜歡就好。","angerChange":18,"tier":"oblivious","best":false},{"id":"174d","text":"太貴了吧，我們買不起。","response":"買不起就永遠都不用看了。","angerChange":100,"tier":"mine","best":false},{"id":"174e","text":"買房是很大的決定，我覺得再多等一陣子比較保險，你先不要那麼衝動。","response":"等了三年了。","angerChange":26,"tier":"fake","best":false}]},{"id":175,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週三 23:10 · 對方剛講完她朋友訂婚的事","scenario":"你會不會覺得我在逼你？","silence":"你已讀。那就是有。","options":[{"id":"175a","text":"不會。是我一直沒有把話講清楚，這是我的問題。","response":"……那你現在講。","angerChange":-5,"tier":"survive","best":true},{"id":"175b","text":"沒有啦，你沒有逼我。","response":"你回太快了。","angerChange":6,"tier":"plain","best":false},{"id":"175c","text":"還好啦，不會到逼。你只是講得比較多次。","response":"「不會到」。","angerChange":18,"tier":"oblivious","best":false},{"id":"175d","text":"有一點。你可以不要一直提嗎。","response":"以後都不提。你也不用回房間。","angerChange":100,"tier":"mine","best":false}]},{"id":176,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週日 21:00 · 對方在看兩人的合照","scenario":"你有跟你家人提過我們的事嗎？","silence":"你不回答，我就知道沒有。","options":[{"id":"176a","text":"提過。上個月我媽還問你什麼時候有空一起吃飯。","response":"……那你怎麼沒跟我說。","angerChange":-5,"tier":"survive","best":true},{"id":"176b","text":"有提過。就簡單講一下。","response":"「簡單講一下」。講到哪一句。","angerChange":6,"tier":"plain","best":false},{"id":"176c","text":"這種事本來就不用特別講吧。時間到了他們自然會知道。","response":"時間到了。那是什麼時候。","angerChange":18,"tier":"oblivious","best":false},{"id":"176d","text":"我家的事你不用管啦。","response":"那你家的事都不用我管。","angerChange":100,"tier":"mine","best":false}]},{"id":177,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週五 22:30 · 對方拿出一張存款截圖","scenario":"如果我們要一起存錢，你願意嗎？","silence":"你已讀。那我自己存。","options":[{"id":"177a","text":"願意。我這個月就開一個共同帳戶，密碼你設。","response":"……你怎麼這麼配合。","angerChange":-5,"tier":"survive","best":true},{"id":"177b","text":"可以啊，看你要怎麼弄。","response":"又是我弄。","angerChange":6,"tier":"plain","best":false},{"id":"177c","text":"我自己的錢我自己管比較好啊。","response":"你的錢你管。我們原來不是一起的。","angerChange":18,"tier":"oblivious","best":false},{"id":"177d","text":"存錢要幹嘛，還不知道以後會怎樣。","response":"都依你，那你自己存自己的。","angerChange":100,"tier":"mine","best":false}]},{"id":178,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週二 00:20 · 對方在黑暗裡開口","scenario":"你會一直在嗎？","silence":"你不回答，我就當你不確定。","options":[{"id":"178a","text":"會。我不敢保證每天都做得好，但我不會走。","response":"……這句可以，收下。","angerChange":-5,"tier":"survive","best":true},{"id":"178b","text":"當然會啊。","response":"「當然」我聽過很多次。","angerChange":6,"tier":"plain","best":false},{"id":"178c","text":"怎麼突然問這個。我們今天不是好好的嗎。","response":"因為現在才敢問。","angerChange":18,"tier":"oblivious","best":false},{"id":"178d","text":"誰知道以後會怎樣。","response":"那你先從今晚不在開始。","angerChange":100,"tier":"mine","best":false}]},{"id":179,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週日 22:50 · 兩人剛聊完別人的婚禮","scenario":"你會不會有一天覺得我不夠好？","silence":"不用等有一天了。","options":[{"id":"179a","text":"不會。剛才婚禮的合照傳我，我現在設成桌布。","response":"……現在換喔？那我挑一張我有笑的。","angerChange":6,"tier":"plain","best":true},{"id":"179b","text":"不會啦，你很好。我從來沒有在跟誰比。","response":"你回太快了。","angerChange":18,"tier":"oblivious","best":false},{"id":"179c","text":"你為什麼一直問這個？最近有人跟你說了什麼嗎。","response":"你在找是誰講的。不是有人講。","angerChange":22,"tier":"oblivious","best":false},{"id":"179d","text":"感情裡沒有誰好不好，重要的是互相磨合，我們要一起成長。","response":"「互相磨合」。所以你現在覺得我很不成熟。","angerChange":26,"tier":"fake","best":false}]},{"id":180,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週六 01:00 · 對方剛把手機放下","scenario":"你覺得我們現在算穩定嗎？","silence":"這樣叫穩定喔。","options":[{"id":"180a","text":"算，但不是每天都穩。我覺得這樣才算真的。","response":"「不是每天」聽起來有事。","angerChange":6,"tier":"plain","best":true},{"id":"180b","text":"當然穩定啊。我們也沒吵什麼大架。","response":"那你剛剛在猶豫什麼。","angerChange":18,"tier":"oblivious","best":false},{"id":"180c","text":"你為什麼會覺得不穩定？最近有發生什麼事嗎。","response":"又變成我的感覺有問題。","angerChange":22,"tier":"oblivious","best":false},{"id":"180d","text":"感情本來就有高低起伏，你不用一直檢查我們的狀態。","response":"所以我不能問。","angerChange":26,"tier":"fake","best":false}]},{"id":181,"category":"MOOD","categoryLabel":"情緒地雷","scene":"週三 23:20 · 剛吵完，對方坐在床邊","scenario":"你為什麼都不會生氣？","silence":"你連這個都沒有反應。","options":[{"id":"181a","text":"我會。我剛在浴室站了五分鐘才進來。","response":"……所以你剛剛都在氣。那你不講。","angerChange":-5,"tier":"survive","best":true},{"id":"181b","text":"我個性就是這樣啊。","response":"「個性」這兩個字很好用。","angerChange":6,"tier":"plain","best":false},{"id":"181c","text":"生氣有什麼用。吵完還不是要一起過日子。","response":"所以我在做沒用的事。","angerChange":18,"tier":"oblivious","best":false},{"id":"181d","text":"因為你一個人氣就夠了啊。","response":"（把你的枕頭丟到客廳）","angerChange":100,"tier":"mine","best":false},{"id":"181e","text":"情緒是可以管理的。你先冷靜下來，我們才有辦法好好把話講完。","response":"冷靜的是你，該冷靜的是我。","angerChange":26,"tier":"fake","best":false}]},{"id":182,"category":"LOOKS","categoryLabel":"外表","scene":"週五 21:10 · 對方剛換好衣服，站在鏡子前","scenario":"你上次稱讚我是什麼時候？","silence":"你想不出來，就是沒有。","options":[{"id":"182a","text":"想不起來。但你現在這樣很好看，我剛剛就在看。","response":"……那你剛剛怎麼不講。","angerChange":-5,"tier":"survive","best":true},{"id":"182b","text":"我心裡有想。真的。","response":"心裡的我聽不到。","angerChange":6,"tier":"plain","best":false},{"id":"182c","text":"你每天都很好看啊。這種事需要一直講嗎，講久了就不值錢了。","response":"需要。","angerChange":18,"tier":"oblivious","best":false},{"id":"182d","text":"講太多你會膩吧。","response":"（關燈，把被子捲走）","angerChange":100,"tier":"mine","best":false},{"id":"182e","text":"我覺得真正的欣賞不用一直掛在嘴上，我是用行動在表達，你可以感受一下。","response":"我感受到你很會講「不用講」。","angerChange":26,"tier":"fake","best":false}]},{"id":183,"category":"TRAP","categoryLabel":"假設題","scene":"週二 00:50 · 熄燈後，對方在黑暗裡開口","scenario":"如果我變成毛毛蟲，你還會愛我嗎？","silence":"你想這麼久，我大概知道答案了。","options":[{"id":"183a","text":"你變成什麼都還是你，所以我還是會愛你。","response":"我也愛你。","angerChange":-5,"tier":"survive","best":true},{"id":"183b","text":"人怎麼可能變成毛毛蟲。","response":"人不一定會變成毛毛蟲，但你一定會睡沙發。","angerChange":6,"tier":"plain","best":false},{"id":"183c","text":"我喜歡蝴蝶，很美，我愛你。毛毛蟲那個階段就先撐一下。","response":"身為毛毛蟲不美的我，是不是沒資格擁有你的愛。","angerChange":18,"tier":"oblivious","best":false},{"id":"183d","text":"不要。毛毛蟲很噁欸。","response":"喔。你覺得我很噁。","angerChange":100,"tier":"mine","best":false},{"id":"183e","text":"如果你變成毛毛蟲，我會把你養起來，每天餵你葉子，照顧你一輩子。","response":"所以我一變成毛毛蟲，你對我就只剩下責任了嗎。","angerChange":26,"tier":"fake","best":false}]},{"id":184,"category":"MEMORY","categoryLabel":"紀念日與記性","scene":"週四 22:15 · 電視在播鬼片，對方轉過來","scenario":"你記得我最怕什麼嗎？","silence":"電影都演完了。","options":[{"id":"184a","text":"記得。所以我剛剛把遙控器拿過來了。","response":"……你什麼時候拿的。","angerChange":-5,"tier":"survive","best":true},{"id":"184b","text":"你怕蟑螂吧？","response":"那是第二怕。","angerChange":6,"tier":"plain","best":false},{"id":"184c","text":"你怕的東西太多了啦。我一時之間想不到是哪一個。","response":"所以我很麻煩。","angerChange":18,"tier":"oblivious","best":false},{"id":"184d","text":"你自己不是在看。","response":"（把遙控器搶回去，音量調大）","angerChange":100,"tier":"mine","best":false},{"id":"184e","text":"我覺得記不記得沒那麼重要，重要的是我一直在你旁邊，這才是真正的陪伴。","response":"你在旁邊，但你不知道我在怕什麼。","angerChange":26,"tier":"fake","best":false}]},{"id":185,"category":"FOOD","categoryLabel":"吃什麼","scene":"週日 21:40 · 冰箱門打開，那盒還在原位","scenario":"我特地留給你的，你怎麼沒吃？","silence":"你不回，我就自己倒掉。","options":[{"id":"185a","text":"我沒看到。我現在吃，順便把冰箱整理一次。","response":"……整理歸整理，你先吃。","angerChange":-5,"tier":"survive","best":true},{"id":"185b","text":"我以為那是要放到明天的。","response":"放到明天就壞了。","angerChange":6,"tier":"plain","best":false},{"id":"185c","text":"你也沒跟我說啊。我以為那是你自己要吃的，我哪知道。","response":"我貼了紙條在上面。","angerChange":18,"tier":"oblivious","best":false},{"id":"185d","text":"看起來不太好吃。真的。","response":"（整盒倒進垃圾桶）","angerChange":100,"tier":"mine","best":false},{"id":"185e","text":"你不用每次都特地留給我，這樣你自己都吃不夠，我不想造成負擔。","response":"負擔。原來留東西給你是負擔。","angerChange":26,"tier":"fake","best":false}]},{"id":186,"category":"PHONE","categoryLabel":"手機與社群","scene":"週一 23:55 · 對方剛從你手機的設定頁抬起頭","scenario":"我的通知是不是被你關掉了？","silence":"你不用回，我自己看到了。","options":[{"id":"186a","text":"是。上班怕分心才關的，我現在打開，你看。","response":"……那下班以後呢。","angerChange":-5,"tier":"survive","best":true},{"id":"186b","text":"我沒有特別關你的啊。","response":"那怎麼只有我是關的。","angerChange":6,"tier":"plain","best":false},{"id":"186c","text":"全部的通知我都關啊。我上班本來就整支靜音。","response":"你剛剛遊戲的有跳出來。","angerChange":18,"tier":"oblivious","best":false},{"id":"186d","text":"你一天傳太多了。","response":"（把你的通知也關掉，然後關燈）","angerChange":100,"tier":"mine","best":false},{"id":"186e","text":"我關掉是為了專心工作，下班才有精神陪你。這種小事你不用每次都確認。","response":"你下班以後也沒有打開。","angerChange":26,"tier":"fake","best":false}]},{"id":187,"category":"FAMILY","categoryLabel":"家人與朋友","scene":"週二 21:00 · 對方剛掛掉一通電話","scenario":"我媽昨天進醫院，你到現在都沒問。","silence":"你連問都不用問。","options":[{"id":"187a","text":"對不起，我沒問。明天我跟你一起去。","response":"……這句我記得。","angerChange":-5,"tier":"survive","best":true},{"id":"187b","text":"昨天太晚了。我沒敢問。","response":"所以今天呢。","angerChange":6,"tier":"plain","best":false},{"id":"187c","text":"那阿姨還好吧？我這兩天真的忙昏了，完全沒空看手機。","response":"你現在才問。","angerChange":18,"tier":"oblivious","best":false},{"id":"187d","text":"我又不熟啊。","response":"（把行李收一收回娘家）","angerChange":100,"tier":"mine","best":false},{"id":"187e","text":"我不問是不想勾起你的情緒，我想等你自己願意講的時候再說，這樣對你比較好。","response":"我等你問，等了一整天。","angerChange":26,"tier":"fake","best":false}]},{"id":188,"category":"CHORES","categoryLabel":"家事與生活","scene":"週六 09:30 · 廁所門開著，對方站在門口","scenario":"你知道衛生紙用完要換嗎？","silence":"你不講話，那捲我就放著。","options":[{"id":"188a","text":"知道。是我懶，我現在去換，順便補一包在櫃子裡。","response":"……補一包這句加分。","angerChange":-5,"tier":"survive","best":true},{"id":"188b","text":"我等一下就換。","response":"「等一下」我聽了三次。","angerChange":6,"tier":"plain","best":false},{"id":"188c","text":"這種小事有必要講嗎？櫃子裡還有一整包，我以為你自己會拿。","response":"所以拿的人永遠是我。","angerChange":18,"tier":"oblivious","best":false},{"id":"188d","text":"你不是都會換嗎。","response":"（把整包衛生紙搬進房間鎖起來）","angerChange":100,"tier":"mine","best":false},{"id":"188e","text":"我覺得家事不用分那麼細，誰有空誰做就好，我不想把生活變成在算帳。","response":"那本帳一直是我在記。","angerChange":26,"tier":"fake","best":false}]},{"id":189,"category":"MONEY","categoryLabel":"金錢與消費","scene":"週日 22:20 · 對方把記帳的表格轉過來","scenario":"我到現在都不知道你薪水多少。","silence":"你不講，我就當有問題。","options":[{"id":"189a","text":"是我沒主動講。我現在講給你聽，帳也一起看。","response":"……那你講。","angerChange":-5,"tier":"survive","best":true},{"id":"189b","text":"你想知道。問我就好啊。","response":"我問過兩次了。","angerChange":6,"tier":"plain","best":false},{"id":"189c","text":"反正錢我都有在付啊。我沒有讓你多出過一塊，這樣還不夠嗎。","response":"我問的不是有沒有付。","angerChange":18,"tier":"oblivious","best":false},{"id":"189d","text":"這是我的隱私吧。","response":"那房租你的隱私自己付。","angerChange":100,"tier":"mine","best":false},{"id":"189e","text":"我不講是怕你有壓力，錢我來處理就好，你開開心心過日子就好。","response":"我不是你養的。","angerChange":26,"tier":"fake","best":false}]},{"id":190,"category":"WORK","categoryLabel":"工作與時間","scene":"週四 20:50 · 對方看著你手機上的請假通知","scenario":"你請假是為了他們的活動，不是我的生日。","silence":"你連解釋都懶。","options":[{"id":"190a","text":"對，我排錯順序了。你的生日我現在就請假。","response":"……「現在就請」我記住了。","angerChange":-5,"tier":"survive","best":true},{"id":"190b","text":"那天真的走不開啊。","response":"他們的你就走得開。","angerChange":6,"tier":"plain","best":false},{"id":"190c","text":"生日每年都有啊。那個活動一年就只有這一次。","response":"一年一次的是活動。我一年也只有一次。","angerChange":18,"tier":"oblivious","best":false},{"id":"190d","text":"那是工作欸，不一樣。","response":"（把行事曆上你的生日刪掉）","angerChange":100,"tier":"mine","best":false},{"id":"190e","text":"我拚成這樣也是為了我們的未來，我希望你可以體諒我現在這個階段。","response":"「我們的未來」裡面沒有我的生日。","angerChange":26,"tier":"fake","best":false}]},{"id":191,"category":"TRIP","categoryLabel":"出遊計畫","scene":"週五 23:40 · 客廳地上兩個行李箱，一個還是空的","scenario":"行李都是我一個人收的，你知道嗎？","silence":"你不回，那你自己的自己收。","options":[{"id":"191a","text":"知道。剩下的我收，清單你給我，我照著弄。","response":"……清單我早就寫好了。","angerChange":-5,"tier":"survive","best":true},{"id":"191b","text":"你收比較快啊。剩下的我來。","response":"你來。那你知道還缺什麼嗎。","angerChange":6,"tier":"plain","best":false},{"id":"191c","text":"我東西真的很少。三件衣服一個充電器，收起來五分鐘。","response":"少的是東西，不是事情。","angerChange":18,"tier":"oblivious","best":false},{"id":"191d","text":"你不是很喜歡收嗎。","response":"（把你的行李箱清空）","angerChange":100,"tier":"mine","best":false},{"id":"191e","text":"出去玩本來就是要放鬆，我不想出發前為了這種小事影響心情。","response":"影響心情的是那個空箱子。","angerChange":26,"tier":"fake","best":false}]},{"id":192,"category":"FUTURE","categoryLabel":"未來規劃","scene":"週三 23:30 · 對方把一封錄取信轉過來給你看","scenario":"如果我要去外地工作兩年，你會怎麼辦？","silence":"你不回答，我就自己決定了。","options":[{"id":"192a","text":"去。兩年我等得起，能飛就飛過去看你。","response":"……你答得比我還快。","angerChange":-5,"tier":"survive","best":true},{"id":"192b","text":"那你想去嗎？","response":"我先問你的。","angerChange":6,"tier":"plain","best":false},{"id":"192c","text":"兩年很久欸。中間會發生什麼事誰知道，你先自己想清楚。","response":"所以你不想。","angerChange":18,"tier":"oblivious","best":false},{"id":"192d","text":"先分開啊。一陣子而已。","response":"（把錄取信收回來，房門關上）","angerChange":100,"tier":"mine","best":false},{"id":"192e","text":"你的機會我支持，只是遠距離很難維持，我不想給你空的承諾。","response":"你支持得很有條件。","angerChange":26,"tier":"fake","best":false}]}];
+const CATEGORIES={"MOOD":{"label":"情緒地雷","lead":"「我今天心情不好」「沒事，我沒生氣」——這種開場要的從來不是解決方案，是有人先站到她那一邊。"},"LOOKS":{"label":"外表","lead":"「我是不是變胖了」沒有安全答案，只有比較不痛的那一個。重點不在胖瘦，在你有沒有在看她。"},"TRAP":{"label":"假設題","lead":"「我跟你媽同時掉進水裡」這種題目測的不是邏輯，是立場。跟她辯論假設本身，就是輸的開始。"},"MEMORY":{"label":"紀念日與記性","lead":"忘記日期只是導火線，真正被檢查的是你有沒有把她放在心上。補救的方式不是解釋，是行動。"},"FOOD":{"label":"吃什麼","lead":"「都可以」「隨便」是這段關係裡最危險的兩個詞。她要的是你做決定，不是你把球丟回來。"},"PHONE":{"label":"手機與社群","lead":"已讀不回、限時動態、追蹤名單。手機是這個年代最容易吵起來的東西，因為它藏著時間分配。"},"FAMILY":{"label":"家人與朋友","lead":"你站哪一邊，比事情本身重要。這一類的地雷幾乎都長得像「你冷靜一點」或「我媽也是為你好」。"},"CHORES":{"label":"家事與生活","lead":"「我幫你做家事」這句話本身就是地雷——家是兩個人的，沒有誰在幫誰。"},"MONEY":{"label":"金錢與消費","lead":"討論價格之前先確認你在跟誰討論。同一句「這個很貴」，講給店員聽跟講給她聽是兩件事。"},"WORK":{"label":"工作與時間","lead":"「我很忙」不是理由，是宣告。這一類要救的不是今天的行程，是她覺得自己排第幾順位。"},"TRIP":{"label":"出遊計畫","lead":"「你決定就好」是陷阱不是授權。她要的是你有在期待這趟旅行，不是你把行程表交出來。"},"FUTURE":{"label":"未來規劃","lead":"迴避不會讓問題消失，只會讓它變成別的問題。這一類的地雷全都是「以後再說」的各種變體。"}};
+const ENDINGS_TEXT=[{"key":"PERFECT","min":0,"max":7,"bed":true,"title":"求生欲天花板","verdict":"你今天的表現好到讓人懷疑你是不是有前科。","lastLine":"你今天怎麼這麼會講話？誰教你的，說。"},{"key":"SMOOTH","min":8,"max":18,"bed":true,"title":"嘴巴有裝濾網","verdict":"每一句雷都在出口前被你自己吞回去，辛苦了。","lastLine":"你今天講話有練過喔。"},{"key":"SAFE","min":19,"max":30,"bed":true,"title":"驚險拆彈成功","verdict":"紅線藍線你亂剪一通，房子居然沒炸。","lastLine":"剛剛那句我本來要翻臉，看在你後面補得快。"},{"key":"BARELY","min":31,"max":42,"bed":true,"title":"靠運氣活著","verdict":"你不是會講話，你是矇對。下次沒這麼好運。","lastLine":"你自己聽聽看你剛剛在講什麼。"},{"key":"PASS","min":43,"max":55,"bed":true,"title":"低空飛過","verdict":"機翼擦到山壁，起落架也掉了一個，但你還在飛。","lastLine":"算了，我今天沒力氣跟你吵。"},{"key":"FROST","min":56,"max":67,"bed":true,"title":"房間開始結霜","verdict":"對話還在，溫度沒了。對方開始用句號跟你講話。","lastLine":"嗯。"},{"key":"BLANKET","min":68,"max":78,"bed":false,"title":"棉被自己拿","verdict":"床還在，你那一側已經被劃出去了。","lastLine":"棉被在櫃子裡，自己拿，不要吵到我。"},{"key":"COUCH","min":79,"max":88,"bed":false,"title":"沙發 VIP 會員","verdict":"客廳的燈幫你留著，會員年費照收。","lastLine":"你今天睡外面，不要進來。"},{"key":"BALCONY","min":89,"max":99,"bed":false,"title":"今晚睡陽台","verdict":"連沙發都嫌你離臥室太近。","lastLine":"沙發也不用了，你去陽台，順便把衣服收一收。"},{"key":"DEAD","min":100,"max":100,"bed":false,"title":"門在你後面","verdict":"她沒有再說話。這一次不是在等你回，是不用你回了。","lastLine":"（她抱著枕頭走進房間，門在你後面關上）"}];
+</script>
+<script>
+(function(){
+  "use strict";
+
+  var ENDINGS = [
+    {key:"PERFECT",min:0,max:7,bed:true},
+    {key:"SMOOTH",min:8,max:18,bed:true},
+    {key:"SAFE",min:19,max:30,bed:true},
+    {key:"BARELY",min:31,max:42,bed:true},
+    {key:"PASS",min:43,max:55,bed:true},
+    {key:"FROST",min:56,max:67,bed:true},
+    {key:"BLANKET",min:68,max:78,bed:false},
+    {key:"COUCH",min:79,max:88,bed:false},
+    {key:"BALCONY",min:89,max:99,bed:false},
+    {key:"DEAD",min:100,max:100,bed:false}
+  ];
+
+  var TIER_LABEL = {
+    survive:"求生解答",
+    plain:"普通解答",
+    oblivious:"直男解答",
+    fake:"假體貼陷阱",
+    mine:"地雷"
+  };
+
+  var TIER_SHORT = {
+    survive:"最佳",
+    plain:"普通",
+    oblivious:"直男",
+    fake:"假體貼",
+    mine:"地雷"
+  };
+
+  var TIER_NOTE = {
+    survive:"先接住情緒再處理事情，怒氣往下掉。",
+    plain:"不算錯，但沒接到重點。有些題目裡這已經是最好的了。",
+    oblivious:"講的是道理，對方要的是理解。",
+    fake:"聽起來體貼，其實是說教或甩鍋。比直男解答更傷。",
+    mine:"當場出局，不用等答完。"
+  };
+
+  function buildLadder(){
+    var ladder = document.getElementById("ladder");
+    var totalSpan = 100;
+    ENDINGS.forEach(function(e){
+      var seg = document.createElement("div");
+      var span = (e.max - e.min + 1);
+      seg.className = "ladder-seg";
+      seg.style.flexGrow = span;
+      var hue = e.bed ? (150 - (e.min/55)*70) : (10);
+      var light = e.bed ? (70 - (e.min/55)*22) : (60 - ((e.min-68)/32)*22);
+      seg.style.background = "hsl(" + hue + "," + (e.bed?"38%":"62%") + "," + light + "%)";
+      seg.title = e.key + " " + e.min + "–" + e.max;
+      seg.textContent = span >= 8 ? e.key : "";
+      ladder.appendChild(seg);
+    });
+    var marker = document.getElementById("startMarker");
+    marker.style.left = (50/totalSpan*100) + "%";
+  }
+
+  function buildEndings(){
+    var grid = document.getElementById("endingsGrid");
+    grid.innerHTML = ENDINGS_TEXT.map(function(e){
+      var hue = e.bed ? (150 - (e.min/55)*70) : 10;
+      var light = e.bed ? (58 - (e.min/55)*14) : (52 - ((e.min-68)/32)*18);
+      var color = "hsl(" + hue + "," + (e.bed?"38%":"55%") + "," + light + "%)";
+      var range = e.min === e.max ? e.min : (e.min + "–" + e.max);
+      return '<div class="ending-card" style="--ending-color:' + color + '">' +
+        '<div class="erow"><span class="etitle">' + escapeHTML(e.title) + '</span><span class="erange">' + range + '</span></div>' +
+        '<div class="ebed">' + (e.bed ? "🛏️ 睡床上" : "🛋️ 睡外面") + '</div>' +
+        '<div class="everdict">' + escapeHTML(e.verdict) + '</div>' +
+        '<div class="eline">' + escapeHTML(e.lastLine) + '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function buildChips(){
+    var chips = document.getElementById("chips");
+    var all = document.createElement("div");
+    all.className = "chip active";
+    all.textContent = "全部 192";
+    all.dataset.cat = "";
+    chips.appendChild(all);
+    Object.keys(CATEGORIES).forEach(function(key){
+      var c = document.createElement("div");
+      c.className = "chip";
+      c.textContent = CATEGORIES[key].label;
+      c.dataset.cat = key;
+      chips.appendChild(c);
+    });
+    chips.addEventListener("click", function(e){
+      var chip = e.target.closest(".chip");
+      if(!chip) return;
+      chips.querySelectorAll(".chip").forEach(function(c){c.classList.remove("active");});
+      chip.classList.add("active");
+      state.cat = chip.dataset.cat;
+      render();
+    });
+  }
+
+  function deltaClass(v){
+    if(v>=100) return "hi";
+    if(v<0) return "neg";
+    return "";
+  }
+
+  function fmtDelta(v){
+    return (v>0?"+":"") + v;
+  }
+
+  function cardHTML(q){
+    var optsHTML = q.options.map(function(o){
+      var tierClass = "tier-" + o.tier;
+      var bestClass = o.best ? " best" : "";
+      return '<div class="opt ' + tierClass + bestClass + '" style="--tier-color:var(--' + o.tier + ');--note-color:var(--' + o.tier + ')">' +
+        '<div class="opt-text">' +
+          '<div class="line">' + (o.best ? "✅ " : (o.tier==="mine" ? "💣 " : "")) + escapeHTML(o.text) + '</div>' +
+          '<div class="resp">' + escapeHTML(o.response) + '</div>' +
+          '<div class="note">' + '<b>' + TIER_LABEL[o.tier] + '</b> · ' + TIER_NOTE[o.tier] + '</div>' +
+        '</div>' +
+        '<div class="opt-badges">' +
+          '<span class="tag ' + tierClass + '">' + TIER_SHORT[o.tier] + '</span>' +
+          '<span class="delta ' + deltaClass(o.angerChange) + '">' + fmtDelta(o.angerChange) + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    return '<article class="qcard" data-id="' + q.id + '">' +
+      '<div class="qmeta">' +
+        '<span class="catchip">' + escapeHTML(q.categoryLabel) + '</span>' +
+        '<span class="scene">' + escapeHTML(q.scene) + '</span>' +
+      '</div>' +
+      '<div><span class="bubble-in">' + escapeHTML(q.scenario) + '</span></div>' +
+      '<div class="silence-note"><b>沉默/已讀不回：</b>' + escapeHTML(q.silence) + '</div>' +
+      '<div class="opts">' + optsHTML + '</div>' +
+    '</article>';
+  }
+
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  var state = { cat:"", q:"" };
+
+  function matches(q, query){
+    if(!query) return true;
+    var hay = q.scenario + " " + q.scene + " " + q.silence + " " + q.categoryLabel + " " +
+      q.options.map(function(o){return o.text + " " + o.response;}).join(" ");
+    return hay.toLowerCase().indexOf(query) !== -1;
+  }
+
+  function render(){
+    var query = state.q.trim().toLowerCase();
+    var filtered = QUESTIONS.filter(function(q){
+      if(state.cat && q.category !== state.cat) return false;
+      return matches(q, query);
+    });
+    var list = document.getElementById("qlist");
+    var empty = document.getElementById("emptyState");
+    var countEl = document.getElementById("resultCount");
+    countEl.textContent = "顯示 " + filtered.length + " / " + QUESTIONS.length + " 題";
+    if(filtered.length === 0){
+      list.innerHTML = "";
+      empty.hidden = false;
+      return;
+    }
+    empty.hidden = true;
+    list.innerHTML = filtered.map(cardHTML).join("");
+  }
+
+  /* ==================== 實戰記錄模式 ==================== */
+
+  var ROUND_MAX = Object.keys(CATEGORIES).length; // 12
+  var ROUND_MIN = 8, ROUND_BASE = 10, FUME_ANGER = 80, CALM_ANGER = 40, INITIAL_ANGER = 50;
+  var LAST_ROUND_KEY = "sotc_guide_last_round_v1";
+
+  var questionsByCategory = {};
+  QUESTIONS.forEach(function(q){
+    (questionsByCategory[q.category] = questionsByCategory[q.category] || []).push(q);
+  });
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i = a.length - 1; i > 0; i -= 1){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function pickOne(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function drawRound(){
+    var picks = Object.keys(CATEGORIES).map(function(cat){
+      var q = pickOne(questionsByCategory[cat]);
+      return Object.assign({}, q, {options: shuffle(q.options)});
+    });
+    return shuffle(picks);
+  }
+
+  function clampAnger(v){
+    if(!isFinite(v)) return 50;
+    return Math.min(100, Math.max(0, Math.round(v)));
+  }
+
+  function roundIsOver(count, anger){
+    return count >= ROUND_MAX ||
+      (count >= ROUND_MIN && anger >= FUME_ANGER) ||
+      (count >= ROUND_BASE && anger > CALM_ANGER);
+  }
+
+  function getEnding(anger){
+    for(var i = ENDINGS_TEXT.length - 1; i >= 0; i -= 1){
+      if(anger >= ENDINGS_TEXT[i].min) return ENDINGS_TEXT[i];
+    }
+    return ENDINGS_TEXT[0];
+  }
+
+  function endingColor(e){
+    var hue = e.bed ? (150 - (e.min/55)*70) : 10;
+    var light = e.bed ? (58 - (e.min/55)*14) : (52 - ((e.min-68)/32)*18);
+    return "hsl(" + hue + "," + (e.bed?"38%":"55%") + "," + light + "%)";
+  }
+
+  var playState = null;
+
+  function saveLastRound(){
+    try{
+      localStorage.setItem(LAST_ROUND_KEY, JSON.stringify({
+        history: playState.history,
+        ending: playState.ending.key,
+        anger: playState.anger,
+        at: Date.now()
+      }));
+    }catch(e){}
+  }
+
+  function loadLastRound(){
+    try{
+      var raw = localStorage.getItem(LAST_ROUND_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+
+  function angerColor(v){
+    if(v >= 80) return "var(--mine)";
+    if(v >= 56) return "var(--oblivious)";
+    if(v >= 26) return "var(--fake)";
+    return "var(--survive)";
+  }
+
+  function renderAngerBar(anger){
+    return '<div class="angerbar-wrap">' +
+      '<span class="angerbar-label">怒氣值</span>' +
+      '<div class="angerbar"><div class="angerbar-fill" style="width:' + anger + '%;background:' + angerColor(anger) + '"></div></div>' +
+      '<span class="angerbar-val">' + anger + '</span>' +
+    '</div>';
+  }
+
+  function renderStartCard(){
+    var stage = document.getElementById("roundStage");
+    stage.innerHTML = '<div class="stage-card">' +
+      '<p>抽一局 8~12 題，跟正式站同一套規則：怒氣壓得住，對方就會一直問下去；地雷或怒氣爆表會提早結束。玩完會在下面留一份完整對話紀錄。</p>' +
+      '<button class="btn" id="startBtn">抽一局開始</button>' +
+    '</div>';
+    document.getElementById("startBtn").addEventListener("click", startRound);
+  }
+
+  function startRound(){
+    playState = {anger: INITIAL_ANGER, step: 0, order: drawRound(), history: [], over: false, ending: null};
+    document.getElementById("transcriptWrap").innerHTML = "";
+    renderCurrentQuestion();
+  }
+
+  function renderCurrentQuestion(){
+    var stage = document.getElementById("roundStage");
+    var q = playState.order[playState.step];
+    var optsHTML = q.options.map(function(o, idx){
+      return '<button class="live-opt" data-idx="' + idx + '">' + escapeHTML(o.text) + '</button>';
+    }).join("");
+    stage.innerHTML = renderAngerBar(playState.anger) +
+      '<div class="live-cat">' + escapeHTML(q.categoryLabel) + '</div>' +
+      '<div class="live-scene">' + escapeHTML(q.scene) + '</div>' +
+      '<div><span class="bubble-in">' + escapeHTML(q.scenario) + '</span></div>' +
+      '<div class="live-opts">' + optsHTML + '</div>';
+    Array.prototype.forEach.call(stage.querySelectorAll(".live-opt"), function(btn){
+      btn.addEventListener("click", function(){
+        chooseOption(q, q.options[parseInt(btn.dataset.idx, 10)]);
+      });
+    });
+  }
+
+  function chooseOption(q, opt){
+    var newAnger = clampAnger(playState.anger + opt.angerChange);
+    playState.history.push({
+      step: playState.step + 1,
+      categoryLabel: q.categoryLabel,
+      scene: q.scene,
+      scenario: q.scenario,
+      chosenId: opt.id,
+      chosenText: opt.text,
+      chosenResponse: opt.response,
+      tier: opt.tier,
+      angerChange: opt.angerChange,
+      angerAfter: newAnger,
+      options: q.options
+    });
+    playState.anger = newAnger;
+    playState.step += 1;
+    var dead = newAnger >= 100;
+    var over = dead || roundIsOver(playState.step, newAnger);
+    if(over){
+      playState.over = true;
+      playState.ending = getEnding(newAnger);
+      saveLastRound();
+      renderEndCard();
+      renderTranscript(playState.history, playState.ending, true);
+    } else {
+      renderCurrentQuestion();
+    }
+  }
+
+  function renderEndCard(){
+    var stage = document.getElementById("roundStage");
+    var e = playState.ending;
+    var range = e.min === e.max ? e.min : (e.min + "–" + e.max);
+    stage.innerHTML = renderAngerBar(playState.anger) +
+      '<div class="end-card" style="--ending-color:' + endingColor(e) + '">' +
+        '<div class="etitle">' + escapeHTML(e.title) + '</div>' +
+        '<div class="erange">怒氣 ' + playState.anger + '（' + range + ' 區間）· ' + (e.bed ? "🛏️ 睡床上" : "🛋️ 睡外面") + '</div>' +
+        '<div class="everdict">' + escapeHTML(e.verdict) + '</div>' +
+        '<div class="eline">' + escapeHTML(e.lastLine) + '</div>' +
+      '</div>' +
+      '<div class="btnrow"><button class="btn" id="restartBtn">再抽一局</button></div>';
+    document.getElementById("restartBtn").addEventListener("click", startRound);
+  }
+
+  function transcriptOptionsHTML(h){
+    if(!h.options || !h.options.length) return "";
+    var rowsHTML = h.options.map(function(o){
+      var tierClass = "tier-" + o.tier;
+      var isChosen = o.id === h.chosenId;
+      var classes = "opt " + tierClass + (o.best ? " best" : "") + (isChosen ? " chosen" : "");
+      var prefix = (o.best ? "✅ " : (o.tier==="mine" ? "💣 " : ""));
+      return '<div class="' + classes + '" style="--tier-color:var(--' + o.tier + ');--note-color:var(--' + o.tier + ')">' +
+        '<div class="opt-text">' +
+          '<div class="line">' + prefix + (isChosen ? '<span class="pickmark">👉 你選的 · </span>' : "") + escapeHTML(o.text) + '</div>' +
+          '<div class="resp">' + escapeHTML(o.response) + '</div>' +
+          '<div class="note"><b>' + TIER_LABEL[o.tier] + '</b> · ' + TIER_NOTE[o.tier] + '</div>' +
+        '</div>' +
+        '<div class="opt-badges">' +
+          '<span class="tag ' + tierClass + '">' + TIER_SHORT[o.tier] + '</span>' +
+          '<span class="delta ' + deltaClass(o.angerChange) + '">' + fmtDelta(o.angerChange) + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+    return '<div class="topts-title">本題所有選項</div><div class="opts">' + rowsHTML + '</div>';
+  }
+
+  function transcriptStepHTML(h){
+    var tierClass = "tier-" + h.tier;
+    return '<div class="tstep ' + tierClass + '">' +
+      '<div class="tmeta"><span>#' + h.step + ' · ' + escapeHTML(h.categoryLabel) + ' · ' + escapeHTML(h.scene) + '</span><span>怒氣 → ' + h.angerAfter + '</span></div>' +
+      '<div class="tscenario"><span class="bubble-in">' + escapeHTML(h.scenario) + '</span></div>' +
+      '<div class="tchosen"><div class="tchosen-inner" style="--note-color:var(--' + h.tier + ')">' +
+        '<div class="ttext">' + escapeHTML(h.chosenText) + '</div>' +
+        '<div class="tnote"><b>' + TIER_LABEL[h.tier] + '</b> · ' + TIER_NOTE[h.tier] + '（' + fmtDelta(h.angerChange) + '）</div>' +
+      '</div></div>' +
+      '<div class="tresp">' + escapeHTML(h.chosenResponse) + '</div>' +
+      transcriptOptionsHTML(h) +
+    '</div>';
+  }
+
+  function renderTranscript(history, ending, isCurrent){
+    var wrap = document.getElementById("transcriptWrap");
+    var heading = isCurrent
+      ? ('這一局的對話紀錄（' + history.length + ' 題 · 結局：' + escapeHTML(ending.title) + '）')
+      : ('上一局的對話紀錄（' + history.length + ' 題 · 結局：' + escapeHTML(ending.title) + '）');
+    wrap.innerHTML = '<div class="transcript-title"><span>' + heading + '</span></div>' +
+      '<div class="transcript">' + history.map(transcriptStepHTML).join("") + '</div>';
+  }
+
+  function initPlayView(){
+    var last = loadLastRound();
+    if(last && last.history && last.history.length){
+      var endingObj = ENDINGS_TEXT.filter(function(e){return e.key === last.ending;})[0] || getEnding(last.anger);
+      renderTranscript(last.history, endingObj, false);
+    }
+    renderStartCard();
+  }
+
+  function initTabs(){
+    var tabs = document.getElementById("viewTabs");
+    var lookupView = document.getElementById("lookupView");
+    var playView = document.getElementById("playView");
+    tabs.addEventListener("click", function(e){
+      var btn = e.target.closest(".tabbtn");
+      if(!btn) return;
+      tabs.querySelectorAll(".tabbtn").forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      var isPlay = btn.dataset.view === "play";
+      lookupView.hidden = isPlay;
+      playView.hidden = !isPlay;
+    });
+  }
+
+  function init(){
+    buildLadder();
+    buildEndings();
+    buildChips();
+    document.getElementById("totalBadge").textContent = QUESTIONS.length + " 題";
+    var input = document.getElementById("searchInput");
+    input.addEventListener("input", function(){
+      state.q = input.value;
+      render();
+    });
+    render();
+    initTabs();
+    initPlayView();
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
