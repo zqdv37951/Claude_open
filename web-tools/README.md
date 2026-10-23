@@ -10,6 +10,7 @@
 | [`dragon-english-anki.html`](dragon-english-anki.html) | 「ドラゴン・イングリッシュ基本英文100」的 Anki 式間隔複習卡片：100 句中／日／英對照，可選正面語言、Again／Hard／Good／Easy 評分與下次複習間隔預覽、每日新卡上限、復原、日文／英文朗讀音檔（見下方說明；中文沒有）、日文與英文句子下方預設收合的「文法・單字」說明（英文或日文與原書不同時，會列出原書寫法對照），另有「全部詞條」頁籤可搜尋、依狀態篩選、模糊遮蓋任一語言自我測驗。進度存在瀏覽器 localStorage。 |
 | [`sleep-on-the-couch-guide.html`](sleep-on-the-couch-guide.html) | 「今晚睡沙發？」(sleep-on-the-couch.lol) 女友版的求生欲攻略：192 題完整題庫（2026-10-23 從網站擷取），每題標出最佳回法、各選項的怒氣變化與地雷，可用對方那句話搜尋、依 12 個類別篩選；另有「實戰記錄」頁籤，用同一套規則玩一局並保留完整對話紀錄（存在瀏覽器 localStorage）。男友版、交友軟體版等其他版本不在這份裡。 |
 | [`sleep-on-the-couch-guide-artifact.html`](sleep-on-the-couch-guide-artifact.html) | 上一份同名攻略的原始 Claude Artifact 版本（內容未改，只是把 `data.js` 內嵌成單一檔案），題庫是較早的快照，與上一列最新版有約 124 處文字差異（怒氣數值相同）。留作對照。 |
+| [`sleep-on-the-couch-bf-guide.html`](sleep-on-the-couch-bf-guide.html) | 「他又睡著了？」(sleep-on-the-couch.lol/bf) 男友版的攻略：228 題完整題庫（2026-10-23 從網站擷取），玩家是女友、對面是敷衍的他，指標叫「無聊指數」（起始 40）。每題標出最佳接法、各選項的指數變化與句點（地雷），可用他那句話搜尋、依 12 個類別篩選，24 題特殊題有標記；另有「實戰記錄」頁籤，用同一套規則玩一局並保留完整對話紀錄（存在瀏覽器 localStorage）。 |
 
 ### `dragon-english-anki-audio/`
 
