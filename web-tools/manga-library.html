@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <meta name="referrer" content="no-referrer">
+<!-- 內容安全政策：這個頁面只需要連 Apps Script（含它轉址去的 googleusercontent），圖片只來自本機（blob／data）。就算哪天有人塞進惡意字串，也無法把資料傳到別的網站 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; connect-src https://script.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>漫畫圖書館</title>
@@ -12,7 +14,7 @@
 :root {
   --bg: #0d0f14; --surface: #151922; --surface2: #1d2230; --surface3: #262c3d;
   --text: #e9ecf4; --muted: #8d96ab; --line: rgba(255,255,255,.08);
-  --accent: #8aa4ff; --accent-ink: #0d0f14; --danger: #ff8a8a; --ok: #7be0a5;
+  --accent: #8aa4ff; --accent-ink: #0d0f14; --danger: #ff8a8a; --ok: #7be0a5; --red: #ff7a7a;
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
   --tile: 176px; --gutter: 22px;
   color-scheme: dark;
@@ -20,7 +22,7 @@
 html[data-theme="light"] {
   --bg: #f3f4f8; --surface: #ffffff; --surface2: #eceef4; --surface3: #e1e4ee;
   --text: #1a1d27; --muted: #667089; --line: rgba(20,24,40,.1);
-  --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b;
+  --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b; --red: #d12f2f;
   --shadow: 0 1px 2px rgba(20,24,40,.12), 0 10px 26px -14px rgba(20,24,40,.35);
   color-scheme: light;
 }
@@ -28,7 +30,7 @@ html[data-theme="light"] {
   html[data-theme="auto"] {
     --bg: #f3f4f8; --surface: #ffffff; --surface2: #eceef4; --surface3: #e1e4ee;
     --text: #1a1d27; --muted: #667089; --line: rgba(20,24,40,.1);
-    --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b;
+    --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b; --red: #d12f2f;
     --shadow: 0 1px 2px rgba(20,24,40,.12), 0 10px 26px -14px rgba(20,24,40,.35);
     color-scheme: light;
   }
@@ -71,6 +73,11 @@ select.btn { padding-right: 6px; }
 .chip:hover { color: var(--text); }
 .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 .chip .n { font-size: 11.5px; opacity: .75; font-variant-numeric: tabular-nums; }
+.chip .ck { font-size: 11px; color: var(--accent); margin-right: -2px; }
+.multi { flex: none; height: 30px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px dashed var(--line); color: var(--muted); cursor: pointer; user-select: none; white-space: nowrap; }
+.multi:hover { color: var(--text); }
+.multi:has(input:checked) { color: var(--text); border-style: solid; border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.multi input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .chips .sep { flex: none; width: 1px; background: var(--line); margin: 4px 2px; }
 
 .banner { margin: 12px var(--gutter) 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -90,6 +97,15 @@ select.btn { padding-right: 6px; }
 .tile .cv.in ~ .ph { opacity: 0; }
 .tile .shade { position: absolute; left: 0; right: 0; bottom: 0; padding: 44px 11px 11px; background: linear-gradient(to top, rgba(6,8,14,.92) 0%, rgba(6,8,14,.55) 55%, rgba(6,8,14,0) 100%); }
 .tile .t { font-weight: 650; font-size: 13.5px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.pg.red { color: var(--red); font-weight: 600; }
+.tile .m .pg.red { color: #ff8f8f; }
+.covtools { margin-top: 10px; }
+.covmsg { margin-top: 6px; font-size: 12.5px; color: var(--muted); min-height: 18px; word-break: break-word; }
+.covmsg.ok { color: var(--ok); } .covmsg.err { color: var(--danger); }
+.hero .poster.drop { outline: 2px dashed var(--accent); outline-offset: 3px; }
+.left { font-size: 12.5px; color: var(--muted); }
+.left.red { color: var(--red); }
+.left.stale { opacity: .8; font-style: italic; }
 .tile .m { font-size: 11.5px; opacity: 0; max-height: 0; margin-top: 0; transition: opacity .2s, max-height .25s, margin-top .25s; color: rgba(255,255,255,.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile:hover .m, .tile:focus-visible .m { opacity: 1; max-height: 40px; margin-top: 4px; }
 .tile .prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); border-radius: 0 3px 3px 0; }
@@ -210,6 +226,7 @@ a.btn { text-decoration: none; }
           <option value="recent">最近閱讀</option>
           <option value="name">書名</option>
           <option value="sites">網站數</option>
+          <option value="left">剩最多話沒看</option>
         </select>
         <button id="theme" class="btn" type="button" title="切換主題">🌓</button>
         <button id="refresh" class="btn" type="button" title="重新整理">⟳ <span id="refreshTxt">重新整理</span></button>
@@ -242,6 +259,7 @@ a.btn { text-decoration: none; }
     <label class="field"><span>密鑰（TOKEN）</span><input id="cTok" type="password" placeholder="密鑰" required></label>
     <div id="cMsg" class="msg" role="status"></div>
     <div class="btns">
+      <button id="cLogout" class="btn" type="button" hidden title="清掉這個瀏覽器裡的網址、密鑰、資料與封面">登出並清除本機資料</button>
       <button id="cCancel" class="btn" type="button" hidden>取消</button>
       <button id="cTest" class="btn" type="button">測試連線</button>
       <button class="btn primary" type="submit">儲存並載入</button>
@@ -260,8 +278,6 @@ const SITES = [{ id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\
   const S2T = (() => { const m = {}; for (let i = 0; i < S2T_FROM.length; i++) m[S2T_FROM[i]] = S2T_TO[i]; return m; })();
   const TAG_LABEL = { fav: '⭐ 收藏', want: '📌 想看', reading: '📖 在看', wait: '⏳ 等更新', pause: '⏸ 暫停', done: '✔ 讀完', drop: '✖ 棄坑' };
   const tagIcon = (k) => (TAG_LABEL[k] || '').split(' ')[0]; // 其他裝置用了這台不認得的標記時，不要當機
-  const pgTxt = (e) => (e.total ? ' · 第 ' + e.page + '/' + e.total + ' 頁' : '');
-  const lastTxt = (e) => (/^#\d+$/.test(e.chapter || '') && e.total ? '第 ' + e.page + '/' + e.total + ' 頁' : (e.chapter || '') + pgTxt(e));
   const norm = (s) => String(s || '').normalize('NFKC').toLowerCase()
     .replace(/\s*-\s*raw\s*$/i, '')
     .replace(/[^\p{L}\p{N}]/gu, '')
@@ -358,17 +374,23 @@ const SITES = [{ id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\
 const $ = (id) => document.getElementById(id);
 const LS = {
   get(k, d) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : d; } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 空間不足或被禁用：忽略 */ } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }, // 空間不足或被禁用時回傳 false
 };
 const CFG_KEY = 'lib:cfg', DATA_KEY = 'lib:data', UI_KEY = 'lib:ui';
 let cfg = LS.get(CFG_KEY, { url: '', token: '' });
-const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', status: '', site: '' }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', multi: false, statuses: [], sites: [], progress: [] }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+// 舊版只存單一狀態／網站（status、site 字串）：轉成新的清單
+if (!Array.isArray(ui.statuses)) ui.statuses = [];
+if (!Array.isArray(ui.sites)) ui.sites = [];
+if (!Array.isArray(ui.progress)) ui.progress = [];
+if (ui.status) { if (!ui.statuses.includes(ui.status)) ui.statuses.push(ui.status); delete ui.status; }
+if (ui.site) { if (!ui.sites.includes(ui.site)) ui.sites.push(ui.site); delete ui.site; }
 const saveUi = () => LS.set(UI_KEY, ui);
 let data = LS.get(DATA_KEY, null);        // { at, rows, groups }
 let groups = [];                          // 歸好的作品
-let query = '', shown = [], openKey = '';
+let query = '', shown = [], openKey = '', drawerOpener = null, drawerPushed = false;
 let lastError = '';
-let loading = false;
+let loading = false, noCache = false;
 
 /* ── 跟 Apps Script 講話 ── */
 async function api(body) {
@@ -395,6 +417,7 @@ function buildGroups(d) {
     const gk = (ov[e.key] && ov[e.key].g) || (al && al.g) || (nk ? 'n:' + nk : 'k:' + e.key);
     let g = gs.get(gk);
     if (!g) { g = { key: gk, entries: [], t: 0 }; gs.set(gk, g); }
+    try { const u = JSON.parse((ov['up:' + e.key] || {}).g || 'null'); if (u && (u.n || u.c)) e.upd = { n: Number(u.n) || 0, c: Number(u.c) || 0, t: Number((ov['up:' + e.key] || {}).t) || 0 }; } catch (err) { /* 壞掉的更新資訊：略過 */ }
     g.entries.push(e);
     g.t = Math.max(g.t, e.t);
   });
@@ -406,8 +429,31 @@ function buildGroups(d) {
     g.tag = (ov['tag:' + g.key] || {}).g || '';
     g.note = (ov['note:' + g.key] || {}).g || '';
     g.fams = [...new Set(g.entries.map((e) => e.fam))];
+    const pg = progressOf(g.entries[0]); // 作品的進度 = 最近讀的那一筆（和封面上顯示的一致）
+    g.pst = pg.text ? (pg.red ? 'unread' : 'latest') : ''; g.left = pg.red ? (pg.left || 0) : 0;
   });
   return list.sort((a, b) => b.t - a.t);
+}
+
+/* ── 進度顯示 ──
+ * 有章節編號的漫畫：顯示 (讀到第幾話/最新第幾話 話)，不顯示頁數；沒有章節（單行本）才顯示 (第幾頁/共幾頁 頁)。
+ * 還沒看完用紅字，已經看到最新就不用紅字；不知道最新到第幾話時只顯示章節名稱。單位（話／頁）一定標出來。 */
+const fmtN = (x) => String(Math.round(Number(x) * 100) / 100);
+function progressOf(e) {
+  if (e.fNum != null) { // 有章節編號
+    const latest = e.upd ? (e.upd.n || e.upd.c) : 0;
+    if (!latest) return { text: '', red: false, ratio: 0, unit: '話' };
+    return { text: '(' + fmtN(e.fNum) + '/' + fmtN(latest) + ' 話)', red: e.fNum < latest, ratio: Math.min(1, e.fNum / latest), unit: '話', left: Math.max(0, Math.round(latest - e.fNum)) };
+  }
+  if (e.total) return { text: '(' + e.page + '/' + e.total + ' 頁)', red: e.page < e.total, ratio: Math.min(1, e.page / e.total), unit: '頁' };
+  return { text: '', red: false, ratio: 0, unit: '' };
+}
+// 「章節名稱 (讀到/共 話)」：有進度文字就接在後面，沒看完是紅字
+function fillProgress(el, e) {
+  el.textContent = e.chapter || '';
+  const p = progressOf(e);
+  if (p.text) { const sp = document.createElement('span'); sp.className = 'pg' + (p.red ? ' red' : ''); sp.textContent = (e.chapter ? '　' : '') + p.text; sp.title = p.unit === '話' ? '話數：讀到第幾話／最新第幾話' : '頁數：第幾頁／共幾頁'; el.append(sp); }
+  return p;
 }
 
 /* ── 封面：存在 IndexedDB（原圖 blob），畫面用 object URL ── */
@@ -464,6 +510,52 @@ function coverOf(g) {
 }
 const stripLead = (t) => String(t || '').replace(/^(?:\s*(?:\[[^\]]*\]|\([^)]*\)|【[^】]*】|（[^）]*）))+\s*/, '') || String(t || '');
 const initial = (t) => Array.from(stripLead(t))[0] || '?';
+/* ── 自己上傳封面（存到你的 Drive；做法和油猴腳本書架裡的「自己上傳圖片」一樣）── */
+function sniffMime(u) {
+  if (u[0] === 0xFF && u[1] === 0xD8) return 'image/jpeg';
+  if (u[0] === 0x89 && u[1] === 0x50 && u[2] === 0x4E && u[3] === 0x47) return 'image/png';
+  if (u[0] === 0x47 && u[1] === 0x49 && u[2] === 0x46) return 'image/gif';
+  if (u[0] === 0x52 && u[1] === 0x49 && u[2] === 0x46 && u[3] === 0x46 && u[8] === 0x57 && u[9] === 0x45 && u[10] === 0x42 && u[11] === 0x50) return 'image/webp';
+  if (u[4] === 0x66 && u[5] === 0x74 && u[6] === 0x79 && u[7] === 0x70 && String.fromCharCode(u[8], u[9], u[10], u[11]) === 'avif') return 'image/avif';
+  return '';
+}
+const COV_MAX = 8 * 1024 * 1024;
+// 存之前先縮小：重新編成 WebP（品質 0.9、像素大小不變）；少於 15% 差別、動圖或不支援時維持原檔
+async function shrinkImage(u, m) {
+  try {
+    if (m === 'image/gif') return null;
+    if (m === 'image/webp' && String.fromCharCode.apply(null, u.subarray(12, 100)).includes('ANIM')) return null;
+    const bmp = await createImageBitmap(new Blob([u], { type: m }));
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    c.getContext('2d').drawImage(bmp, 0, 0); if (bmp.close) bmp.close();
+    const blob = await new Promise((resolve) => c.toBlob(resolve, 'image/webp', 0.9));
+    if (!blob || blob.type !== 'image/webp') return null;
+    const out = new Uint8Array(await blob.arrayBuffer());
+    return out.length < u.length * 0.85 ? out : null;
+  } catch (e) { return null; }
+}
+function b64FromBytes(u) { let t = ''; for (let i = 0; i < u.length; i += 0x8000) t += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(t); }
+// 這部的封面要存在哪個鍵：已經有自訂的就換它，其次是任何一筆有圖的，都沒有就用第一筆紀錄
+function coverKeyOf(g) {
+  let any = '';
+  for (const e of g.entries) { const h = covUrl.get(e.key); if (h && h.c) return e.key; if (h && !any) any = e.key; }
+  return any || g.entries[0].key;
+}
+async function uploadCover(g, file) {
+  if (!connected()) throw new Error('還沒有連線');
+  if (file.size > COV_MAX) throw new Error('圖片太大（上限 8 MB）');
+  const raw = new Uint8Array(await file.arrayBuffer());
+  const m = sniffMime(raw);
+  if (!m) throw new Error('不支援這種圖片（支援 JPG、PNG、GIF、WebP、AVIF）');
+  const sm = await shrinkImage(raw, m);
+  const bytes = sm || raw, mime = sm ? 'image/webp' : m, key = coverKeyOf(g), t = Date.now();
+  await api({ type: 'cover_put', key, mime, b64: b64FromBytes(bytes), t, custom: true }); // 雲端存成功才算數
+  const blob = new Blob([bytes], { type: mime });
+  await idbDo('readwrite', (st) => st.put({ k: key, blob, m: mime, c: true, t }));
+  const old = covUrl.get(key); if (old) URL.revokeObjectURL(old.url);
+  covUrl.set(key, { url: URL.createObjectURL(blob), c: true, t });
+  paintCover(key); renderStat();
+}
 const hue = (s) => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) % 360; return h; };
 function setPlaceholder(el, g) {
   const h = hue(g.title);
@@ -492,35 +584,60 @@ function fillCover(box, g) {
 const STATUS_ORDER = Object.keys(TAG_LABEL);
 function visibleGroups() {
   let list = filterGroups(groups, query, () => false);
-  if (ui.status === '__none') list = list.filter((g) => !g.tag);
-  else if (ui.status) list = list.filter((g) => g.tag === ui.status);
-  if (ui.site) list = list.filter((g) => g.fams.includes(ui.site));
+  // 同一組（狀態／網站）裡選了好幾個是「或」，兩組之間是「且」
+  if (ui.statuses.length) list = list.filter((g) => ui.statuses.some((k) => (k === '__none' ? !g.tag : g.tag === k)));
+  if (ui.sites.length) list = list.filter((g) => g.fams.some((f) => ui.sites.includes(f)));
+  if (ui.progress.length) list = list.filter((g) => ui.progress.includes(g.pst));
   if (ui.sort === 'name') list = list.slice().sort((a, b) => stripLead(a.title).localeCompare(stripLead(b.title), 'zh-Hant'));
+  else if (ui.sort === 'left') list = list.slice().sort((a, b) => (b.left - a.left) || (b.t - a.t));
   else if (ui.sort === 'sites') list = list.slice().sort((a, b) => (b.entries.length - a.entries.length) || (b.t - a.t));
   return list;
 }
+// 篩選晶片：預設單選（點一個就只留它，再點取消）；勾「多選」後可以同時選好幾個（同一組是「或」，狀態和網站兩組之間是「且」）
+function pickChip(list, k) {
+  const i = list.indexOf(k);
+  if (ui.multi) { if (i >= 0) list.splice(i, 1); else list.push(k); return; }
+  if (i >= 0 && list.length === 1) list.length = 0; // 單選：只剩它時，再點一次就取消
+  else { list.length = 0; list.push(k); }
+}
 function renderChips() {
   const box = $('chips');
+  // 重畫整列前先記住焦點在哪（鍵盤操作時，不然每按一次焦點就掉到頁面最上面）
+  const ae = document.activeElement;
+  let refocus = '';
+  if (ae && box.contains(ae)) refocus = ae.id === 'multi' ? '#multi' : ae.hasAttribute('data-site') ? '[data-site="' + ae.getAttribute('data-site') + '"]' : ae.hasAttribute('data-status') ? '[data-status="' + ae.getAttribute('data-status') + '"]' : ae.hasAttribute('data-progress') ? '[data-progress="' + ae.getAttribute('data-progress') + '"]' : '';
   box.textContent = '';
+  const lab = document.createElement('label'); lab.className = 'multi'; lab.title = '勾選後，可以同時選好幾個狀態或網站';
+  const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'multi'; cb.checked = !!ui.multi;
+  cb.addEventListener('change', () => { ui.multi = cb.checked; saveUi(); render(); });
+  lab.append(cb, '多選'); box.append(lab);
   const mk = (label, n, pressed, onClick, attrs) => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     Object.keys(attrs || {}).forEach((k) => b.setAttribute(k, attrs[k]));
+    if (ui.multi && pressed) { const c = document.createElement('span'); c.className = 'ck'; c.textContent = '✓'; b.append(c); }
     b.append(label);
     if (n != null) { const s = document.createElement('span'); s.className = 'n'; s.textContent = n; b.append(s); }
     b.addEventListener('click', onClick);
     box.append(b);
   };
   const cnt = (f) => groups.filter(f).length;
-  mk('全部', groups.length, !ui.status, () => { ui.status = ''; saveUi(); render(); }, { 'data-status': '' });
-  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.status === k) mk(TAG_LABEL[k], n, ui.status === k, () => { ui.status = ui.status === k ? '' : k; saveUi(); render(); }, { 'data-status': k }); });
+  mk('全部', groups.length, !ui.statuses.length && !ui.sites.length && !ui.progress.length, () => { ui.statuses = []; ui.sites = []; ui.progress = []; saveUi(); render(); }, { 'data-status': '' });
+  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.statuses.includes(k)) mk(TAG_LABEL[k], n, ui.statuses.includes(k), () => { pickChip(ui.statuses, k); saveUi(); render(); }, { 'data-status': k }); });
   const none = cnt((g) => !g.tag);
-  if (none && none !== groups.length) mk('沒標記', none, ui.status === '__none', () => { ui.status = ui.status === '__none' ? '' : '__none'; saveUi(); render(); }, { 'data-status': '__none' });
+  if (none && none !== groups.length) mk('沒標記', none, ui.statuses.includes('__none'), () => { pickChip(ui.statuses, '__none'); saveUi(); render(); }, { 'data-status': '__none' });
+  const nUn = cnt((g) => g.pst === 'unread'), nLa = cnt((g) => g.pst === 'latest');
+  if (nUn || nLa || ui.progress.length) {
+    const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
+    mk('📖 還沒看完', nUn, ui.progress.includes('unread'), () => { pickChip(ui.progress, 'unread'); saveUi(); render(); }, { 'data-progress': 'unread' });
+    mk('✅ 已看到最新', nLa, ui.progress.includes('latest'), () => { pickChip(ui.progress, 'latest'); saveUi(); render(); }, { 'data-progress': 'latest' });
+  }
   const fams = Object.keys(SITE_LABEL).filter((f) => groups.some((g) => g.fams.includes(f)));
   if (fams.length > 1) {
     const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
-    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.site === f, () => { ui.site = ui.site === f ? '' : f; saveUi(); render(); }, { 'data-site': f }));
+    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.sites.includes(f), () => { pickChip(ui.sites, f); saveUi(); render(); }, { 'data-site': f }));
   }
+  if (refocus) { const el = box.querySelector(refocus); if (el) el.focus({ preventScroll: true }); }
 }
 function renderStat() {
   const el = $('stat');
@@ -533,10 +650,10 @@ function renderStat() {
   if (covProg.total && covProg.done < covProg.total) parts.push('下載封面 ' + covProg.done + '/' + covProg.total + '…');
   if (covProg.err) parts.push('封面同步失敗：' + covProg.err);
   if (data.at) parts.push('資料更新於 ' + relTime(data.at));
+  if (noCache) parts.push('（瀏覽器空間不足，這次的資料沒有存成快取）');
   el.textContent = '';
   parts.forEach((t) => { const s = document.createElement('span'); s.textContent = t; el.append(s); });
 }
-function progressOf(g) { const e = g.entries[0]; return e && e.total ? Math.max(0, Math.min(1, e.page / e.total)) : 0; }
 function tile(g) {
   const b = document.createElement('button');
   b.type = 'button'; b.className = 'tile'; b.dataset.key = g.key; b.dataset.gk = g.key; b.dataset.covkey = '1'; b.dataset.covclass = 'cv';
@@ -546,11 +663,11 @@ function tile(g) {
   const e = g.entries[0];
   const shade = document.createElement('div'); shade.className = 'shade';
   const t = document.createElement('div'); t.className = 't'; t.textContent = g.title;
-  const m = document.createElement('div'); m.className = 'm'; m.textContent = lastTxt(e) + (e.t ? ' · ' + relTime(e.t) : '');
+  const m = document.createElement('div'); m.className = 'm'; const pr = fillProgress(m, e); if (e.t) m.append(' · ' + relTime(e.t));
   shade.append(t, m); b.append(shade);
   if (g.tag && TAG_LABEL[g.tag]) { const s = document.createElement('div'); s.className = 'st'; s.textContent = tagIcon(g.tag); s.title = TAG_LABEL[g.tag].replace(/^\S+\s/, ''); b.append(s); }
   if (g.fams.length > 1) { const s = document.createElement('div'); s.className = 'sc'; s.textContent = g.fams.length + ' 個網站'; b.append(s); }
-  const p = progressOf(g); if (p) { const pr = document.createElement('div'); pr.className = 'prog'; pr.style.width = Math.round(p * 100) + '%'; b.append(pr); }
+  if (pr.ratio) { const bar = document.createElement('div'); bar.className = 'prog'; bar.style.width = Math.round(pr.ratio * 100) + '%'; b.append(bar); }
   fillCover(b, g);
   b.addEventListener('click', () => openDrawer(g.key));
   return b;
@@ -564,7 +681,7 @@ function row(g) {
   const info = document.createElement('div'); info.className = 'info';
   const tt = document.createElement('div'); tt.className = 'tt'; tt.textContent = (g.tag && TAG_LABEL[g.tag] ? tagIcon(g.tag) + ' ' : '') + g.title;
   const e = g.entries[0];
-  const ss = document.createElement('div'); ss.className = 'ss'; ss.textContent = g.fams.map((f) => SITE_LABEL[f]).join('、') + '　' + lastTxt(e);
+  const ss = document.createElement('div'); ss.className = 'ss'; ss.textContent = g.fams.map((f) => SITE_LABEL[f]).join('、') + '　'; const ssp = document.createElement('span'); fillProgress(ssp, e); ss.append(ssp);
   info.append(tt, ss);
   const rt = document.createElement('div'); rt.className = 'rt'; rt.textContent = relTime(e.t);
   b.append(th, info, rt);
@@ -590,7 +707,7 @@ function render() {
     return;
   }
   if (!shown.length) { main.append(emptyBox(groups.length ? '🔎' : '📚', groups.length ? '找不到符合的作品' : '書架還是空的', groups.length ? '換個關鍵字，或清掉篩選。' : '用油猴腳本讀幾話漫畫，這裡就會出現。')); return; }
-  if (ui.view === 'wall' && !query.trim() && !ui.status && !ui.site && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
+  if (ui.view === 'wall' && !query.trim() && !ui.statuses.length && !ui.sites.length && !ui.progress.length && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
   const wrap = document.createElement('div'); wrap.className = ui.view === 'list' ? 'rows' : 'wall'; wrap.id = 'items';
   main.append(wrap);
   let n = 0;
@@ -614,9 +731,9 @@ function continueRow() {
     const th = document.createElement('div'); th.className = 'th'; th.dataset.covkey = '1'; th.dataset.gk = g.key; th.dataset.covclass = ''; th.textContent = initial(g.title); setPlaceholder(th, g); th.style.color = 'rgba(255,255,255,.45)'; fillCover(th, g);
     const info = document.createElement('div'); info.className = 'info';
     const tt = document.createElement('div'); tt.className = 'tt'; tt.textContent = g.title;
-    const ss = document.createElement('div'); ss.className = 'ss'; ss.textContent = lastTxt(e);
+    const ss = document.createElement('div'); ss.className = 'ss'; const cp = fillProgress(ss, e);
     info.append(tt, ss);
-    if (e.total) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * Math.max(0, Math.min(1, e.page / e.total))) + '%'; bar.append(i); info.append(bar); }
+    if (cp.ratio) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * cp.ratio) + '%'; bar.append(i); info.append(bar); }
     const when = document.createElement('div'); when.className = 'ss'; when.textContent = relTime(e.t); info.append(when);
     main.append(th, info); main.addEventListener('click', () => openDrawer(g.key));
     const go = document.createElement('a'); go.className = 'cc-go'; go.href = resumeUrl(e); go.target = '_blank'; go.rel = 'noopener noreferrer'; go.textContent = '▶'; go.title = '繼續閱讀'; go.setAttribute('aria-label', '繼續閱讀：' + g.title);
@@ -641,6 +758,7 @@ function resumeUrl(e) {
 function openDrawer(key) {
   const g = groups.find((x) => x.key === key);
   if (!g) return;
+  if (!openKey) { drawerOpener = document.activeElement; document.body.style.overflow = 'hidden'; try { history.pushState({ lib: 'drawer' }, ''); drawerPushed = true; } catch (e) { drawerPushed = false; } } // 手機的「返回」鍵會先關詳情，不會直接離開圖書館
   openKey = key;
   const body = $('dbody');
   body.textContent = '';
@@ -657,6 +775,23 @@ function openDrawer(key) {
   const first = g.entries[0];
   const go = document.createElement('a'); go.className = 'btn primary'; go.href = resumeUrl(first); go.target = '_blank'; go.rel = 'noopener noreferrer'; go.textContent = '▶ 繼續閱讀'; go.id = 'goResume';
   info.append(go);
+  const ct = document.createElement('div'); ct.className = 'covtools';
+  const cbtn = document.createElement('button'); cbtn.type = 'button'; cbtn.className = 'btn'; cbtn.id = 'covBtn'; cbtn.textContent = '🖼 上傳封面…'; cbtn.title = '選一張圖當這部的封面（存到你的 Drive，所有裝置共用）';
+  const cfile = document.createElement('input'); cfile.type = 'file'; cfile.accept = 'image/*'; cfile.id = 'covFile'; cfile.hidden = true;
+  const cmsg = document.createElement('div'); cmsg.className = 'covmsg'; cmsg.id = 'covMsg'; cmsg.setAttribute('role', 'status');
+  const doUpload = async (file) => {
+    if (!file) return;
+    cbtn.disabled = true; cmsg.className = 'covmsg'; cmsg.textContent = '上傳中…';
+    try { await uploadCover(g, file); cmsg.className = 'covmsg ok'; cmsg.textContent = '✓ 已更換封面（存到 Drive）'; }
+    catch (err) { cmsg.className = 'covmsg err'; cmsg.textContent = '✗ ' + (err && err.message ? err.message : err); }
+    finally { cbtn.disabled = false; }
+  };
+  cbtn.addEventListener('click', () => cfile.click());
+  cfile.addEventListener('change', () => { const f = cfile.files[0]; cfile.value = ''; doUpload(f); });
+  poster.addEventListener('dragover', (e) => { e.preventDefault(); poster.classList.add('drop'); });
+  poster.addEventListener('dragleave', () => poster.classList.remove('drop'));
+  poster.addEventListener('drop', (e) => { e.preventDefault(); poster.classList.remove('drop'); doUpload(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
+  ct.append(cbtn, cfile, cmsg); info.append(ct);
   hero.append(poster, info); body.append(hero);
   if (g.note) { const n = document.createElement('div'); n.className = 'note'; n.textContent = g.note; body.append(n); }
   const sec = document.createElement('div'); sec.className = 'sec'; sec.textContent = '各網站的進度'; body.append(sec);
@@ -666,9 +801,11 @@ function openDrawer(key) {
     const site = document.createElement('span'); site.className = 'site'; site.textContent = SITE_LABEL[e.fam] || e.host;
     const when = document.createElement('span'); when.className = 'when'; when.textContent = relTime(e.t);
     h.append(site, when);
-    const ch = document.createElement('div'); ch.className = 'ch'; ch.textContent = lastTxt(e);
+    const ch = document.createElement('div'); ch.className = 'ch'; const dp = fillProgress(ch, e);
     s.append(h, ch);
-    if (e.total) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * Math.max(0, Math.min(1, e.page / e.total))) + '%'; bar.append(i); s.append(bar); }
+    if (dp.ratio) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * dp.ratio) + '%'; bar.append(i); s.append(bar); }
+    if (dp.unit === '話' && e.upd) { const note = document.createElement('div'); note.className = 'left' + (dp.red ? ' red' : ''); note.textContent = dp.red ? '還有約 ' + dp.left + ' 話沒看' : '✓ 已經看到最新'; s.append(note);
+      if (e.upd.t) { const age = document.createElement('div'); const stale = Date.now() - e.upd.t > 14 * 24 * 3600 * 1000; age.className = 'left' + (stale ? ' stale' : ''); age.id = 'updAge'; age.textContent = '最新話數資料：' + relTime(e.upd.t) + '更新' + (stale ? '（可能已過時，用油猴腳本打開這部的詳情頁會更新）' : ''); s.append(age); } }
     const acts = document.createElement('div'); acts.className = 'acts';
     const a1 = document.createElement('a'); a1.className = 'btn'; a1.href = resumeUrl(e); a1.target = '_blank'; a1.rel = 'noopener noreferrer'; a1.textContent = '繼續閱讀'; acts.append(a1);
     if (e.fUrl && e.fUrl !== e.url && e.fChapter && e.fChapter !== e.chapter) {
@@ -680,9 +817,47 @@ function openDrawer(key) {
   body.scrollTop = 0;
   $('dclose').focus({ preventScroll: true });
 }
-function closeDrawer() {
+function hideDrawer() {
+  const was = openKey;
   openKey = '';
   $('drawer').classList.remove('on'); $('drawer').setAttribute('aria-hidden', 'true'); $('scrim').classList.remove('on');
+  document.body.style.overflow = '';
+  if (was) { // 焦點回到打開它的那張封面（鍵盤操作才不會迷路）
+    const back = drawerOpener && drawerOpener.isConnected ? drawerOpener : document.querySelector('[data-key="' + (window.CSS && CSS.escape ? CSS.escape(was) : was) + '"]');
+    if (back && back.focus) back.focus({ preventScroll: true });
+  }
+  drawerOpener = null;
+}
+function closeDrawer() {
+  if (drawerPushed) { drawerPushed = false; try { history.back(); return; } catch (e) { /* 退回直接關 */ } }
+  hideDrawer();
+}
+addEventListener('popstate', () => { drawerPushed = false; if (openKey) hideDrawer(); });
+// 方向鍵在封面牆／清單裡移動焦點：← → 前後一部、↑ ↓ 上下一排（清單就是上下一列）
+function gridMove(cur, key) {
+  if (!cur || !cur.closest || !cur.closest('#items')) return false;
+  const items = [...$('items').querySelectorAll('.tile, .row')];
+  const i = items.indexOf(cur);
+  if (i < 0) return false;
+  const wall = ui.view !== 'list', down = key === 'ArrowDown', up = key === 'ArrowUp';
+  let to = null;
+  if (key === 'ArrowRight' && wall) to = items[i + 1];
+  else if (key === 'ArrowLeft' && wall) to = items[i - 1];
+  else if (down || up) {
+    if (!wall) to = items[i + (down ? 1 : -1)];
+    else {
+      const r = cur.getBoundingClientRect(), dir = down ? 1 : -1;
+      let bestDy = Infinity, bestDx = Infinity;
+      items.forEach((o) => {
+        if (o === cur) return;
+        const q = o.getBoundingClientRect(), dy = (q.top - r.top) * dir, dx = Math.abs(q.left - r.left);
+        if (dy < 4) return; // 同一排或在反方向
+        if (dy < bestDy - 4 || (Math.abs(dy - bestDy) <= 4 && dx < bestDx)) { bestDy = Math.min(dy, bestDy); bestDx = dx; to = o; }
+      });
+    }
+  } else return false;
+  if (to) to.focus();
+  return true; // 到頭了也算處理過（不要讓頁面跟著捲）
 }
 function stepDrawer(d) {
   if (!openKey) return;
@@ -709,7 +884,7 @@ async function refresh() {
   try {
     const r = await api({ type: 'shelf' });
     data = { at: Date.now(), rows: r.rows || [], groups: r.groups || {} };
-    LS.set(DATA_KEY, data);
+    noCache = !LS.set(DATA_KEY, data);
     lastError = '';
     banner('');
     loading = false;
@@ -731,6 +906,8 @@ function openConnect(force) {
   $('cUrl').value = cfg.url || ''; $('cTok').value = cfg.token || '';
   $('cMsg').textContent = ''; $('cMsg').className = 'msg';
   $('cCancel').hidden = !!force && !connected();
+  $('cLogout').hidden = !connected();
+  $('cLogout').textContent = '登出並清除本機資料';
   $('connect').hidden = false;
   setTimeout(() => $('cUrl').focus(), 0);
 }
@@ -768,6 +945,16 @@ $('dprev').addEventListener('click', () => stepDrawer(-1));
 $('dnext').addEventListener('click', () => stepDrawer(1));
 $('cCancel').addEventListener('click', closeConnect);
 $('cTest').addEventListener('click', testConnect);
+// 登出：公用電腦用完時清掉網址、密鑰、快取的資料與封面（按兩次確認）
+let logoutArmed = false;
+$('cLogout').addEventListener('click', async () => {
+  if (!logoutArmed) { logoutArmed = true; $('cLogout').textContent = '確定登出？'; setTimeout(() => { logoutArmed = false; $('cLogout').textContent = '登出並清除本機資料'; }, 4000); return; }
+  try { const db = await idb(); if (db) db.close(); } catch (e) { /* ignore */ }
+  covUrl.forEach((h) => URL.revokeObjectURL(h.url));
+  [CFG_KEY, DATA_KEY, UI_KEY].forEach((k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } });
+  try { indexedDB.deleteDatabase('manga-library'); } catch (e) { /* ignore */ }
+  location.reload();
+});
 $('connectForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!(await testConnect())) return;
@@ -788,6 +975,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '/') { e.preventDefault(); $('q').focus(); }
   else if (openKey && e.key === 'ArrowLeft') stepDrawer(-1);
   else if (openKey && e.key === 'ArrowRight') stepDrawer(1);
+  else if (!openKey && $('connect').hidden && e.key.startsWith('Arrow') && gridMove(document.activeElement, e.key)) e.preventDefault();
 });
 // 抽屜打開時，Tab 不要跑到後面的頁面（簡單的焦點圈住）
 $('drawer').addEventListener('keydown', (e) => {
@@ -799,6 +987,7 @@ $('drawer').addEventListener('keydown', (e) => {
   else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 });
 addEventListener('online', () => { if (lastError) refresh(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && connected() && data && !loading && Date.now() - data.at > 10 * 60 * 1000) refresh(); }); // 放在背景很久再切回來：自動更新一次
 
 /* ── 啟動 ── */
 (async function start() {
