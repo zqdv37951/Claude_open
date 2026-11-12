@@ -74,14 +74,24 @@ select.btn { padding-right: 6px; }
 .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 .chip .n { font-size: 11.5px; opacity: .75; font-variant-numeric: tabular-nums; }
 .chip .ck { font-size: 11px; color: var(--accent); margin-right: -2px; }
-.multi { flex: none; height: 30px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px dashed var(--line); color: var(--muted); cursor: pointer; user-select: none; white-space: nowrap; }
-.multi:hover { color: var(--text); }
-.multi:has(input:checked) { color: var(--text); border-style: solid; border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
-.multi input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.savebtn { border-style: dashed; color: var(--accent); }
+.savebtn:hover { color: var(--text); border-color: var(--accent); }
+.grpform { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.grpform input { height: 30px; width: 200px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); background: var(--surface); color: var(--text); padding: 0 12px; font: inherit; font-size: 13px; }
+.chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.grperr { font-size: 12.5px; color: var(--danger); white-space: nowrap; }
+.chipx { flex: none; width: 28px; height: 28px; margin-left: -4px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+.chipx:hover, .chipx:focus-visible { background: var(--surface2); }
+.chipx.armed { width: auto; padding: 0 9px; border-radius: 999px; background: var(--danger); color: var(--accent-ink); border-color: var(--danger); }
 .chips .sep { flex: none; width: 1px; background: var(--line); margin: 4px 2px; }
 
 .banner { margin: 12px var(--gutter) 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .banner.info { background: var(--surface); border-color: var(--line); }
+.morewrap { position: relative; }
+.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; width: 280px; max-width: calc(100vw - 2 * var(--gutter)); padding: 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.menu .menuitem { width: 100%; height: 36px; border-radius: 8px; padding: 0 10px; display: flex; align-items: center; text-align: left; font-size: 14px; }
+.menu .menuitem:hover, .menu .menuitem:focus-visible { background: var(--surface2); }
+.menu .hint { padding: 4px 10px 6px; font-size: 12px; color: var(--muted); line-height: 1.5; }
 .banner .grow { flex: 1; min-width: 160px; }
 
 .stat { padding: 14px var(--gutter) 2px; color: var(--muted); font-size: 12.5px; display: flex; gap: 14px; flex-wrap: wrap; }
@@ -240,6 +250,13 @@ a.btn { text-decoration: none; }
         <button id="theme" class="btn" type="button" title="切換主題">🌓</button>
         <button id="refresh" class="btn" type="button" title="重新整理">⟳ <span id="refreshTxt">重新整理</span></button>
         <button id="settings" class="btn" type="button" title="連線設定">⚙</button>
+        <div class="morewrap">
+          <button id="more" class="btn" type="button" title="更多功能" aria-label="更多功能" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">⋯</button>
+          <div id="moreMenu" class="menu" role="menu" hidden>
+            <button id="nicoBtn" class="menuitem" type="button" role="menuitem">🔄 更新 NicoManga</button>
+            <div id="nicoHint" class="hint"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div id="chips" class="chips" role="group" aria-label="篩選"></div>
@@ -387,7 +404,7 @@ const LS = {
 };
 const CFG_KEY = 'lib:cfg', DATA_KEY = 'lib:data', UI_KEY = 'lib:ui';
 let cfg = LS.get(CFG_KEY, { url: '', token: '' });
-const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', multi: false, statuses: [], sites: [], progress: [] }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', statuses: [], sites: [], progress: [] }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
 // 舊版只存單一狀態／網站（status、site 字串）：轉成新的清單
 if (!Array.isArray(ui.statuses)) ui.statuses = [];
 if (!Array.isArray(ui.sites)) ui.sites = [];
@@ -398,6 +415,8 @@ const saveUi = () => LS.set(UI_KEY, ui);
 let data = LS.get(DATA_KEY, null);        // { at, rows, groups }
 let groups = [];                          // 歸好的作品
 let query = '', shown = [], openKey = '', drawerOpener = null, drawerPushed = false, editMode = false, editNote = null;
+let views = [];              // 我的群組（存好的篩選組合）
+let grpEdit = null, grpErr = '', grpFocus = false;   // 群組名稱編輯器：{ mode: 'new' | 'rename', id, name }
 let lastError = '';
 let loading = false, noCache = false;
 
@@ -594,59 +613,160 @@ const STATUS_ORDER = Object.keys(TAG_LABEL);
 function visibleGroups() {
   let list = filterGroups(groups, query, () => false);
   // 同一組（狀態／網站）裡選了好幾個是「或」，兩組之間是「且」
-  if (ui.statuses.length) list = list.filter((g) => ui.statuses.some((k) => (k === '__none' ? !g.tag : g.tag === k)));
-  if (ui.sites.length) list = list.filter((g) => g.fams.some((f) => ui.sites.includes(f)));
-  if (ui.progress.length) list = list.filter((g) => ui.progress.includes(g.pst));
+  if (ui.statuses.length || ui.sites.length || ui.progress.length) list = list.filter((g) => passSel(g, ui.statuses, ui.progress, ui.sites));
   if (ui.sort === 'name') list = list.slice().sort((a, b) => stripLead(a.title).localeCompare(stripLead(b.title), 'zh-Hant'));
   else if (ui.sort === 'left') list = list.slice().sort((a, b) => (b.left - a.left) || (b.t - a.t));
   else if (ui.sort === 'sites') list = list.slice().sort((a, b) => (b.entries.length - a.entries.length) || (b.t - a.t));
   return list;
 }
-// 篩選晶片：預設單選（點一個就只留它，再點取消）；勾「多選」後可以同時選好幾個（同一組是「或」，狀態和網站兩組之間是「且」）
+// 篩選晶片：每個都是開關（再點一次取消）。同一組（狀態／進度／網站）裡選好幾個是「或」，不同組之間是「且」
+const passSel = (g, st, pr, fa) => (!st.length || st.some((k) => (k === '__none' ? !g.tag : g.tag === k))) && (!pr.length || pr.includes(g.pst)) && (!fa.length || g.fams.some((f) => fa.includes(f)));
 function pickChip(list, k) {
   const i = list.indexOf(k);
-  if (ui.multi) { if (i >= 0) list.splice(i, 1); else list.push(k); return; }
-  if (i >= 0 && list.length === 1) list.length = 0; // 單選：只剩它時，再點一次就取消
-  else { list.length = 0; list.push(k); }
+  if (i >= 0) list.splice(i, 1); else list.push(k);
+}
+/* ── 我的群組（存好的篩選組合）──
+ * 存在試算表的「書架分組」分頁：view:<編號> = {"n":名稱,"s":[狀態],"p":[進度],"f":[網站]}。所以電腦、手機、不同瀏覽器連到同一份試算表，看到的是同一組群組。 */
+const strArr = (x) => (Array.isArray(x) ? x.filter((v) => typeof v === 'string') : []);
+const sameSet = (a, b) => a.length === b.length && a.every((v) => b.includes(v));
+const PROG_LABEL = { unread: '還沒看完', latest: '已看到最新' };
+function viewsOf(d) {
+  const out = [];
+  Object.keys((d && d.groups) || {}).forEach((k) => {
+    if (!k.startsWith('view:')) return;
+    try { const v = JSON.parse(d.groups[k].g); if (v && typeof v === 'object') out.push({ id: k.slice(5), name: String(v.n || '').slice(0, 30) || '（未命名）', s: strArr(v.s), p: strArr(v.p), f: strArr(v.f) }); } catch (e) { /* 壞掉的群組：略過 */ }
+  });
+  return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+const hasSel = () => ui.statuses.length > 0 || ui.progress.length > 0 || ui.sites.length > 0;
+const selMatches = (v) => sameSet(v.s, ui.statuses) && sameSet(v.p, ui.progress) && sameSet(v.f, ui.sites);
+function defaultViewName() { // 目前選的晶片，依畫面上的順序用「＋」串起來，例如「還沒看完＋NicoManga」
+  const st = ui.statuses.map((k) => (k === '__none' ? '沒標記' : String(TAG_LABEL[k] || k).replace(/^\S+\s/, '')));
+  return [...st, ...ui.progress.map((k) => PROG_LABEL[k] || k), ...ui.sites.map((f) => SITE_LABEL[f] || f)].join('＋');
+}
+const newViewId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 4);
+// 寫回試算表：只要求「這之後有變動的列」（幾乎沒有），不用把整份書架再抓一遍；回來的分組設定是最新的整份
+async function saveViews(patch) {
+  const t = Date.now(), gs = {};
+  Object.keys(patch).forEach((k) => { gs[k] = { g: patch[k], t }; });
+  const r = await api({ type: 'shelf', groups: gs, since: t });
+  data = Object.assign({}, data, { groups: r.groups || {} });
+  noCache = !LS.set(DATA_KEY, data);
+}
+async function commitGroup(rawName) {
+  const name = String(rawName || '').trim().slice(0, 30) || defaultViewName() || '我的群組';
+  let focusId = '';
+  try {
+    if (!connected()) throw new Error('還沒有連線');
+    if (grpEdit.mode === 'rename') {
+      const v = views.find((x) => x.id === grpEdit.id);
+      if (!v) throw new Error('找不到這個群組（可能已在別的裝置刪掉）');
+      await saveViews({ ['view:' + v.id]: JSON.stringify({ n: name, s: v.s, p: v.p, f: v.f }) });
+      focusId = v.id;
+    } else {
+      const dup = views.find(selMatches);
+      if (dup) throw new Error('已經有一樣的群組：' + dup.name);
+      focusId = newViewId();
+      await saveViews({ ['view:' + focusId]: JSON.stringify({ n: name, s: ui.statuses, p: ui.progress, f: ui.sites }) });
+    }
+    grpEdit = null; grpErr = '';
+    render();
+    const chipEl = $('chips').querySelector('[data-view="' + focusId + '"]'); // 焦點回到那個群組（鍵盤操作才不會迷路）
+    if (chipEl) chipEl.focus({ preventScroll: true });
+  } catch (err) { grpErr = err && err.message ? err.message : String(err); renderChips(); }
+}
+async function removeGroup(v) {
+  try { await saveViews({ ['view:' + v.id]: '' }); render(); }
+  catch (err) { banner('刪除群組失敗：' + (err && err.message ? err.message : err), 'err'); }
 }
 function renderChips() {
   const box = $('chips');
   // 重畫整列前先記住焦點在哪（鍵盤操作時，不然每按一次焦點就掉到頁面最上面）
   const ae = document.activeElement;
   let refocus = '';
-  if (ae && box.contains(ae)) refocus = ae.id === 'multi' ? '#multi' : ae.hasAttribute('data-site') ? '[data-site="' + ae.getAttribute('data-site') + '"]' : ae.hasAttribute('data-status') ? '[data-status="' + ae.getAttribute('data-status') + '"]' : ae.hasAttribute('data-progress') ? '[data-progress="' + ae.getAttribute('data-progress') + '"]' : '';
+  if (ae && box.contains(ae)) refocus = ae.id === 'grpSave' ? '#grpSave' : ae.hasAttribute('data-site') ? '[data-site="' + ae.getAttribute('data-site') + '"]' : ae.hasAttribute('data-status') ? '[data-status="' + ae.getAttribute('data-status') + '"]' : ae.hasAttribute('data-progress') ? '[data-progress="' + ae.getAttribute('data-progress') + '"]' : ae.hasAttribute('data-view') ? '[data-view="' + ae.getAttribute('data-view') + '"]' : '';
   box.textContent = '';
-  const lab = document.createElement('label'); lab.className = 'multi'; lab.title = '勾選後，可以同時選好幾個狀態或網站';
-  const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'multi'; cb.checked = !!ui.multi;
-  cb.addEventListener('change', () => { ui.multi = cb.checked; saveUi(); render(); });
-  lab.append(cb, '多選'); box.append(lab);
-  const mk = (label, n, pressed, onClick, attrs) => {
+  if (!hasSel() && grpEdit && grpEdit.mode === 'new') grpEdit = null; // 選的晶片都取消了：不用存了
+  // 最左邊：選了晶片才出現「＋存成群組」；按下去變成名稱輸入框（預設名稱可以改）
+  if (grpEdit) {
+    const f = document.createElement('form'); f.className = 'grpform'; f.setAttribute('role', 'group'); f.setAttribute('aria-label', grpEdit.mode === 'rename' ? '重新命名群組' : '存成群組');
+    const inp = document.createElement('input'); inp.type = 'text'; inp.id = 'grpName'; inp.maxLength = 30; inp.value = grpEdit.name; inp.setAttribute('aria-label', '群組名稱'); inp.autocomplete = 'off'; inp.spellcheck = false;
+    inp.addEventListener('input', () => { grpEdit.name = inp.value; });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); grpEdit = null; grpErr = ''; renderChips(); } });
+    const ok = document.createElement('button'); ok.type = 'submit'; ok.className = 'chip on'; ok.id = 'grpOk'; ok.textContent = '儲存';
+    const no = document.createElement('button'); no.type = 'button'; no.className = 'chip'; no.id = 'grpNo'; no.textContent = '取消';
+    no.addEventListener('click', () => { grpEdit = null; grpErr = ''; renderChips(); });
+    f.addEventListener('submit', async (e) => { e.preventDefault(); ok.disabled = true; await commitGroup(inp.value); });
+    f.append(inp, ok, no);
+    if (grpErr) { const er = document.createElement('span'); er.className = 'grperr'; er.setAttribute('role', 'alert'); er.textContent = grpErr; f.append(er); }
+    box.append(f);
+    if (grpFocus) { grpFocus = false; setTimeout(() => { inp.focus(); inp.select(); }, 0); }
+  } else if (hasSel() && !views.some(selMatches)) { // 選的條件已經存成群組了就不用再存
+    const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'chip savebtn'; sv.id = 'grpSave'; sv.textContent = '＋存成群組'; sv.title = '把目前選的篩選存成一個群組，之後一鍵套用（會存到試算表，所有裝置共用）';
+    sv.addEventListener('click', () => { grpEdit = { mode: 'new', id: '', name: defaultViewName() }; grpErr = ''; grpFocus = true; renderChips(); });
+    box.append(sv);
+  }
+  const mk = (label, n, pressed, onClick, attrs, check) => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     Object.keys(attrs || {}).forEach((k) => b.setAttribute(k, attrs[k]));
-    if (ui.multi && pressed) { const c = document.createElement('span'); c.className = 'ck'; c.textContent = '✓'; b.append(c); }
+    if (check && pressed) { const c = document.createElement('span'); c.className = 'ck'; c.textContent = '✓'; b.append(c); }
     b.append(label);
     if (n != null) { const s = document.createElement('span'); s.className = 'n'; s.textContent = n; b.append(s); }
     b.addEventListener('click', onClick);
     box.append(b);
+    return b;
   };
   const cnt = (f) => groups.filter(f).length;
-  mk('全部', groups.length, !ui.statuses.length && !ui.sites.length && !ui.progress.length, () => { ui.statuses = []; ui.sites = []; ui.progress = []; saveUi(); render(); }, { 'data-status': '' });
-  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.statuses.includes(k)) mk(TAG_LABEL[k], n, ui.statuses.includes(k), () => { pickChip(ui.statuses, k); saveUi(); render(); }, { 'data-status': k }); });
+  mk('全部', groups.length, !hasSel(), () => { ui.statuses = []; ui.sites = []; ui.progress = []; saveUi(); render(); }, { 'data-status': '' });
+  // 我的群組：存好的篩選組合，點一下套用（再點一次取消）；套用中的那個旁邊可以改名、刪除
+  if (views.length) {
+    const sep0 = document.createElement('i'); sep0.className = 'sep'; box.append(sep0);
+    views.forEach((v) => {
+      const on = selMatches(v);
+      mk('★ ' + v.name, cnt((g) => passSel(g, v.s, v.p, v.f)), on, () => {
+        if (on) { ui.statuses = []; ui.progress = []; ui.sites = []; } else { ui.statuses = v.s.slice(); ui.progress = v.p.slice(); ui.sites = v.f.slice(); }
+        saveUi(); render();
+      }, { 'data-view': v.id, title: '我的群組：' + defaultNameOf(v) });
+      if (on) {
+        const ed = document.createElement('button'); ed.type = 'button'; ed.className = 'chipx'; ed.setAttribute('data-vedit', v.id); ed.textContent = '✎'; ed.title = '重新命名'; ed.setAttribute('aria-label', '重新命名群組：' + v.name);
+        ed.addEventListener('click', () => { grpEdit = { mode: 'rename', id: v.id, name: v.name }; grpErr = ''; grpFocus = true; renderChips(); });
+        const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'chipx'; rm.setAttribute('data-vdel', v.id); rm.textContent = '🗑'; rm.title = '刪除這個群組（只刪群組，不會刪作品）'; rm.setAttribute('aria-label', '刪除群組：' + v.name);
+        armChip(rm, () => removeGroup(v));
+        box.append(ed, rm);
+      }
+    });
+  }
+  const sep1 = document.createElement('i'); sep1.className = 'sep'; box.append(sep1);
+  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.statuses.includes(k)) mk(TAG_LABEL[k], n, ui.statuses.includes(k), () => { pickChip(ui.statuses, k); saveUi(); render(); }, { 'data-status': k }, true); });
   const none = cnt((g) => !g.tag);
-  if (none && none !== groups.length) mk('沒標記', none, ui.statuses.includes('__none'), () => { pickChip(ui.statuses, '__none'); saveUi(); render(); }, { 'data-status': '__none' });
+  if (none && none !== groups.length) mk('沒標記', none, ui.statuses.includes('__none'), () => { pickChip(ui.statuses, '__none'); saveUi(); render(); }, { 'data-status': '__none' }, true);
   const nUn = cnt((g) => g.pst === 'unread'), nLa = cnt((g) => g.pst === 'latest');
   if (nUn || nLa || ui.progress.length) {
     const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
-    mk('📖 還沒看完', nUn, ui.progress.includes('unread'), () => { pickChip(ui.progress, 'unread'); saveUi(); render(); }, { 'data-progress': 'unread' });
-    mk('✅ 已看到最新', nLa, ui.progress.includes('latest'), () => { pickChip(ui.progress, 'latest'); saveUi(); render(); }, { 'data-progress': 'latest' });
+    mk('📖 還沒看完', nUn, ui.progress.includes('unread'), () => { pickChip(ui.progress, 'unread'); saveUi(); render(); }, { 'data-progress': 'unread' }, true);
+    mk('✅ 已看到最新', nLa, ui.progress.includes('latest'), () => { pickChip(ui.progress, 'latest'); saveUi(); render(); }, { 'data-progress': 'latest' }, true);
   }
   const fams = Object.keys(SITE_LABEL).filter((f) => groups.some((g) => g.fams.includes(f)));
   if (fams.length > 1) {
     const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
-    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.sites.includes(f), () => { pickChip(ui.sites, f); saveUi(); render(); }, { 'data-site': f }));
+    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.sites.includes(f), () => { pickChip(ui.sites, f); saveUi(); render(); }, { 'data-site': f }, true));
   }
   if (refocus) { const el = box.querySelector(refocus); if (el) el.focus({ preventScroll: true }); }
+}
+// 群組的完整說明（給滑鼠停在上面時看）：用到哪些篩選
+function defaultNameOf(v) {
+  const st = v.s.map((k) => (k === '__none' ? '沒標記' : String(TAG_LABEL[k] || k).replace(/^\S+\s/, '')));
+  return [...st, ...v.p.map((k) => PROG_LABEL[k] || k), ...v.f.map((f) => SITE_LABEL[f] || f)].join('＋') || '（沒有條件）';
+}
+// 小按鈕要按兩次才執行（第一次變成「確定？」，4 秒內再按一次）
+function armChip(btn, run) {
+  let armed = false, timer = 0;
+  const label = btn.textContent;
+  btn.addEventListener('click', async () => {
+    if (!armed) { armed = true; btn.textContent = '確定？'; btn.classList.add('armed'); timer = setTimeout(() => { armed = false; btn.textContent = label; btn.classList.remove('armed'); }, 4000); return; }
+    clearTimeout(timer); armed = false; btn.disabled = true; await run();
+  });
 }
 function renderStat() {
   const el = $('stat');
@@ -702,6 +822,7 @@ let moreIO = null;
 let groupsFor = null;
 function render() {
   if (groupsFor !== data) { groups = data ? buildGroups(data) : []; groupsFor = data; } // 作品只在資料變了才重建（搜尋、篩選、切換檢視不用重算）
+  views = viewsOf(data);
   shown = visibleGroups();
   renderChips();
   renderStat();
@@ -978,6 +1099,36 @@ async function refresh() {
   }
 }
 
+/* ── 更多功能：更新 NicoManga ──
+ * NicoManga 的章節清單要網頁自己渲染才讀得到，而圖書館（網頁）沒辦法開別的網站的分頁，所以請油猴腳本 v3.21.0 以上幫忙：
+ * 腳本在這個網頁上標 data-tmr-bridge="1"；按下按鈕就對 document 發 'tmr-nico-toggle'；腳本把狀態（JSON 文字）寫在 data-tmr-nico 並發 'tmr-nico-state'。 */
+const bridgeOn = () => document.documentElement.getAttribute('data-tmr-bridge') === '1';
+let nicoRunning = false;
+function setMenu(open) { $('moreMenu').hidden = !open; $('more').setAttribute('aria-expanded', open ? 'true' : 'false'); }
+function updateNicoItem() {
+  $('nicoBtn').textContent = nicoRunning ? '⏹ 停止更新 NicoManga' : '🔄 更新 NicoManga';
+  $('nicoHint').textContent = bridgeOn() ? '用油猴腳本在背景一部一部開 NicoManga 的頁面更新章節，完成後這裡會自動重新整理。更新中再按一次會停止。' : '需要油猴腳本 v3.21.0 以上，並讓它在這個網頁啟用。';
+}
+$('more').addEventListener('click', () => { const open = $('moreMenu').hidden; setMenu(open); if (open) { updateNicoItem(); $('nicoBtn').focus(); } });
+document.addEventListener('mousedown', (e) => { if (!$('moreMenu').hidden && !(e.target.closest && e.target.closest('.morewrap'))) setMenu(false); });
+$('nicoBtn').addEventListener('click', () => {
+  setMenu(false);
+  if (!bridgeOn()) { banner('找不到油猴腳本：請把腳本更新到 v3.21.0 以上，並確認它在這個網頁有啟用（Tampermonkey 的圖示上要看得到這支腳本）。', 'err'); return; }
+  document.dispatchEvent(new Event('tmr-nico-toggle'));
+});
+document.addEventListener('tmr-bridge-ready', updateNicoItem);
+document.addEventListener('tmr-nico-state', () => {
+  let r = null;
+  try { r = JSON.parse(document.documentElement.getAttribute('data-tmr-nico') || 'null'); } catch (e) { r = null; }
+  if (!r) return;
+  nicoRunning = r.s === 'run' || r.s === 'stopping';
+  updateNicoItem();
+  if (nicoRunning) { banner(String(r.text || ''), 'info'); return; }
+  if (r.s === 'error') { banner(String(r.text || '更新失敗'), 'err'); return; }
+  // 做完（或停止）：腳本已經把最新話數送到試算表，重新載入資料就看得到
+  refresh().then(() => { banner(String(r.text || ''), 'info'); setTimeout(() => { if (!lastError && !nicoRunning) banner(''); }, 12000); });
+});
+
 /* ── 連線設定視窗 ── */
 function openConnect(force) {
   $('cUrl').value = cfg.url || ''; $('cTok').value = cfg.token || '';
@@ -1044,6 +1195,7 @@ $('connectForm').addEventListener('submit', async (e) => {
 document.addEventListener('keydown', (e) => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '');
   if (e.key === 'Escape') {
+    if (!$('moreMenu').hidden) { setMenu(false); $('more').focus(); return; }
     if (!$('connect').hidden && connected()) { closeConnect(); return; }
     if (openKey) { closeDrawer(); return; }
     if (document.activeElement === $('q') && $('q').value) { $('q').value = ''; query = ''; render(); return; }
