@@ -151,7 +151,21 @@ select.btn { padding-right: 6px; }
 .left { font-size: 12.5px; color: var(--muted); }
 .left.red { color: var(--red); }
 .left.stale { opacity: .8; font-style: italic; }
-.tile .m { font-size: 11.5px; opacity: 0; max-height: 0; margin-top: 0; transition: opacity .2s, max-height .25s, margin-top .25s; color: rgba(255,255,255,.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile .au { font-size: 11.5px; color: rgba(255,255,255,.78); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.tile .au.fav, .row .rau.fav, .hero .au .favbtn.on { color: #ff9db5; }
+.row .rau { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .mau { display: none; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero .au { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 8px; align-items: center; }
+.hero .au .chipau { height: 28px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); padding: 0 10px; font-size: 13px; }
+.hero .au .chipau:hover { border-color: var(--accent); }
+.hero .au .favbtn { height: 28px; width: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 14px; display: inline-flex; align-items: center; justify-content: center; margin-left: -4px; }
+.hero .au .favbtn:hover { border-color: #ff9db5; }
+.arow { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.arow .aname { flex: 1 1 auto; text-align: left; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); word-break: break-word; }
+.arow .aname:hover { border-color: var(--accent); }
+.arow .acount { color: var(--muted); font-size: 12.5px; min-width: 3em; text-align: right; }
+.arow .favbtn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 16px; flex: none; }
+.arow .favbtn.on { color: #ff9db5; border-color: #ff9db5; } opacity: 0; max-height: 0; margin-top: 0; transition: opacity .2s, max-height .25s, margin-top .25s; color: rgba(255,255,255,.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile:hover .m, .tile:focus-visible .m { opacity: 1; max-height: 40px; margin-top: 4px; }
 .tile .prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); border-radius: 0 3px 3px 0; }
 .tile .st { position: absolute; top: 8px; left: 8px; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 9px; background: rgba(8,10,16,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: grid; place-items: center; font-size: 13px; }
@@ -162,7 +176,7 @@ select.btn { padding-right: 6px; }
 
 /* ── 清單 ── */
 .rows { display: flex; flex-direction: column; gap: 6px; padding: 14px var(--gutter) 90px; }
-.row { display: grid; grid-template-columns: 46px 1fr auto; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 8px 12px 8px 8px; border-radius: 12px; border: 1px solid transparent; background: var(--surface); transition: background .15s, border-color .15s; }
+.row { display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(0, 190px) auto; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 8px 12px 8px 8px; border-radius: 12px; border: 1px solid transparent; background: var(--surface); transition: background .15s, border-color .15s; }
 .row:hover, .row:focus-visible { background: var(--surface2); border-color: var(--line); }
 .row .th { width: 46px; height: 62px; border-radius: 8px; overflow: hidden; position: relative; background: var(--surface3); display: grid; place-items: center; font-weight: 800; color: var(--muted); }
 .row .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -248,7 +262,8 @@ a.btn { text-decoration: none; }
   .dhead { touch-action: none; padding-top: 6px; } /* 往下滑關閉：這一條不要被瀏覽器當成捲動 */
   .hero { grid-template-columns: 110px 1fr; gap: 14px; }
   .row { grid-template-columns: 46px 1fr; }
-  .row .rt { display: none; }
+  .row .rt, .row .rau { display: none; }
+  .row .mau { display: block; }
 }
 </style>
 </head>
@@ -260,7 +275,7 @@ a.btn { text-decoration: none; }
       <div class="search">
         <span class="ico" aria-hidden="true">🔍</span>
         <label class="sr" for="q">搜尋</label>
-        <input id="q" type="search" placeholder="搜尋書名、作者…　例：tag:在看 site:紳士" autocomplete="off" spellcheck="false">
+        <input id="q" type="search" placeholder="搜尋書名、作者…　例：tag:在看 site:紳士 is:fav" autocomplete="off" spellcheck="false">
         <kbd>/</kbd>
       </div>
       <div class="tools">
@@ -275,6 +290,7 @@ a.btn { text-decoration: none; }
           <option value="name">書名</option>
           <option value="sites">網站數</option>
           <option value="left">剩最多話沒看</option>
+          <option value="fav">喜歡的作者優先</option>
         </select>
         <button id="theme" class="btn" type="button" title="切換主題">🌓</button>
         <button id="refresh" class="btn" type="button" title="重新整理">⟳ <span id="refreshTxt">重新整理</span></button>
@@ -283,6 +299,7 @@ a.btn { text-decoration: none; }
           <button id="more" class="btn" type="button" title="更多功能" aria-label="更多功能" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">⋯</button>
           <div id="moreMenu" class="menu" role="menu" hidden>
             <button id="bmBtn" class="menuitem" type="button" role="menuitem">🔖 書籤檢視器</button>
+            <button id="auBtn" class="menuitem" type="button" role="menuitem">✍ 作者清單</button>
             <button id="allBtn" class="menuitem" type="button" role="menuitem">🔄 檢查全部網站更新</button>
             <button id="nicoBtn" class="menuitem" type="button" role="menuitem">🔄 只更新 NicoManga</button>
             <div id="nicoHint" class="hint"></div>
@@ -334,6 +351,16 @@ a.btn { text-decoration: none; }
     <div id="pickConfirm" class="pickconfirm" role="status" hidden></div>
     <div id="pickMsg" class="msg" role="status"></div>
     <div class="btns"><button id="pickCancel" class="btn" type="button">取消</button><button id="pickOk" class="btn primary" type="button" hidden>確定</button></div>
+  </div>
+</div>
+<div id="au" class="modal" hidden>
+  <div class="card pickcard" role="dialog" aria-modal="true" aria-labelledby="auTitle">
+    <h2 id="auTitle">✍ 作者清單</h2>
+    <p id="auDesc"></p>
+    <input id="auQ" class="pickq" type="search" placeholder="搜尋作者…" autocomplete="off" spellcheck="false" aria-label="搜尋作者">
+    <div id="auList" class="picklist"></div>
+    <div id="auMsg" class="msg" role="status"></div>
+    <div class="btns"><button id="auClose" class="btn" type="button">關閉</button></div>
   </div>
 </div>
 <div id="bm" class="modal" hidden>
@@ -579,6 +606,43 @@ const SITES = [{ id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\
     }));
     return manual ? out : setPatch(r.entries, '-', 'x:', t);
   }
+  /* 作者：一部作品的作者欄可能有好幾位（用「、」「,」「/」「&」分隔）。比對用書名同一套 norm（簡繁、大小寫、符號都不計）。
+   * 手動修正存在分組設定的 author:<作品鍵>（值是作者名，空＝回到自動抓到的）；喜歡的作者存在 favauthor:<作者鍵>（值是顯示用的名字，空＝不喜歡）。 */
+  const AUTHOR_SEP = /[、,，;；/／＆&]+/;
+  function authorsOf(str) {
+    const out = [], seen = new Set();
+    String(str || '').split(AUTHOR_SEP).forEach((x) => { const name = x.trim(), key = norm(name); if (name && key && !seen.has(key)) { seen.add(key); out.push({ name, key }); } });
+    return out;
+  }
+  // 喜歡的作者：{ 作者鍵 → 顯示名 }
+  function favMapOf(ov) {
+    const fav = new Map();
+    Object.keys(ov).forEach((k) => { if (k.startsWith('favauthor:') && ov[k].g) fav.set(k.slice(10), ov[k].g); });
+    return fav;
+  }
+  // 套用到每一部：g.author（手動修正優先）、g.autoAuthor（自動抓到的）、g.authors（拆開的作者）、g.favAuthor（有沒有喜歡的作者）
+  function applyAuthors(list, ov) {
+    const fav = favMapOf(ov);
+    list.forEach((g) => {
+      const o = ov['author:' + g.key];
+      g.autoAuthor = g.author || '';
+      g.authorManual = !!(o && o.g);
+      if (g.authorManual) g.author = o.g;
+      g.authors = authorsOf(g.author);
+      g.favAuthor = g.authors.some((a) => fav.has(a.key));
+    });
+    return fav;
+  }
+  // 全部作者的統計：[{ key, name, count, fav }]（喜歡的排前面，再依作品數、名字）
+  function authorStats(list, fav) {
+    const m = new Map();
+    list.forEach((g) => g.authors.forEach((a) => { const x = m.get(a.key) || { key: a.key, name: a.name, count: 0, fav: fav.has(a.key) }; x.count++; m.set(a.key, x); }));
+    fav.forEach((name, key) => { if (!m.has(key)) m.set(key, { key, name, count: 0, fav: true }); }); // 喜歡的作者目前沒有作品也留著（才能取消）
+    return [...m.values()].sort((a, b) => (b.fav - a.fav) || (b.count - a.count) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  }
+  // 修正作者／喜歡的作者「要寫哪些設定」（和合併、系列一樣：只算不寫，書架和圖書館共用）
+  const authorPatch = (g, name, t) => ({ ['author:' + g.key]: { g: String(name || '').trim().slice(0, 100), t } });
+  const favAuthorPatch = (author, on, t) => ({ ['favauthor:' + author.key]: { g: on ? author.name : '', t } });
   const SQ_OPS = { tag: 'tag', status: 'tag', 狀態: 'tag', 状态: 'tag', 標記: 'tag', 标记: 'tag', site: 'site', 網站: 'site', 网站: 'site', author: 'author', 作者: 'author', note: 'note', 備註: 'note', 备注: 'note', is: 'is' };
   function parseShelfQuery(raw) {
     const ops = [], free = [];
@@ -603,7 +667,7 @@ const SITES = [{ id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\
         if (op === 'site') return g.entries.some((e) => e.fam === v || (SITE_LABEL[e.fam] || '').toLowerCase().includes(v) || String(e.host || '').toLowerCase().includes(v));
         if (op === 'author') return norm(g.author).includes(norm(val));
         if (op === 'note') return norm(g.note).includes(norm(val));
-        if (op === 'is') return /^(unread|未讀|未读)$/.test(v) ? gUnread(g) > 0 : false;
+        if (op === 'is') { if (/^(unread|未讀|未读)$/.test(v)) return gUnread(g) > 0; if (/^(fav|favorite|喜歡|喜欢|喜歡作者|喜欢作者)$/.test(v)) return !!g.favAuthor; return false; }
         return false;
       });
     });
@@ -618,7 +682,7 @@ const LS = {
 };
 const CFG_KEY = 'lib:cfg', DATA_KEY = 'lib:data', UI_KEY = 'lib:ui';
 let cfg = LS.get(CFG_KEY, { url: '', token: '' });
-const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', statuses: [], sites: [], progress: [] }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', statuses: [], sites: [], progress: [], favAuthor: false, author: null }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
 // 舊版只存單一狀態／網站（status、site 字串）：轉成新的清單
 if (!Array.isArray(ui.statuses)) ui.statuses = [];
 if (!Array.isArray(ui.sites)) ui.sites = [];
@@ -676,6 +740,7 @@ function buildGroups(d) {
     const pg = progressOf(g.entries[0]); // 作品的進度 = 最近讀的那一筆（和封面上顯示的一致）
     g.pst = pg.text && !pg.unknown ? (pg.red ? 'unread' : 'latest') : ''; g.left = pg.red ? (pg.left || 0) : 0;
   });
+  applyAuthors(list, ov); // 手動修正的作者優先；拆成每位作者、標出喜歡的作者（書架用同一份程式）
   linkSeries(list, ov); // 同系列的作品互相連起來（g.related）；和書架同一套判斷
   return list.sort((a, b) => b.t - a.t);
 }
@@ -830,14 +895,16 @@ const STATUS_ORDER = Object.keys(TAG_LABEL);
 function visibleGroups() {
   let list = filterGroups(groups, query, () => false);
   // 同一組（狀態／網站）裡選了好幾個是「或」，兩組之間是「且」
-  if (ui.statuses.length || ui.sites.length || ui.progress.length) list = list.filter((g) => passSel(g, ui.statuses, ui.progress, ui.sites));
+  if (ui.statuses.length || ui.sites.length || ui.progress.length || ui.favAuthor) list = list.filter((g) => passSel(g, ui.statuses, ui.progress, ui.sites, ui.favAuthor));
+  if (ui.author) list = list.filter((g) => g.authors.some((a) => a.key === ui.author.key));
   if (ui.sort === 'name') list = list.slice().sort((a, b) => stripLead(a.title).localeCompare(stripLead(b.title), 'zh-Hant'));
   else if (ui.sort === 'left') list = list.slice().sort((a, b) => (b.left - a.left) || (b.t - a.t));
+  else if (ui.sort === 'fav') list = list.slice().sort((a, b) => (b.favAuthor - a.favAuthor) || (b.t - a.t));
   else if (ui.sort === 'sites') list = list.slice().sort((a, b) => (b.entries.length - a.entries.length) || (b.t - a.t));
   return list;
 }
 // 篩選晶片：每個都是開關（再點一次取消）。同一組（狀態／進度／網站）裡選好幾個是「或」，不同組之間是「且」
-const passSel = (g, st, pr, fa) => (!st.length || st.some((k) => (k === '__none' ? !g.tag : g.tag === k))) && (!pr.length || pr.includes(g.pst)) && (!fa.length || g.fams.some((f) => fa.includes(f)));
+const passSel = (g, st, pr, fa, fv) => (!st.length || st.some((k) => (k === '__none' ? !g.tag : g.tag === k))) && (!pr.length || pr.includes(g.pst)) && (!fa.length || g.fams.some((f) => fa.includes(f))) && (!fv || g.favAuthor);
 function pickChip(list, k) {
   const i = list.indexOf(k);
   if (i >= 0) list.splice(i, 1); else list.push(k);
@@ -851,15 +918,15 @@ function viewsOf(d) {
   const out = [];
   Object.keys((d && d.groups) || {}).forEach((k) => {
     if (!k.startsWith('view:')) return;
-    try { const v = JSON.parse(d.groups[k].g); if (v && typeof v === 'object') out.push({ id: k.slice(5), name: String(v.n || '').slice(0, 30) || '（未命名）', s: strArr(v.s), p: strArr(v.p), f: strArr(v.f) }); } catch (e) { /* 壞掉的群組：略過 */ }
+    try { const v = JSON.parse(d.groups[k].g); if (v && typeof v === 'object') out.push({ id: k.slice(5), name: String(v.n || '').slice(0, 30) || '（未命名）', s: strArr(v.s), p: strArr(v.p), f: strArr(v.f), a: !!v.a }); } catch (e) { /* 壞掉的群組：略過 */ }
   });
   return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
-const hasSel = () => ui.statuses.length > 0 || ui.progress.length > 0 || ui.sites.length > 0;
-const selMatches = (v) => sameSet(v.s, ui.statuses) && sameSet(v.p, ui.progress) && sameSet(v.f, ui.sites);
+const hasSel = () => ui.statuses.length > 0 || ui.progress.length > 0 || ui.sites.length > 0 || ui.favAuthor;
+const selMatches = (v) => sameSet(v.s, ui.statuses) && sameSet(v.p, ui.progress) && sameSet(v.f, ui.sites) && !!v.a === !!ui.favAuthor;
 function defaultViewName() { // 目前選的晶片，依畫面上的順序用「＋」串起來，例如「還沒看完＋NicoManga」
   const st = ui.statuses.map((k) => (k === '__none' ? '沒標記' : String(TAG_LABEL[k] || k).replace(/^\S+\s/, '')));
-  return [...st, ...ui.progress.map((k) => PROG_LABEL[k] || k), ...ui.sites.map((f) => SITE_LABEL[f] || f)].join('＋');
+  return [...st, ...ui.progress.map((k) => PROG_LABEL[k] || k), ...(ui.favAuthor ? ['喜歡的作者'] : []), ...ui.sites.map((f) => SITE_LABEL[f] || f)].join('＋');
 }
 const newViewId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 4);
 // 寫回試算表：只要求「這之後有變動的列」（幾乎沒有），不用把整份書架再抓一遍；回來的分組設定是最新的整份
@@ -882,13 +949,13 @@ async function commitGroup(rawName) {
     if (grpEdit.mode === 'rename') {
       const v = views.find((x) => x.id === grpEdit.id);
       if (!v) throw new Error('找不到這個群組（可能已在別的裝置刪掉）');
-      await saveViews({ ['view:' + v.id]: JSON.stringify({ n: name, s: v.s, p: v.p, f: v.f }) });
+      await saveViews({ ['view:' + v.id]: JSON.stringify(Object.assign({ n: name, s: v.s, p: v.p, f: v.f }, v.a ? { a: 1 } : {})) });
       focusId = v.id;
     } else {
       const dup = views.find(selMatches);
       if (dup) throw new Error('已經有一樣的群組：' + dup.name);
       focusId = newViewId();
-      await saveViews({ ['view:' + focusId]: JSON.stringify({ n: name, s: ui.statuses, p: ui.progress, f: ui.sites }) });
+      await saveViews({ ['view:' + focusId]: JSON.stringify(Object.assign({ n: name, s: ui.statuses, p: ui.progress, f: ui.sites }, ui.favAuthor ? { a: 1 } : {})) });
     }
     grpEdit = null; grpErr = '';
     render();
@@ -905,7 +972,7 @@ function renderChips() {
   // 重畫整列前先記住焦點在哪（鍵盤操作時，不然每按一次焦點就掉到頁面最上面）
   const ae = document.activeElement;
   let refocus = '';
-  if (ae && box.contains(ae)) refocus = ae.id === 'grpSave' ? '#grpSave' : ae.hasAttribute('data-site') ? '[data-site="' + ae.getAttribute('data-site') + '"]' : ae.hasAttribute('data-status') ? '[data-status="' + ae.getAttribute('data-status') + '"]' : ae.hasAttribute('data-progress') ? '[data-progress="' + ae.getAttribute('data-progress') + '"]' : ae.hasAttribute('data-view') ? '[data-view="' + ae.getAttribute('data-view') + '"]' : '';
+  if (ae && box.contains(ae)) refocus = ae.id === 'grpSave' ? '#grpSave' : ae.hasAttribute('data-site') ? '[data-site="' + ae.getAttribute('data-site') + '"]' : ae.hasAttribute('data-status') ? '[data-status="' + ae.getAttribute('data-status') + '"]' : ae.hasAttribute('data-progress') ? '[data-progress="' + ae.getAttribute('data-progress') + '"]' : ae.hasAttribute('data-view') ? '[data-view="' + ae.getAttribute('data-view') + '"]' : ae.hasAttribute('data-fav') ? '.chip[data-fav]' : '';
   box.textContent = '';
   if (!hasSel() && grpEdit && grpEdit.mode === 'new') grpEdit = null; // 選的晶片都取消了：不用存了
   // 最左邊：選了晶片才出現「＋存成群組」；按下去變成名稱輸入框（預設名稱可以改）
@@ -939,14 +1006,15 @@ function renderChips() {
     return b;
   };
   const cnt = (f) => groups.filter(f).length;
-  mk('全部', groups.length, !hasSel(), () => { ui.statuses = []; ui.sites = []; ui.progress = []; saveUi(); render(); }, { 'data-status': '' });
+  mk('全部', groups.length, !hasSel() && !ui.author, () => { ui.statuses = []; ui.sites = []; ui.progress = []; ui.favAuthor = false; ui.author = null; saveUi(); render(); }, { 'data-status': '' });
+  if (ui.author) mk('✍ ' + ui.author.name, cnt((g) => g.authors.some((a) => a.key === ui.author.key)), true, () => { ui.author = null; saveUi(); render(); }, { 'data-author': ui.author.key, title: '只看這位作者；再點一次取消' }, true);
   // 我的群組：存好的篩選組合，點一下套用（再點一次取消）；套用中的那個旁邊可以改名、刪除
   if (views.length) {
     const sep0 = document.createElement('i'); sep0.className = 'sep'; box.append(sep0);
     views.forEach((v) => {
       const on = selMatches(v);
-      mk('★ ' + v.name, cnt((g) => passSel(g, v.s, v.p, v.f)), on, () => {
-        if (on) { ui.statuses = []; ui.progress = []; ui.sites = []; } else { ui.statuses = v.s.slice(); ui.progress = v.p.slice(); ui.sites = v.f.slice(); }
+      mk('★ ' + v.name, cnt((g) => passSel(g, v.s, v.p, v.f, v.a)), on, () => {
+        if (on) { ui.statuses = []; ui.progress = []; ui.sites = []; ui.favAuthor = false; } else { ui.statuses = v.s.slice(); ui.progress = v.p.slice(); ui.sites = v.f.slice(); ui.favAuthor = !!v.a; }
         saveUi(); render();
       }, { 'data-view': v.id, title: '我的群組：' + defaultNameOf(v) });
       if (on) {
@@ -968,6 +1036,11 @@ function renderChips() {
     mk('📖 還沒看完', nUn, ui.progress.includes('unread'), () => { pickChip(ui.progress, 'unread'); saveUi(); render(); }, { 'data-progress': 'unread' }, true);
     mk('✅ 已看到最新', nLa, ui.progress.includes('latest'), () => { pickChip(ui.progress, 'latest'); saveUi(); render(); }, { 'data-progress': 'latest' }, true);
   }
+  const nFav = cnt((g) => g.favAuthor);
+  if (nFav || ui.favAuthor) {
+    const sepF = document.createElement('i'); sepF.className = 'sep'; box.append(sepF);
+    mk('♥ 喜歡的作者', nFav, ui.favAuthor, () => { ui.favAuthor = !ui.favAuthor; saveUi(); render(); }, { 'data-fav': '1', title: '作者是你喜歡的作者的作品' }, true);
+  }
   const fams = Object.keys(SITE_LABEL).filter((f) => groups.some((g) => g.fams.includes(f)));
   if (fams.length > 1) {
     const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
@@ -978,7 +1051,7 @@ function renderChips() {
 // 群組的完整說明（給滑鼠停在上面時看）：用到哪些篩選
 function defaultNameOf(v) {
   const st = v.s.map((k) => (k === '__none' ? '沒標記' : String(TAG_LABEL[k] || k).replace(/^\S+\s/, '')));
-  return [...st, ...v.p.map((k) => PROG_LABEL[k] || k), ...v.f.map((f) => SITE_LABEL[f] || f)].join('＋') || '（沒有條件）';
+  return [...st, ...v.p.map((k) => PROG_LABEL[k] || k), ...(v.a ? ['喜歡的作者'] : []), ...v.f.map((f) => SITE_LABEL[f] || f)].join('＋') || '（沒有條件）';
 }
 // 小按鈕要按兩次才執行（第一次變成「確定？」，4 秒內再按一次）
 function armChip(btn, run) {
@@ -1014,7 +1087,8 @@ function tile(g) {
   const shade = document.createElement('div'); shade.className = 'shade';
   const t = document.createElement('div'); t.className = 't'; t.textContent = g.title;
   const m = document.createElement('div'); m.className = 'm'; const pr = fillProgress(m, e); if (e.t) m.append(' · ' + relTime(e.t));
-  shade.append(t, m); b.append(shade);
+  if (g.author) { const au = document.createElement('div'); au.className = 'au' + (g.favAuthor ? ' fav' : ''); au.textContent = (g.favAuthor ? '♥ ' : '') + g.author; shade.append(t, au, m); } else shade.append(t, m);
+  b.append(shade);
   if (g.tag && TAG_LABEL[g.tag]) { const s = document.createElement('div'); s.className = 'st'; s.textContent = tagIcon(g.tag); s.title = TAG_LABEL[g.tag].replace(/^\S+\s/, ''); b.append(s); }
   if (g.fams.length > 1) { const s = document.createElement('div'); s.className = 'sc'; s.textContent = g.fams.length + ' 個網站'; b.append(s); }
   if (pr.ratio) { const bar = document.createElement('div'); bar.className = 'prog'; bar.style.width = Math.round(pr.ratio * 100) + '%'; b.append(bar); }
@@ -1033,8 +1107,10 @@ function row(g) {
   const e = g.entries[0];
   const ss = document.createElement('div'); ss.className = 'ss'; ss.textContent = g.fams.map((f) => SITE_LABEL[f]).join('、') + '　'; const ssp = document.createElement('span'); fillProgress(ssp, e); ss.append(ssp);
   info.append(tt, ss);
+  if (g.author) { const mau = document.createElement('div'); mau.className = 'mau'; mau.textContent = (g.favAuthor ? '♥ ' : '✍ ') + g.author; info.append(mau); }
+  const rau = document.createElement('div'); rau.className = 'rau' + (g.favAuthor ? ' fav' : ''); rau.textContent = g.author ? (g.favAuthor ? '♥ ' : '') + g.author : '';
   const rt = document.createElement('div'); rt.className = 'rt'; rt.textContent = relTime(e.t);
-  b.append(th, info, rt);
+  b.append(th, info, rau, rt);
   b.addEventListener('click', () => openDrawer(g.key));
   return b;
 }
@@ -1059,7 +1135,7 @@ function render() {
     return;
   }
   if (!shown.length) { main.append(emptyBox(groups.length ? '🔎' : '📚', groups.length ? '找不到符合的作品' : '書架還是空的', groups.length ? '換個關鍵字，或清掉篩選。' : '用油猴腳本讀幾話漫畫，這裡就會出現。')); return; }
-  if (ui.view === 'wall' && !query.trim() && !ui.statuses.length && !ui.sites.length && !ui.progress.length && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
+  if (ui.view === 'wall' && !query.trim() && !ui.statuses.length && !ui.sites.length && !ui.progress.length && !ui.favAuthor && !ui.author && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
   const wrap = document.createElement('div'); wrap.className = ui.view === 'list' ? 'rows' : 'wall'; wrap.id = 'items';
   main.append(wrap);
   let n = 0;
@@ -1172,12 +1248,12 @@ function showModal(id, focusId, returnTo) {
 }
 function hideModal(id) {
   $(id).hidden = true;
-  if (!openKey && $('pick').hidden && $('bm').hidden) document.body.style.overflow = '';
+  if (!openKey && $('pick').hidden && $('bm').hidden && $('au').hidden) document.body.style.overflow = '';
   if (modalOpener && modalOpener.isConnected && modalOpener.focus) modalOpener.focus({ preventScroll: true });
   modalOpener = null;
 }
-['pick', 'bm'].forEach((id) => {
-  $(id).addEventListener('mousedown', (e) => { if (e.target === $(id)) { if (id === 'pick') closePick(); else hideModal('bm'); } });
+['pick', 'bm', 'au'].forEach((id) => {
+  $(id).addEventListener('mousedown', (e) => { if (e.target === $(id)) { if (id === 'pick') closePick(); else hideModal(id); } });
   $(id).addEventListener('keydown', (e) => { // Tab 不要跑到後面的頁面
     if (e.key !== 'Tab') return;
     const f = [...$(id).querySelectorAll('input, button, a[href]')].filter((x) => !x.disabled && !x.hidden && x.offsetParent !== null);
@@ -1249,6 +1325,40 @@ $('pickOk').addEventListener('click', async () => {
   finally { $('pickOk').disabled = false; }
 });
 
+/* ── 作者 ──
+ * 手動修正存在 author:<作品鍵>，喜歡的作者存在 favauthor:<作者鍵>（試算表的書架分組分頁，書架和圖書館共用）；
+ * 作者怎麼拆開、怎麼比對、要寫哪些設定，都是書架的程式抽出來的（authorsOf／applyAuthors／authorPatch／favAuthorPatch）。 */
+function filterAuthor(a) { ui.author = { key: a.key, name: a.name }; saveUi(); render(); window.scrollTo({ top: 0 }); }
+async function toggleFav(a, on, i) { // 喜歡／取消喜歡：存到試算表成功才算數；詳情維持原狀（含編輯模式）
+  try { await pushPatch(favAuthorPatch(a, on, Date.now())); const k = openKey; render(); if (k) openDrawer(k, '.favbtn[data-favi="' + i + '"]', true); }
+  catch (err) { banner('操作失敗：' + (err && err.message ? err.message : err), 'err'); }
+}
+const favCount = () => favMapOf(ovOf()).size;
+function openAu() { $('auQ').value = ''; $('auMsg').textContent = ''; renderAu(); showModal('au', 'auQ', $('more')); }
+function renderAu(focusKey) {
+  const q = norm($('auQ').value), list = $('auList');
+  list.textContent = '';
+  const favs = favMapOf(ovOf()), all = authorStats(groups, favs), items = q ? all.filter((a) => norm(a.name).includes(q)) : all;
+  $('auDesc').textContent = all.length ? '共 ' + all.length + ' 位作者（♥ ' + favs.size + ' 位喜歡）。喜歡的排在前面；點 ♥ 切換，點名字只看他的作品。' : '還沒有作者資料。作者會在讀漫畫時自動抓取；抓不到或抓錯的，可以在作品詳情的編輯模式裡自己填。';
+  if (all.length && !items.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '找不到符合的作者'; list.append(e); return; }
+  items.slice(0, 300).forEach((a) => {
+    const r = document.createElement('div'); r.className = 'arow'; r.setAttribute('data-arow', a.key);
+    const fb = document.createElement('button'); fb.type = 'button'; fb.className = 'favbtn' + (a.fav ? ' on' : ''); fb.setAttribute('data-afav', a.key); fb.setAttribute('aria-pressed', a.fav ? 'true' : 'false'); fb.textContent = a.fav ? '♥' : '♡'; fb.setAttribute('aria-label', (a.fav ? '取消喜歡作者：' : '喜歡作者：') + a.name);
+    fb.addEventListener('click', async () => {
+      try { await pushPatch(favAuthorPatch(a, !a.fav, Date.now())); render(); renderAu(a.key); }
+      catch (err) { $('auMsg').className = 'msg err'; $('auMsg').textContent = '✗ ' + (err && err.message ? err.message : err); }
+    });
+    const nb = document.createElement('button'); nb.type = 'button'; nb.className = 'aname'; nb.setAttribute('data-aname', a.key); nb.textContent = a.name; nb.title = '只看這位作者的作品';
+    nb.addEventListener('click', () => { hideModal('au'); filterAuthor(a); });
+    const ct = document.createElement('span'); ct.className = 'acount'; ct.textContent = a.count + ' 部';
+    r.append(fb, nb, ct); list.append(r);
+  });
+  if (items.length > 300) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '只顯示前 300 位，請用上面的搜尋縮小範圍'; list.append(e); }
+  if (focusKey) { const f = list.querySelector('[data-afav="' + (window.CSS && CSS.escape ? CSS.escape(focusKey) : focusKey) + '"]'); if (f) f.focus({ preventScroll: true }); }
+}
+$('auQ').addEventListener('input', () => renderAu());
+$('auClose').addEventListener('click', () => hideModal('au'));
+
 /* ── 書籤檢視器 ── */
 function openBm() { $('bmQ').value = ''; $('bmMsg').textContent = ''; renderBm(); showModal('bm', 'bmQ', $('more')); }
 function renderBm() {
@@ -1299,7 +1409,19 @@ function openDrawer(key, focusSel, keepEdit) {
   poster.textContent = initial(g.title); setPlaceholder(poster, g); fillCover(poster, g);
   const info = document.createElement('div');
   const h2 = document.createElement('h2'); h2.textContent = g.title; info.append(h2);
-  if (g.author) { const a = document.createElement('div'); a.className = 'au'; a.textContent = g.author; info.append(a); }
+  if (g.authors.length) { // 作者：點名字只看他的作品；♡／♥ 切換喜歡的作者
+    const aw = document.createElement('div'); aw.className = 'au';
+    const favs = favMapOf(ovOf());
+    g.authors.forEach((a, i) => {
+      const on = favs.has(a.key);
+      const nb = document.createElement('button'); nb.type = 'button'; nb.className = 'chipau'; nb.setAttribute('data-aname', a.key); nb.textContent = '✍ ' + a.name; nb.title = '只看這位作者的作品' + (g.authorManual ? '（手動修正過；自動抓到的是：' + (g.autoAuthor || '沒有') + '）' : '');
+      nb.addEventListener('click', () => { closeDrawer(); filterAuthor(a); });
+      const fb = document.createElement('button'); fb.type = 'button'; fb.className = 'favbtn' + (on ? ' on' : ''); fb.setAttribute('data-favi', String(i)); fb.setAttribute('aria-pressed', on ? 'true' : 'false'); fb.textContent = on ? '♥' : '♡'; fb.title = on ? '取消喜歡這位作者' : '喜歡這位作者'; fb.setAttribute('aria-label', (on ? '取消喜歡作者：' : '喜歡作者：') + a.name);
+      fb.addEventListener('click', () => toggleFav(a, !on, i));
+      aw.append(nb, fb);
+    });
+    info.append(aw);
+  }
   const tags = document.createElement('div'); tags.className = 'tags';
   if (g.tag && TAG_LABEL[g.tag]) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAG_LABEL[g.tag]; tags.append(t); }
   g.fams.forEach((f) => { const t = document.createElement('span'); t.className = 'tag'; t.textContent = SITE_LABEL[f] || f; tags.append(t); });
@@ -1351,7 +1473,16 @@ function openDrawer(key, focusSel, keepEdit) {
     const r2 = document.createElement('div'); r2.className = 'row2';
     const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'btn primary'; sv.id = 'noteSave'; sv.textContent = '儲存備註';
     sv.addEventListener('click', () => { const v = ta.value.trim(); doEdit(() => saveGroups({ ['note:' + g.key]: v }), v ? '備註已儲存' : '備註已清除', '#noteSave'); });
-    r2.append(sv); ed.append(r2); body.append(ed); body.append(msg);
+    r2.append(sv); ed.append(r2);
+    const l3 = document.createElement('div'); l3.className = 'lbl'; l3.textContent = '作者'; ed.append(l3);
+    const ai = document.createElement('input'); ai.type = 'text'; ai.id = 'authorIn'; ai.className = 'pickq'; ai.style.marginBottom = '0'; ai.maxLength = 100; ai.value = g.author || ''; ai.setAttribute('aria-label', '作者'); ai.placeholder = g.autoAuthor ? '自動抓到的：' + g.autoAuthor : '沒有自動抓到作者，可以自己填'; ed.append(ai);
+    const r3 = document.createElement('div'); r3.className = 'row2';
+    const sa = document.createElement('button'); sa.type = 'button'; sa.className = 'btn primary'; sa.id = 'authorSave'; sa.textContent = '儲存作者';
+    sa.addEventListener('click', () => { const v = ai.value.trim(); doEdit(() => pushPatch(authorPatch(g, v, Date.now())), v ? '作者已儲存' : '已回到自動抓到的作者', '#authorSave'); });
+    ai.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sa.click(); } });
+    r3.append(sa);
+    if (g.authorManual) { const ra = document.createElement('button'); ra.type = 'button'; ra.className = 'btn'; ra.id = 'authorReset'; ra.textContent = '回到自動抓到的'; ra.title = '自動抓到的是：' + (g.autoAuthor || '（沒有）'); ra.addEventListener('click', () => doEdit(() => pushPatch(authorPatch(g, '', Date.now())), '已回到自動抓到的作者', '#authorSave')); r3.append(ra); }
+    ed.append(r3); body.append(ed); body.append(msg);
   } else if (editNote) body.append(msg);
   const sec = document.createElement('div'); sec.className = 'sec'; sec.textContent = '各網站的進度'; body.append(sec);
   g.entries.forEach((e) => {
@@ -1381,6 +1512,20 @@ function openDrawer(key, focusSel, keepEdit) {
     if (editMode && g.entries.length > 1) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.setAttribute('data-del', e.key); const lab = '刪除這個網站的紀錄'; d.textContent = lab; armButton(d, lab, () => doEdit(() => deleteEntries(g, [e], false), '已刪除「' + (SITE_LABEL[e.fam] || e.host) + '」的紀錄', '#editBtn')); acts.append(d); }
     body.append(s);
   });
+  if (g.authors.length) { // 同作者的其他作品
+    const mine = new Set(g.authors.map((a) => a.key));
+    const others = groups.filter((h) => h !== g && h.authors.some((a) => mine.has(a.key))).sort((a, b) => b.t - a.t);
+    if (others.length) {
+      const secA = document.createElement('div'); secA.className = 'sec'; secA.textContent = '同作者的其他作品（' + others.length + '）'; body.append(secA);
+      others.slice(0, 6).forEach((r) => {
+        const d = document.createElement('div'); d.className = 'rel'; d.setAttribute('data-sameauthor', r.key);
+        const tt = document.createElement('span'); tt.className = 'rt2'; tt.textContent = r.title + (progressOf(r.entries[0]).text ? '　' + progressOf(r.entries[0]).text : '');
+        const op = document.createElement('button'); op.type = 'button'; op.className = 'btn'; op.textContent = '看這部'; op.addEventListener('click', () => openDrawer(r.key));
+        d.append(tt, op); body.append(d);
+      });
+      if (others.length > 6) { const more = document.createElement('button'); more.type = 'button'; more.className = 'btn'; more.id = 'sameAuthorAll'; more.textContent = '看這位作者的全部 ' + (others.length + 1) + ' 部'; more.addEventListener('click', () => { closeDrawer(); filterAuthor(g.authors[0]); }); body.append(more); }
+    }
+  }
   if (g.related.length) { // 同系列：互相連起來的其他作品（進度各自獨立）
     const sec2 = document.createElement('div'); sec2.className = 'sec'; sec2.textContent = '同系列'; body.append(sec2);
     g.related.forEach((r) => {
@@ -1543,6 +1688,7 @@ let updRunning = false, updMode = '';
 function setMenu(open) { $('moreMenu').hidden = !open; $('more').setAttribute('aria-expanded', open ? 'true' : 'false'); }
 function updateUpdItems() {
   $('bmBtn').textContent = '🔖 書籤檢視器' + (bms.length ? '（' + bms.length + '）' : '');
+  $('auBtn').textContent = '✍ 作者清單' + (favCount() ? '（♥ ' + favCount() + '）' : '');
   $('allBtn').textContent = updRunning && updMode === 'all' ? '⏹ 停止更新' : '🔄 檢查全部網站更新';
   $('nicoBtn').textContent = updRunning && updMode === 'nico' ? '⏹ 停止更新 NicoManga' : '🔄 只更新 NicoManga';
   $('allBtn').disabled = updRunning && updMode !== 'all'; $('nicoBtn').disabled = updRunning && updMode !== 'nico';
@@ -1551,6 +1697,7 @@ function updateUpdItems() {
 $('more').addEventListener('click', () => { const open = $('moreMenu').hidden; setMenu(open); if (open) { updateUpdItems(); $('bmBtn').focus(); } });
 document.addEventListener('mousedown', (e) => { if (!$('moreMenu').hidden && !(e.target.closest && e.target.closest('.morewrap'))) setMenu(false); });
 $('bmBtn').addEventListener('click', () => { setMenu(false); openBm(); });
+$('auBtn').addEventListener('click', () => { setMenu(false); openAu(); });
 function runUpd(mode) {
   setMenu(false);
   if (!bridgeOn()) { banner('找不到油猴腳本：請把腳本更新到 v3.22.0 以上，並確認它在這個網頁有啟用（Tampermonkey 的圖示上要看得到這支腳本）。', 'err'); return; }
@@ -1641,16 +1788,17 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (!$('pick').hidden) { if (pickSt && pickSt.sel) { pickSt.sel = null; renderPick(); $('pickQ').focus(); } else closePick(); return; }
     if (!$('bm').hidden) { hideModal('bm'); return; }
+    if (!$('au').hidden) { hideModal('au'); return; }
     if (!$('moreMenu').hidden) { setMenu(false); $('more').focus(); return; }
     if (!$('connect').hidden && connected()) { closeConnect(); return; }
     if (openKey) { closeDrawer(); return; }
     if (document.activeElement === $('q') && $('q').value) { $('q').value = ''; query = ''; render(); return; }
   }
-  if (typing || !$('pick').hidden || !$('bm').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (typing || !$('pick').hidden || !$('bm').hidden || !$('au').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === '/') { e.preventDefault(); $('q').focus(); }
   else if (openKey && e.key === 'ArrowLeft') stepDrawer(-1);
   else if (openKey && e.key === 'ArrowRight') stepDrawer(1);
-  else if (!openKey && $('connect').hidden && $('pick').hidden && $('bm').hidden && e.key.startsWith('Arrow') && gridMove(document.activeElement, e.key)) e.preventDefault();
+  else if (!openKey && $('connect').hidden && $('pick').hidden && $('bm').hidden && $('au').hidden && e.key.startsWith('Arrow') && gridMove(document.activeElement, e.key)) e.preventDefault();
 });
 // 抽屜打開時，Tab 不要跑到後面的頁面（簡單的焦點圈住）
 $('drawer').addEventListener('keydown', (e) => {
