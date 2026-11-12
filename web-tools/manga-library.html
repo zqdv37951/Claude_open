@@ -71,6 +71,11 @@ select.btn { padding-right: 6px; }
 .chip:hover { color: var(--text); }
 .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 .chip .n { font-size: 11.5px; opacity: .75; font-variant-numeric: tabular-nums; }
+.chip .ck { font-size: 11px; color: var(--accent); margin-right: -2px; }
+.multi { flex: none; height: 30px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px dashed var(--line); color: var(--muted); cursor: pointer; user-select: none; white-space: nowrap; }
+.multi:hover { color: var(--text); }
+.multi:has(input:checked) { color: var(--text); border-style: solid; border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.multi input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .chips .sep { flex: none; width: 1px; background: var(--line); margin: 4px 2px; }
 
 .banner { margin: 12px var(--gutter) 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -362,7 +367,12 @@ const LS = {
 };
 const CFG_KEY = 'lib:cfg', DATA_KEY = 'lib:data', UI_KEY = 'lib:ui';
 let cfg = LS.get(CFG_KEY, { url: '', token: '' });
-const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', status: '', site: '' }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', multi: false, statuses: [], sites: [] }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+// 舊版只存單一狀態／網站（status、site 字串）：轉成新的清單
+if (!Array.isArray(ui.statuses)) ui.statuses = [];
+if (!Array.isArray(ui.sites)) ui.sites = [];
+if (ui.status) { if (!ui.statuses.includes(ui.status)) ui.statuses.push(ui.status); delete ui.status; }
+if (ui.site) { if (!ui.sites.includes(ui.site)) ui.sites.push(ui.site); delete ui.site; }
 const saveUi = () => LS.set(UI_KEY, ui);
 let data = LS.get(DATA_KEY, null);        // { at, rows, groups }
 let groups = [];                          // 歸好的作品
@@ -492,34 +502,46 @@ function fillCover(box, g) {
 const STATUS_ORDER = Object.keys(TAG_LABEL);
 function visibleGroups() {
   let list = filterGroups(groups, query, () => false);
-  if (ui.status === '__none') list = list.filter((g) => !g.tag);
-  else if (ui.status) list = list.filter((g) => g.tag === ui.status);
-  if (ui.site) list = list.filter((g) => g.fams.includes(ui.site));
+  // 同一組（狀態／網站）裡選了好幾個是「或」，兩組之間是「且」
+  if (ui.statuses.length) list = list.filter((g) => ui.statuses.some((k) => (k === '__none' ? !g.tag : g.tag === k)));
+  if (ui.sites.length) list = list.filter((g) => g.fams.some((f) => ui.sites.includes(f)));
   if (ui.sort === 'name') list = list.slice().sort((a, b) => stripLead(a.title).localeCompare(stripLead(b.title), 'zh-Hant'));
   else if (ui.sort === 'sites') list = list.slice().sort((a, b) => (b.entries.length - a.entries.length) || (b.t - a.t));
   return list;
 }
+// 篩選晶片：預設單選（點一個就只留它，再點取消）；勾「多選」後可以同時選好幾個（同一組是「或」，狀態和網站兩組之間是「且」）
+function pickChip(list, k) {
+  const i = list.indexOf(k);
+  if (ui.multi) { if (i >= 0) list.splice(i, 1); else list.push(k); return; }
+  if (i >= 0 && list.length === 1) list.length = 0; // 單選：只剩它時，再點一次就取消
+  else { list.length = 0; list.push(k); }
+}
 function renderChips() {
   const box = $('chips');
   box.textContent = '';
+  const lab = document.createElement('label'); lab.className = 'multi'; lab.title = '勾選後，可以同時選好幾個狀態或網站';
+  const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'multi'; cb.checked = !!ui.multi;
+  cb.addEventListener('change', () => { ui.multi = cb.checked; saveUi(); render(); });
+  lab.append(cb, '多選'); box.append(lab);
   const mk = (label, n, pressed, onClick, attrs) => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     Object.keys(attrs || {}).forEach((k) => b.setAttribute(k, attrs[k]));
+    if (ui.multi && pressed) { const c = document.createElement('span'); c.className = 'ck'; c.textContent = '✓'; b.append(c); }
     b.append(label);
     if (n != null) { const s = document.createElement('span'); s.className = 'n'; s.textContent = n; b.append(s); }
     b.addEventListener('click', onClick);
     box.append(b);
   };
   const cnt = (f) => groups.filter(f).length;
-  mk('全部', groups.length, !ui.status, () => { ui.status = ''; saveUi(); render(); }, { 'data-status': '' });
-  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.status === k) mk(TAG_LABEL[k], n, ui.status === k, () => { ui.status = ui.status === k ? '' : k; saveUi(); render(); }, { 'data-status': k }); });
+  mk('全部', groups.length, !ui.statuses.length && !ui.sites.length, () => { ui.statuses = []; ui.sites = []; saveUi(); render(); }, { 'data-status': '' });
+  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.statuses.includes(k)) mk(TAG_LABEL[k], n, ui.statuses.includes(k), () => { pickChip(ui.statuses, k); saveUi(); render(); }, { 'data-status': k }); });
   const none = cnt((g) => !g.tag);
-  if (none && none !== groups.length) mk('沒標記', none, ui.status === '__none', () => { ui.status = ui.status === '__none' ? '' : '__none'; saveUi(); render(); }, { 'data-status': '__none' });
+  if (none && none !== groups.length) mk('沒標記', none, ui.statuses.includes('__none'), () => { pickChip(ui.statuses, '__none'); saveUi(); render(); }, { 'data-status': '__none' });
   const fams = Object.keys(SITE_LABEL).filter((f) => groups.some((g) => g.fams.includes(f)));
   if (fams.length > 1) {
     const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
-    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.site === f, () => { ui.site = ui.site === f ? '' : f; saveUi(); render(); }, { 'data-site': f }));
+    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.sites.includes(f), () => { pickChip(ui.sites, f); saveUi(); render(); }, { 'data-site': f }));
   }
 }
 function renderStat() {
@@ -590,7 +612,7 @@ function render() {
     return;
   }
   if (!shown.length) { main.append(emptyBox(groups.length ? '🔎' : '📚', groups.length ? '找不到符合的作品' : '書架還是空的', groups.length ? '換個關鍵字，或清掉篩選。' : '用油猴腳本讀幾話漫畫，這裡就會出現。')); return; }
-  if (ui.view === 'wall' && !query.trim() && !ui.status && !ui.site && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
+  if (ui.view === 'wall' && !query.trim() && !ui.statuses.length && !ui.sites.length && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
   const wrap = document.createElement('div'); wrap.className = ui.view === 'list' ? 'rows' : 'wall'; wrap.id = 'items';
   main.append(wrap);
   let n = 0;
