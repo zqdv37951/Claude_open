@@ -4,9 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0d0f14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f4f8" media="(prefers-color-scheme: light)">
+<!-- 加到主畫面（PWA）：以獨立視窗開啟、沒有瀏覽器網址列。iOS 看 apple- 開頭的標籤，Android／桌面看 manifest（內嵌的 data: 網址，所以仍然是單一檔案） -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="漫畫圖書館">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAADGElEQVR42u3YMUpcURiGYTcQbCxSWEpwwCKFhBECFtqYgJ1FQLBIZxaQIiBWgoK7MJUbSC0uJDsxHwjDYCMO58/cueeBt7K4B+c8c/57Zu3d+oa0cGs+AgEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQBJAAkgACSABJAEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQAJIAkgACSABJAEkgASQAJIAEkClHf48bdX2wRSgjsp+//r7u21n95cA9VI2uzmg1M851DugCj0pswygLl59igAlgAACCCCAAAIIIIAAAggggAACqBbQEB4FEEAAAQQQQAAB5CUaIIAAWmJfv13f3D216vzicWf3GKBeALXVMwugXgBV6ElxCdD4AWXWFAHKIANo/ICK5tf8FAMIIIAAAggggF4FdPV9v1VHexOAOgKU/X7686NtD7cnAPUCKJvdHFAayDm0SoDyl8XKvX2JgCr0pMwygN4GqPmj/gOgbHMRoAQQQAABBJB3IIDcwgZ6CwMIIIAAAgig0QBa+ANp+CiAAAIIIIAAAgggL9EAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAADRjQzu5xkZ7zi8fnJbYPpkV6zu4vn5c42psU6Xm4PQHolYoA5WybLVEEKGfbbIkiQDnbAFrOFJtfomiKzS9RNMUGskeDBtTcUIZXJuOLJdoayvDKZHyxRFtDGV6ZjABpDAEkgNQtoPebHz5++vL58FQN25pMuwAUPTa7qHwtxw8oXxQ7XRdAAggggEqzzav+Hr38a3z+VRextnRyO/E7kPwOJIAkgASQABJAEkACSAAJIAkgASSABJAAkgASQAJIAEkACSABJIAkgASQABJAEkACSAAJIAEkASSAtGr9AzCSUX/+HyoWAAAAAElFTkSuQmCC">
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E6%BC%AB%E7%95%AB%E5%9C%96%E6%9B%B8%E9%A4%A8%22%2C%22short_name%22%3A%22%E6%BC%AB%E7%95%AB%E5%9C%96%E6%9B%B8%E9%A4%A8%22%2C%22description%22%3A%22%E4%BD%A0%E7%9A%84%E9%96%B1%E8%AE%80%E6%9B%B8%E6%9E%B6%EF%BC%9A%E5%B0%81%E9%9D%A2%E7%89%86%E3%80%81%E9%80%B2%E5%BA%A6%E3%80%81%E6%9B%B8%E7%B1%A4%EF%BC%8C%E4%B8%80%E9%8D%B5%E7%B9%BC%E7%BA%8C%E9%96%B1%E8%AE%80%22%2C%22lang%22%3A%22zh-Hant%22%2C%22start_url%22%3A%22https%3A%2F%2Fzqdv37951.github.io%2FClaude_open%2Fweb-tools%2Fmanga-library.html%22%2C%22scope%22%3A%22https%3A%2F%2Fzqdv37951.github.io%2FClaude_open%2Fweb-tools%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22any%22%2C%22background_color%22%3A%22%230d0f14%22%2C%22theme_color%22%3A%22%230d0f14%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAADGElEQVR42u3YMUpcURiGYTcQbCxSWEpwwCKFhBECFtqYgJ1FQLBIZxaQIiBWgoK7MJUbSC0uJDsxHwjDYCMO58%2FcueeBt7K4B%2Bc8c%2F57Zu3d%2Boa0cGs%2BAgEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQBJAAkgACSABJAEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQAJIAkgACSABJAEkgASQAJIAEkClHf48bdX2wRSgjsp%2B%2F%2Fr7u21n95cA9VI2uzmg1M851DugCj0pswygLl59igAlgAACCCCAAAIIIIAAAggggAACqBbQEB4FEEAAAQQQQAAB5CUaIIAAWmJfv13f3D216vzicWf3GKBeALXVMwugXgBV6ElxCdD4AWXWFAHKIANo%2FICK5tf8FAMIIIAAAggggF4FdPV9v1VHexOAOgKU%2FX7686NtD7cnAPUCKJvdHFAayDm0SoDyl8XKvX2JgCr0pMwygN4GqPmj%2FgOgbHMRoAQQQAABBJB3IIDcwgZ6CwMIIIAAAgig0QBa%2BANp%2BCiAAAIIIIAAAgggL9EAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAADRjQzu5xkZ7zi8fnJbYPpkV6zu4vn5c42psU6Xm4PQHolYoA5WybLVEEKGfbbIkiQDnbAFrOFJtfomiKzS9RNMUGskeDBtTcUIZXJuOLJdoayvDKZHyxRFtDGV6ZjABpDAEkgNQtoPebHz5%2B%2BvL58FQN25pMuwAUPTa7qHwtxw8oXxQ7XRdAAggggEqzzav%2BHr38a3z%2BVRextnRyO%2FE7kPwOJIAkgASQABJAEkACSAAJIAkgASSABJAAkgASQAJIAEkACSABJIAkgASQABJAEkACSAAJIAEkASSAtGr9AzCSUX%2F%2BHyoWAAAAAElFTkSuQmCC%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%2C%7B%22src%22%3A%22data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAAB7GkOtAAAL6ElEQVR42u3dMUpcURSAYTcQ0likSBmCAxYpJIwQmMJpjGBnIQxYTGcWMIUgVgMK7iKp3EBqcSHZiTnhVsPgm0fMvLx3zwffBs417%2Fx6fU523rzdBSChHUcAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIABOAUAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAAABAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAAABAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAEAAnAKAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACACAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgANBoupiFq18%2FBq1M4auJAEAre0fjoe%2F9dTGUrywCAE0uHm7q2%2F5FjObriwBAuu2vAQgA5Lr5cReEAMBmGbZ%2F4WuNAMDKOz95AuC9IAQABAAEAPc%2Faba%2FWyAEAAQABAAEAAQAARAAEAAEQABAABAAAQABQAAEAAQAARAAEAAEQABAABAAAQABQAAEAAFwCgiAACAAIAACgACAAAgAAgACIAAIAAiAACAAIAACgACAAAgAAgACIAAIAAiAACAA0FUATAECgACYAgQAATAFCAACYAoQAATAFAiAU0AATIEAgNVpCgQArE5TIABgdZoCAQCrUwAQAOjj6vRRECAACIAAgAAgAAIAAoAACAAIAAIgAAiAU0AABAABoP9Ozm%2FD3ffnQStTCIAAIAC0sn9wOvS9vy6GEgABQABocnn9VN%2F2L2I0ARAABIB0279lAwQABMDNT7Wa74IEAAQgowzbvxAAAUAAWHnnJ08AGt4LEgAQAAEQAAEAAXD%2Fk%2BkWSABAAARAAAQABEAABEAAQAAEQAAEAARAAARAAEAABEAABAAEQAAEQABAAARAAAQABEAABEAAEAAEQAAEAAFAAARAABAABEAABAABQAAEoJ8BWM4n4fnnt0ErU3jeBQABEIBWATg%2BHA1976%2BLoTz1AoAACECTx%2Fuz%2BrZ%2FEaN58AUAARCAdNtfAwQAARCAXDc%2F7oIEAAEQgM0ByLD9C4%2B%2FAAiAAAjAyjs%2FeQLgvSABEAABEAABQAAE4K9WZx1TCEC2%2Bx%2B3QAKAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAA%2BCsJHQQiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIQFcB6PO%2FagEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEABLQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAAfBeGjIBAAARAAARAABEAABEAABAABEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAAFwBAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACIAAOAUBEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAAtuvk%2FDbP9o9hXzqH6WKWZ%2FvHsC%2Bdw3I%2BybP9Y1gbQAAEQAAEQAAQALdAKe9%2Fst0CNZ%2BD%2Bx8EIJH9g9MM2z%2FGbD6HvaNxhu0fYzafw%2FHhKMP2jzE9%2BwLAH5fXT3Vv%2FxiwzTlcPNzUvf1jwDbn8Hh%2FVvf2jwE99QJAiga03P7VN6Dl9q%2B%2BAba%2FAJDlLmjjzU%2BSu6CNNz9J7oLc%2FAgAG94LquDVoDLFa85huphV8GpQmeI157CcTyp4NahM4ekWAAAEAAABAEAAABAAAAQAAAEAQAAAEIDuvXv%2F8cNo%2FGU6A%2F6LeADjMbSLBKDr1f%2Fp81ePH%2FRBPIwyIADdbX%2BPHPSNBgiA7Q8agABsh5sf6PNdkB0lAL79Bz8EIAD%2FlHd%2BoP%2FvBdlUArAVni7oP5tKAAQABAABEAAQAAFAAEAABAC%2FBAa%2FBBYAvAYKXgMVAPwhGPhDMAHADwHg238BQAPA9hcAfBw09PDmx%2FYXAP8hDKR758fqFwAABAAAAQAQAKcAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAADT5DXq2wlxITfdEAAAAAElFTkSuQmCC%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
 <meta name="referrer" content="no-referrer">
 <!-- 內容安全政策：這個頁面只需要連 Apps Script（含它轉址去的 googleusercontent），圖片只來自本機（blob／data）。就算哪天有人塞進惡意字串，也無法把資料傳到別的網站 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; connect-src https://script.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; manifest-src data:; connect-src https://script.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>漫畫圖書館</title>
@@ -91,6 +100,23 @@ select.btn { padding-right: 6px; }
 .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; width: 280px; max-width: calc(100vw - 2 * var(--gutter)); padding: 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
 .menu .menuitem { width: 100%; height: 36px; border-radius: 8px; padding: 0 10px; display: flex; align-items: center; text-align: left; font-size: 14px; }
 .menu .menuitem:hover, .menu .menuitem:focus-visible { background: var(--surface2); }
+.menu .menuitem[disabled] { opacity: .5; cursor: default; }
+.pickcard { width: min(580px, 100%); max-height: min(88vh, 760px); display: flex; flex-direction: column; }
+.pickq { width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 0 12px; margin-bottom: 10px; }
+.picklist { overflow-y: auto; display: grid; gap: 6px; margin-bottom: 10px; min-height: 96px; align-content: start; -webkit-overflow-scrolling: touch; }
+.pickrow { text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); display: grid; gap: 2px; width: 100%; }
+.pickrow:hover, .pickrow:focus-visible { border-color: var(--accent); }
+.pickrow .tt { font-weight: 600; word-break: break-word; }
+.pickrow .sub { font-size: 12px; color: var(--muted); }
+.pickrow .sug { color: var(--ok); font-size: 12px; font-weight: 600; }
+.pickconfirm { padding: 10px 12px; border-radius: 10px; background: var(--surface2); margin-bottom: 10px; line-height: 1.6; word-break: break-word; }
+.bmgroup { padding: 10px 12px; border-radius: 12px; background: var(--surface2); }
+.bmgroup .gt { font-weight: 650; word-break: break-word; margin-bottom: 4px; text-align: left; }
+.bmrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
+.bmrow .bt { flex: 1 1 140px; font-size: 13.5px; word-break: break-word; }
+.rel { padding: 10px 12px; border-radius: 12px; background: var(--surface2); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rel .rt2 { flex: 1 1 160px; word-break: break-word; }
+.rel .rl { color: var(--accent); font-weight: 650; font-size: 12.5px; }
 .menu .hint { padding: 4px 10px 6px; font-size: 12px; color: var(--muted); line-height: 1.5; }
 .banner .grow { flex: 1; min-width: 160px; }
 
@@ -169,6 +195,7 @@ select.btn { padding-right: 6px; }
 .drawer.on { transform: none; }
 .dhead { display: flex; gap: 8px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); padding-top: max(12px, env(safe-area-inset-top)); }
 .dhead .grow { flex: 1; }
+.grab { display: none; }
 .dbody { overflow-y: auto; padding: 18px 20px 40px; -webkit-overflow-scrolling: touch; }
 .hero { display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: start; }
 .hero .poster { aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; position: relative; background: var(--surface3); box-shadow: var(--shadow); display: grid; place-items: center; font-size: 54px; font-weight: 800; color: rgba(255,255,255,.25); }
@@ -217,6 +244,8 @@ a.btn { text-decoration: none; }
   .tools .size { display: none; }
   .drawer { top: auto; height: 92vh; width: 100vw; transform: translateY(105%); border-left: 0; border-radius: 18px 18px 0 0; }
   .drawer.on { transform: none; }
+  .grab { display: block; flex: none; width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 8px auto 0; touch-action: none; }
+  .dhead { touch-action: none; padding-top: 6px; } /* 往下滑關閉：這一條不要被瀏覽器當成捲動 */
   .hero { grid-template-columns: 110px 1fr; gap: 14px; }
   .row { grid-template-columns: 46px 1fr; }
   .row .rt { display: none; }
@@ -253,7 +282,9 @@ a.btn { text-decoration: none; }
         <div class="morewrap">
           <button id="more" class="btn" type="button" title="更多功能" aria-label="更多功能" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">⋯</button>
           <div id="moreMenu" class="menu" role="menu" hidden>
-            <button id="nicoBtn" class="menuitem" type="button" role="menuitem">🔄 更新 NicoManga</button>
+            <button id="bmBtn" class="menuitem" type="button" role="menuitem">🔖 書籤檢視器</button>
+            <button id="allBtn" class="menuitem" type="button" role="menuitem">🔄 檢查全部網站更新</button>
+            <button id="nicoBtn" class="menuitem" type="button" role="menuitem">🔄 只更新 NicoManga</button>
             <div id="nicoHint" class="hint"></div>
           </div>
         </div>
@@ -268,6 +299,7 @@ a.btn { text-decoration: none; }
 
 <div id="scrim" class="scrim"></div>
 <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-label="作品詳情" aria-hidden="true">
+  <div class="grab" aria-hidden="true"></div>
   <div class="dhead">
     <button id="dprev" class="btn" type="button" title="上一部（←）">‹</button>
     <button id="dnext" class="btn" type="button" title="下一部（→）">›</button>
@@ -291,6 +323,28 @@ a.btn { text-decoration: none; }
       <button class="btn primary" type="submit">儲存並載入</button>
     </div>
   </form>
+</div>
+
+<div id="pick" class="modal" hidden>
+  <div class="card pickcard" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+    <h2 id="pickTitle"></h2>
+    <p id="pickDesc"></p>
+    <input id="pickQ" class="pickq" type="search" placeholder="搜尋書名、作者…" autocomplete="off" spellcheck="false" aria-label="搜尋作品">
+    <div id="pickList" class="picklist"></div>
+    <div id="pickConfirm" class="pickconfirm" role="status" hidden></div>
+    <div id="pickMsg" class="msg" role="status"></div>
+    <div class="btns"><button id="pickCancel" class="btn" type="button">取消</button><button id="pickOk" class="btn primary" type="button" hidden>確定</button></div>
+  </div>
+</div>
+<div id="bm" class="modal" hidden>
+  <div class="card pickcard" role="dialog" aria-modal="true" aria-labelledby="bmTitle">
+    <h2 id="bmTitle">🔖 書籤檢視器</h2>
+    <p id="bmDesc"></p>
+    <input id="bmQ" class="pickq" type="search" placeholder="搜尋書名、章節…" autocomplete="off" spellcheck="false" aria-label="搜尋書籤">
+    <div id="bmList" class="picklist"></div>
+    <div id="bmMsg" class="msg" role="status"></div>
+    <div class="btns"><button id="bmClose" class="btn" type="button">關閉</button></div>
+  </div>
 </div>
 
 <script>
@@ -365,6 +419,166 @@ const SITES = [{ id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\
     if (s < 86400 * 60) return Math.round(s / 86400) + ' 天前';
     return Math.round(s / 86400 / 30) + ' 個月前';
   }
+  const SR_WORD = '[前中後后上下][編编篇]|[上中下][巻卷]|完[結结][編编篇]|[続續续][編编篇]|[後后前]日[談谈]|番外[編编篇]?|外[傳传]|extra';
+  const SR_ONE = '[上中下前後后]';
+  const SR_NUM = '(\\d{1,3}|[一二三四五六七八九十]{1,3}|viii|vii|vi|iii|ii|iv|ix)';
+  const SR_CNT = '[巻卷話话章回集部期編编篇]';
+  const SR_PFX = '(?:第|その|其|#|(?<![a-z])(?:vol\\.?|volume|part|pt\\.?|ep\\.?|no\\.?))'; // 英文前綴前面不能緊接字母（避免把 deep 2 的 ep 當成標記）
+  const SR_SEP = '[\\s\\-_~·:：,]';
+  // 一組括號（[…]、(…) 可以再套一層，以及 【】《》〈〉「」『』）
+  const SR_BR = '(?:\\[(?:[^\\[\\]]|\\[[^\\[\\]]*\\])*\\]|\\((?:[^()]|\\([^()]*\\))*\\)|\\{[^{}]*\\}|【[^】]*】|《[^》]*》|〈[^〉]*〉|「[^」]*」|『[^』]*』)';
+  const SR_LEAD = new RegExp('^(?:\\s*' + SR_BR + ')+\\s*');
+  const SR_TAIL = new RegExp('\\s*(' + SR_BR + ')\\s*$');
+  const SR_RE = {
+    word: new RegExp('^(.*?\\S)' + SR_SEP + '*(' + SR_WORD + ')\\s*$'),
+    one: new RegExp('^(.*?\\S)' + SR_SEP + '+(' + SR_ONE + ')\\s*$'),
+    pfx: new RegExp('^(.*?\\S)' + SR_SEP + '*' + SR_PFX + '\\s*' + SR_NUM + '\\s*' + SR_CNT + '?\\s*$'),
+    cnt: new RegExp('^(.*?\\S)\\s*(\\d{1,3})' + SR_CNT + '\\s*$'),
+    plain: new RegExp('^(.*?\\S)\\s+(\\d{1,3}|viii|vii|vi|iii|ii|iv|ix)\\s*$'),
+  };
+  const SR_KANJI = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+  const SR_ROMAN = { ii: 2, iii: 3, iv: 4, vi: 6, vii: 7, viii: 8, ix: 9 };
+  function srNum(x) {
+    if (/^\d+$/.test(x)) return Number(x);
+    if (SR_ROMAN[x]) return SR_ROMAN[x];
+    const t = x.indexOf('十');
+    if (t < 0) return SR_KANJI[x] || 0;
+    return (t === 0 ? 1 : SR_KANJI[x[t - 1]] || 1) * 10 + (SR_KANJI[x[t + 1]] || 0);
+  }
+  function srWordRank(t) {
+    if (/^完/.test(t)) return 4;
+    if (/^[続續续]/.test(t)) return 5;
+    if (/番外|外[傳传]|extra|[後后]日/.test(t)) return 6;
+    if (/^前日/.test(t)) return 0.5;
+    if (/^[前上]/.test(t)) return 1;
+    if (/^中/.test(t)) return 2;
+    return 3; // 後、后、下
+  }
+  // 括號裡的字是不是「前編、2、第2巻」這種標記
+  function srBracket(t) {
+    t = t.trim();
+    let m;
+    if (new RegExp('^(?:' + SR_WORD + ')$').test(t)) return { label: t, rank: srWordRank(t) };
+    if (new RegExp('^' + SR_ONE + '$').test(t)) return { label: t, rank: srWordRank(t) };
+    if ((m = new RegExp('^' + SR_PFX + '?\\s*' + SR_NUM + '\\s*' + SR_CNT + '?$').exec(t))) return { label: t, rank: srNum(m[1]) };
+    return null;
+  }
+  // 回傳 { base: 系列名（已正規化）, label: 標記文字, rank: 排序用, marked: 有沒有標記 }
+  function seriesOf(title) {
+    const none = { base: norm(title), label: '', rank: 0, marked: false };
+    let s = String(title || '').normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();
+    if (!s) return none;
+    const lead = s.replace(SR_LEAD, '');
+    if (norm(lead).length >= 2) s = lead;
+    let part = null;
+    for (let i = 0; i < 5; i++) { // 結尾的 [中國翻訳]、(活動名)、[DL版] 一律拿掉；碰到「(前編)」「[2]」這類標記就停下
+      const m = SR_TAIL.exec(s);
+      if (!m) break;
+      const pi = srBracket(m[1].slice(1, -1));
+      s = s.slice(0, m.index);
+      if (pi) { part = pi; break; }
+    }
+    if (!part) {
+      let m;
+      if ((m = SR_RE.word.exec(s))) part = { label: m[2], rank: srWordRank(m[2]) };
+      else if ((m = SR_RE.one.exec(s))) part = { label: m[2], rank: srWordRank(m[2]) };
+      else if ((m = SR_RE.pfx.exec(s))) part = { label: m[2], rank: srNum(m[2]) };
+      else if ((m = SR_RE.cnt.exec(s))) part = { label: m[2], rank: srNum(m[2]) };
+      else if ((m = SR_RE.plain.exec(s))) part = { label: m[2], rank: srNum(m[2]) };
+      if (m) s = m[1];
+    }
+    const base = norm(s);
+    if (base.length < 2) return none;
+    return { base, label: part ? part.label : '', rank: part ? part.rank : 0, marked: !!part };
+  }
+  // 把書架的各組漫畫依系列連起來：g.related = 同系列的其他組（照前編→後編、1→2→3 排）
+  function linkSeries(list, ov) {
+    const byId = new Map();
+    list.forEach((g) => {
+      g.related = [];
+      g.sids = new Set();
+      g.marked = false;
+      g.sr = seriesOf(g.title);
+      g.noSeries = g.entries.some((e) => ov['x:' + e.key] && ov['x:' + e.key].g === '-');
+      if (g.noSeries) return;
+      g.sids.add(g.key);
+      g.entries.forEach((e) => {
+        if (e.comic) {
+          const p = seriesOf(e.comic);
+          if (p.base.length >= 2) g.sids.add('a:' + p.base);
+          if (p.marked) g.marked = true;
+        }
+        const o = ov['x:' + e.key];
+        if (o && o.g && o.g !== '-') g.sids.add(o.g);
+      });
+      g.sids.forEach((id) => { if (!byId.has(id)) byId.set(id, new Set()); byId.get(id).add(g); });
+    });
+    list.forEach((g) => {
+      const rel = new Set();
+      g.sids.forEach((id) => {
+        const set = byId.get(id);
+        if (!set || set.size < 2) return;
+        if (id.startsWith('a:') && ![...set].some((x) => x.marked)) return; // 自動認的系列至少要有一部帶標記
+        set.forEach((x) => { if (x !== g) rel.add(x); });
+      });
+      g.related = [...rel].sort((a, b) => (a.sr.rank - b.sr.rank) || (b.t - a.t));
+    });
+  }
+  const bigrams = (t) => { const o = new Set(); for (let i = 0; i < t.length - 1; i++) o.add(t.slice(i, i + 2)); return o; };
+  function similarity(a, b) {
+    if (a === b) return 1;
+    const [sh, lo] = a.length <= b.length ? [a, b] : [b, a];
+    if (sh.length >= 4 && lo.includes(sh)) return 0.9;
+    const x = bigrams(a), y = bigrams(b);
+    if (!x.size || !y.size) return 0;
+    let n = 0;
+    x.forEach((g) => { if (y.has(g)) n++; });
+    return n / (x.size + y.size - n);
+  }
+  /* 手動分組／系列：下面這幾個函式只「算出要寫哪些設定」，回傳 { 設定鍵: { g, t } }（不碰儲存、不畫畫面）。
+   * 書架和圖書館共用同一份，所以兩邊改出來的結果一模一樣。
+   * prefix 為 'x:' 時是「系列」設定：值是要連到的那組的 key，'-' 代表「不是同系列」，空字串＝取消 */
+  function setPatch(entries, g, prefix, t) {
+    const out = {};
+    entries.forEach((e) => { out[(prefix || '') + e.key] = { g, t }; });
+    return out;
+  }
+  // 合併：把 srcGroups 的紀錄都併進 targetKey，並記下「這些書名 → 這一部」的別名，之後別的網站出現同名的就自動歸過來
+  function joinPatch(srcGroups, targetKey, ov, t) {
+    const out = {}, srcKeys = new Set(srcGroups.map((g) => g.key));
+    srcGroups.forEach((g) => g.entries.forEach((e) => {
+      out[e.key] = { g: targetKey, t };
+      const nk = norm(e.comic);
+      if (!nk) return;
+      if ('n:' + nk !== targetKey) out['al:' + nk] = { g: targetKey, t };
+      else if (ov['al:' + nk] && ov['al:' + nk].g) out['al:' + nk] = { g: '', t }; // 書名本身就是目標：不需要別名，舊的清掉
+    }));
+    Object.keys(ov).forEach((k) => { if (k.startsWith('al:') && ov[k].g && srcKeys.has(ov[k].g)) out[k] = { g: targetKey, t }; }); // 原本指到被併掉那一組的別名，改指到新的
+    return out;
+  }
+  // 拆開：這筆自己一組，並清掉它書名的別名（不然下次又被自動歸回去）
+  function splitPatch(e, ov, t) {
+    const out = setPatch([e], 's:' + e.key, '', t), nk = norm(e.comic);
+    if (nk && ov['al:' + nk] && ov['al:' + nk].g) out['al:' + nk] = { g: '', t };
+    return out;
+  }
+  // 手動設為同系列：src 連到 g；兩邊先前標過「不是同系列」的，一併清掉（不然新的連結不會生效）
+  function linkPatch(src, g, ov, t) {
+    const out = {};
+    g.entries.forEach((e) => { const o = ov['x:' + e.key]; if (o && o.g === '-') out['x:' + e.key] = { g: '', t }; });
+    src.entries.forEach((e) => { out['x:' + e.key] = { g: g.key, t }; });
+    return out;
+  }
+  // 取消兩部漫畫之間的系列連結：手動連的就取消手動設定；自動認的就把對方標成「不是同系列」
+  function unlinkPatch(g, r, ov, t) {
+    const out = {};
+    let manual = false;
+    [[g, r], [r, g]].forEach(([a, b]) => a.entries.forEach((e) => {
+      const o = ov['x:' + e.key];
+      if (o && o.g === b.key) { manual = true; out['x:' + e.key] = { g: '', t }; }
+    }));
+    return manual ? out : setPatch(r.entries, '-', 'x:', t);
+  }
   const SQ_OPS = { tag: 'tag', status: 'tag', 狀態: 'tag', 状态: 'tag', 標記: 'tag', 标记: 'tag', site: 'site', 網站: 'site', 网站: 'site', author: 'author', 作者: 'author', note: 'note', 備註: 'note', 备注: 'note', is: 'is' };
   function parseShelfQuery(raw) {
     const ops = [], free = [];
@@ -416,6 +630,8 @@ let data = LS.get(DATA_KEY, null);        // { at, rows, groups }
 let groups = [];                          // 歸好的作品
 let query = '', shown = [], openKey = '', drawerOpener = null, drawerPushed = false, editMode = false, editNote = null;
 let views = [];              // 我的群組（存好的篩選組合）
+let bms = [];                // 書籤（試算表分組分頁裡的 bm:<頁數>@<章節網址>）
+let bmByEntry = new Map();   // 紀錄鍵 → 它底下的書籤
 let grpEdit = null, grpErr = '', grpFocus = false;   // 群組名稱編輯器：{ mode: 'new' | 'rename', id, name }
 let lastError = '';
 let loading = false, noCache = false;
@@ -460,6 +676,7 @@ function buildGroups(d) {
     const pg = progressOf(g.entries[0]); // 作品的進度 = 最近讀的那一筆（和封面上顯示的一致）
     g.pst = pg.text && !pg.unknown ? (pg.red ? 'unread' : 'latest') : ''; g.left = pg.red ? (pg.left || 0) : 0;
   });
+  linkSeries(list, ov); // 同系列的作品互相連起來（g.related）；和書架同一套判斷
   return list.sort((a, b) => b.t - a.t);
 }
 
@@ -646,12 +863,16 @@ function defaultViewName() { // 目前選的晶片，依畫面上的順序用「
 }
 const newViewId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 4);
 // 寫回試算表：只要求「這之後有變動的列」（幾乎沒有），不用把整份書架再抓一遍；回來的分組設定是最新的整份
-async function saveViews(patch) {
-  const t = Date.now(), gs = {};
-  Object.keys(patch).forEach((k) => { gs[k] = { g: patch[k], t }; });
-  const r = await api({ type: 'shelf', groups: gs, since: t });
+// patch：{ 設定鍵: { g, t } }（值留空＝取消那筆設定）。分組、系列、書籤、我的群組都用這個
+async function pushPatch(patch) {
+  const r = await api({ type: 'shelf', groups: patch, since: Date.now() });
   data = Object.assign({}, data, { groups: r.groups || {} });
   noCache = !LS.set(DATA_KEY, data);
+}
+async function saveViews(map) {
+  const t = Date.now(), patch = {};
+  Object.keys(map).forEach((k) => { patch[k] = { g: map[k], t }; });
+  await pushPatch(patch);
 }
 async function commitGroup(rawName) {
   const name = String(rawName || '').trim().slice(0, 30) || defaultViewName() || '我的群組';
@@ -823,6 +1044,7 @@ let groupsFor = null;
 function render() {
   if (groupsFor !== data) { groups = data ? buildGroups(data) : []; groupsFor = data; } // 作品只在資料變了才重建（搜尋、篩選、切換檢視不用重算）
   views = viewsOf(data);
+  bms = bookmarksFrom(data); bmByEntry = new Map(); bms.forEach((b) => { if (!bmByEntry.has(b.ek)) bmByEntry.set(b.ek, []); bmByEntry.get(b.ek).push(b); });
   shown = visibleGroups();
   renderChips();
   renderStat();
@@ -909,17 +1131,166 @@ function armButton(btn, label, run) {
   });
 }
 
+/* ── 書籤 ──
+ * 油猴腳本在閱讀器裡加的書籤：每一頁一列，鍵 bm:<頁數>@<章節網址>，值是漫畫資訊的 JSON。和書架共用同一份（試算表的書架分組分頁）。 */
+const safeHref = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
+function bookmarksFrom(d) {
+  const out = [], gs = (d && d.groups) || {};
+  Object.keys(gs).forEach((k) => {
+    const m = /^bm:(\d+)@(.+)$/.exec(k), v = gs[k];
+    if (!m || !v || !v.g) return;
+    try {
+      const meta = JSON.parse(v.g), fam = famOf(meta.site || '') || '';
+      const cid = fam ? cidOf(fam, meta.toc || '', m[2]) : '';
+      out.push({ k, page: Number(m[1]), url: m[2], comic: String(meta.comic || ''), chapter: String(meta.chapter || ''), fam, ek: cid || (fam + '|' + (meta.comic || '')), t: Number(v.t) || 0 });
+    } catch (e) { /* 壞掉的書籤：略過 */ }
+  });
+  return out;
+}
+// 「前往」：有油猴腳本時，先請它記下「下一次開那一頁要跳到第幾頁」（和書架的「前往」一樣）；沒有腳本就只開到那一話
+function bmLink(b) {
+  const a = document.createElement('a');
+  a.className = 'btn'; a.href = safeHref(b.url); a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = '前往第 ' + b.page + ' 頁'; a.setAttribute('data-bm-go', b.k);
+  a.addEventListener('click', () => { if (bridgeOn() && b.page > 1) { document.documentElement.setAttribute('data-tmr-jump', JSON.stringify({ url: b.url, page: b.page })); document.dispatchEvent(new Event('tmr-jump')); } });
+  return a;
+}
+// 一列書籤。onRemove：給了就多一個「移除」（要按兩次）
+function bmRowEl(b, onRemove) {
+  const r = document.createElement('div'); r.className = 'bmrow';
+  const t = document.createElement('span'); t.className = 'bt'; t.textContent = '🔖 第 ' + b.page + ' 頁' + (b.chapter ? ' · ' + b.chapter : ''); r.append(t, bmLink(b));
+  if (onRemove) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.setAttribute('data-bm-del', b.k); const lab = '移除'; d.textContent = lab; armButton(d, lab, () => onRemove(b)); r.append(d); }
+  return r;
+}
+
+/* ── 彈窗（挑選作品、書籤檢視器共用）── */
+let modalOpener = null;
+function showModal(id, focusId, returnTo) {
+  // 關掉後焦點要回去的地方（從選單開的，選單已經收起，就回到「⋯」）
+  modalOpener = returnTo || document.activeElement;
+  $(id).hidden = false; document.body.style.overflow = 'hidden';
+  setTimeout(() => { const f = $(focusId); if (f) f.focus(); }, 0);
+}
+function hideModal(id) {
+  $(id).hidden = true;
+  if (!openKey && $('pick').hidden && $('bm').hidden) document.body.style.overflow = '';
+  if (modalOpener && modalOpener.isConnected && modalOpener.focus) modalOpener.focus({ preventScroll: true });
+  modalOpener = null;
+}
+['pick', 'bm'].forEach((id) => {
+  $(id).addEventListener('mousedown', (e) => { if (e.target === $(id)) { if (id === 'pick') closePick(); else hideModal('bm'); } });
+  $(id).addEventListener('keydown', (e) => { // Tab 不要跑到後面的頁面
+    if (e.key !== 'Tab') return;
+    const f = [...$(id).querySelectorAll('input, button, a[href]')].filter((x) => !x.disabled && !x.hidden && x.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+});
+
+/* ── 合併／拆開／同系列 ──
+ * 「要寫哪些設定」是書架的程式直接抽出來的（joinPatch／splitPatch／linkPatch／unlinkPatch），所以兩邊改出來的結果一模一樣。 */
+const ovOf = () => overrides({ sgroups: (data && data.groups) || {}, lgroups: {} });
+let pickSt = null; // { mode: 'merge' | 'series', src, sel }
+function openPick(mode, src) {
+  pickSt = { mode, src, sel: null };
+  $('pickTitle').textContent = mode === 'merge' ? '併入另一部' : '設為同系列';
+  $('pickDesc').textContent = mode === 'merge' ? '把「' + src.title + '」併入下面選的那一部：兩邊的閱讀紀錄合成一部，之後別的網站出現同名的紀錄也會自動歸過去。' : '把「' + src.title + '」和下面選的作品連成同系列：進度各自獨立，只是互相連起來，可以隨時取消連結。';
+  $('pickQ').value = ''; $('pickMsg').textContent = ''; $('pickMsg').className = 'msg';
+  renderPick(); showModal('pick', 'pickQ');
+}
+function closePick() { pickSt = null; hideModal('pick'); }
+// 候選：最像的排前面（兩個書名越像越前面；有關鍵字就先照關鍵字篩）
+function pickCandidates(q) {
+  const st = pickSt;
+  let list = groups.filter((h) => h !== st.src && (st.mode !== 'series' || !st.src.related.includes(h)));
+  if (q.trim()) list = filterGroups(list, q.trim(), () => 0);
+  const base = norm(st.src.title);
+  return list.map((h) => ({ h, sc: similarity(base, norm(h.title)) })).sort((a, b) => (b.sc - a.sc) || (b.h.t - a.h.t)).slice(0, 40);
+}
+function renderPick() {
+  const st = pickSt;
+  if (!st) return;
+  const list = $('pickList'), conf = $('pickConfirm');
+  list.textContent = '';
+  if (st.sel) { // 確認畫面
+    list.hidden = true; $('pickQ').hidden = true; conf.hidden = false; $('pickOk').hidden = false; $('pickCancel').textContent = '返回';
+    conf.textContent = st.mode === 'merge' ? '把「' + st.src.title + '」（' + st.src.entries.length + ' 個網站）併入「' + st.sel.title + '」？併入後沿用「' + st.sel.title + '」的狀態標記與備註；之後可以用「拆開」分回來。' : '把「' + st.src.title + '」和「' + st.sel.title + '」連成同系列？';
+    return;
+  }
+  list.hidden = false; $('pickQ').hidden = false; conf.hidden = true; $('pickOk').hidden = true; $('pickCancel').textContent = '取消';
+  const cands = pickCandidates($('pickQ').value);
+  if (!cands.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '找不到符合的作品'; list.append(e); return; }
+  cands.forEach(({ h, sc }) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pickrow'; b.setAttribute('data-pick', h.key);
+    const tt = document.createElement('span'); tt.className = 'tt'; tt.textContent = h.title;
+    const sub = document.createElement('span'); sub.className = 'sub'; sub.textContent = h.fams.map((f) => SITE_LABEL[f] || f).join('、') + '　' + (progressOf(h.entries[0]).text || h.entries[0].chapter || '');
+    b.append(tt, sub);
+    if (st.mode === 'merge' && sc >= 0.6) { const g = document.createElement('span'); g.className = 'sug'; g.textContent = '可能是同一部'; b.append(g); }
+    b.addEventListener('click', () => { st.sel = h; renderPick(); $('pickOk').focus(); });
+    list.append(b);
+  });
+}
+$('pickQ').addEventListener('input', () => { if (pickSt && !pickSt.sel) renderPick(); });
+$('pickCancel').addEventListener('click', () => { if (pickSt && pickSt.sel) { pickSt.sel = null; renderPick(); $('pickQ').focus(); } else closePick(); });
+$('pickOk').addEventListener('click', async () => {
+  const st = pickSt;
+  if (!st || !st.sel) return;
+  const src = st.src, tgt = st.sel, mode = st.mode;
+  $('pickOk').disabled = true; $('pickMsg').className = 'msg'; $('pickMsg').textContent = '儲存中…';
+  try {
+    const t = Date.now(), ov = ovOf();
+    await pushPatch(mode === 'merge' ? joinPatch([src], tgt.key, ov, t) : linkPatch(src, tgt, ov, t));
+    closePick();
+    editNote = { cls: 'ok', text: mode === 'merge' ? '✓ 已併入「' + tgt.title + '」' : '✓ 已設為同系列：「' + tgt.title + '」' };
+    render();
+    openDrawer(mode === 'merge' ? tgt.key : src.key, '#editBtn', true);
+  } catch (err) { $('pickMsg').className = 'msg err'; $('pickMsg').textContent = '✗ ' + (err && err.message ? err.message : err); }
+  finally { $('pickOk').disabled = false; }
+});
+
+/* ── 書籤檢視器 ── */
+function openBm() { $('bmQ').value = ''; $('bmMsg').textContent = ''; renderBm(); showModal('bm', 'bmQ', $('more')); }
+function renderBm() {
+  const q = norm($('bmQ').value), list = $('bmList');
+  list.textContent = '';
+  const gOf = new Map(); groups.forEach((g) => g.entries.forEach((e) => gOf.set(e.key, g)));
+  const by = new Map();
+  bms.forEach((b) => {
+    const g = gOf.get(b.ek) || null, key = g ? g.key : 'c:' + norm(b.comic);
+    if (!by.has(key)) by.set(key, { g, title: g ? g.title : (b.comic || '（找不到這部漫畫的紀錄）'), t: g ? g.t : 0, items: [] });
+    by.get(key).items.push(b);
+  });
+  let items = [...by.values()];
+  if (q) items = items.filter((x) => norm(x.title + ' ' + x.items.map((b) => b.chapter).join(' ')).includes(q));
+  items.sort((a, b) => (b.t - a.t) || (a.title < b.title ? -1 : 1));
+  $('bmDesc').textContent = bms.length ? '共 ' + bms.length + ' 個書籤（' + by.size + ' 部）。' + (bridgeOn() ? '' : '沒有油猴腳本時，「前往」只會開到那一話，不會自動跳到該頁。') : '還沒有書籤。在閱讀器裡加書籤後，這裡就會出現（和書架共用）。';
+  if (bms.length && !items.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '找不到符合的書籤'; list.append(e); return; }
+  items.forEach((x) => {
+    const box = document.createElement('div'); box.className = 'bmgroup';
+    if (x.g) { const t = document.createElement('button'); t.type = 'button'; t.className = 'gt'; t.setAttribute('data-bm-open', x.g.key); t.textContent = x.title; t.title = '開啟這部的詳情'; t.addEventListener('click', () => { hideModal('bm'); openDrawer(x.g.key); }); box.append(t); }
+    else { const t = document.createElement('div'); t.className = 'gt'; t.textContent = x.title; box.append(t); }
+    x.items.sort((a, b) => (a.chapter < b.chapter ? -1 : a.chapter > b.chapter ? 1 : 0) || (a.page - b.page)).forEach((b) => box.append(bmRowEl(b, async (bk) => {
+      try { await pushPatch({ [bk.k]: { g: '', t: Date.now() } }); render(); renderBm(); }
+      catch (err) { $('bmMsg').className = 'msg err'; $('bmMsg').textContent = '✗ 移除失敗：' + (err && err.message ? err.message : err); renderBm(); }
+    })));
+    list.append(box);
+  });
+}
+$('bmQ').addEventListener('input', renderBm);
+$('bmClose').addEventListener('click', () => hideModal('bm'));
+
 /* ── 詳情 ── */
 function resumeUrl(e) {
   let u = e.url;
   if (e.fam === 'nhentai' && e.page > 1) u = u.replace(/(\/g\/\d+\/)\d+(\/?)(?=[?#]|$)/, (m0, a, b) => a + e.page + b);
   return u;
 }
-function openDrawer(key, focusSel) {
+function openDrawer(key, focusSel, keepEdit) {
   const g = groups.find((x) => x.key === key);
   if (!g) return;
   if (!openKey) { drawerOpener = document.activeElement; document.body.style.overflow = 'hidden'; try { history.pushState({ lib: 'drawer' }, ''); drawerPushed = true; } catch (e) { drawerPushed = false; } } // 手機的「返回」鍵會先關詳情，不會直接離開圖書館
-  if (key !== openKey) { editMode = false; editNote = null; }
+  if (key !== openKey && !keepEdit) { editMode = false; editNote = null; }
   openKey = key;
   const body = $('dbody');
   body.textContent = '';
@@ -1000,9 +1371,39 @@ function openDrawer(key, focusSel) {
       const a2 = document.createElement('a'); a2.className = 'btn'; a2.href = e.fUrl; a2.target = '_blank'; a2.rel = 'noopener noreferrer'; a2.textContent = '最遠：' + e.fChapter; acts.append(a2);
     }
     s.append(acts);
+    const bl = (bmByEntry.get(e.key) || []).slice().sort((a, b2) => (a.chapter < b2.chapter ? -1 : a.chapter > b2.chapter ? 1 : 0) || (a.page - b2.page));
+    bl.forEach((b2) => s.append(bmRowEl(b2, editMode ? (bk) => doEdit(() => pushPatch({ [bk.k]: { g: '', t: Date.now() } }), '已移除書籤', '#editBtn') : null)));
+    if (editMode && g.entries.length > 1) {
+      const sp = document.createElement('button'); sp.type = 'button'; sp.className = 'btn'; sp.setAttribute('data-split', e.key); sp.textContent = '✂ 拆開（獨立成一部）'; sp.title = '把這個網站的紀錄從這部分出去，自己變成一部';
+      sp.addEventListener('click', () => doEdit(() => pushPatch(splitPatch(e, ovOf(), Date.now())), '已把「' + (SITE_LABEL[e.fam] || e.host) + '」拆成獨立的一部', '#editBtn'));
+      acts.append(sp);
+    }
     if (editMode && g.entries.length > 1) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.setAttribute('data-del', e.key); const lab = '刪除這個網站的紀錄'; d.textContent = lab; armButton(d, lab, () => doEdit(() => deleteEntries(g, [e], false), '已刪除「' + (SITE_LABEL[e.fam] || e.host) + '」的紀錄', '#editBtn')); acts.append(d); }
     body.append(s);
   });
+  if (g.related.length) { // 同系列：互相連起來的其他作品（進度各自獨立）
+    const sec2 = document.createElement('div'); sec2.className = 'sec'; sec2.textContent = '同系列'; body.append(sec2);
+    g.related.forEach((r) => {
+      const d = document.createElement('div'); d.className = 'rel'; d.setAttribute('data-rel', r.key);
+      const lb = document.createElement('span'); lb.className = 'rl'; lb.textContent = '📎 ' + (r.sr.label || '同系列');
+      const tt = document.createElement('span'); tt.className = 'rt2'; tt.textContent = r.title + (progressOf(r.entries[0]).text ? '　' + progressOf(r.entries[0]).text : '');
+      const op = document.createElement('button'); op.type = 'button'; op.className = 'btn'; op.textContent = '看這部'; op.addEventListener('click', () => openDrawer(r.key));
+      d.append(lb, tt, op);
+      if (editMode) { const un = document.createElement('button'); un.type = 'button'; un.className = 'btn'; un.setAttribute('data-unlink', r.key); un.textContent = '取消連結'; un.addEventListener('click', () => doEdit(() => pushPatch(unlinkPatch(g, r, ovOf(), Date.now())), '已取消連結', '#editBtn')); d.append(un); }
+      body.append(d);
+    });
+  }
+  if (editMode) {
+    const org = document.createElement('div'); org.className = 'edit'; org.style.marginTop = '14px';
+    const ol = document.createElement('div'); ol.className = 'lbl'; ol.textContent = '整理'; org.append(ol);
+    const or2 = document.createElement('div'); or2.className = 'row2';
+    const mk2 = (id, label, title, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.id = id; b.textContent = label; b.title = title; b.addEventListener('click', fn); or2.append(b); };
+    mk2('mergeBtn', '🔀 併入另一部…', '這部和另一部其實是同一部漫畫：把兩邊的紀錄合起來', () => openPick('merge', g));
+    mk2('seriesBtn', '📎 設為同系列…', '前編／後編、第 1 集／第 2 集這類：進度各自獨立，只是互相連起來', () => openPick('series', g));
+    if (g.related.length) mk2('noSeriesBtn', '不是同系列', '這些連起來的作品其實不是同系列', () => doEdit(() => pushPatch(setPatch(g.entries, '-', 'x:', Date.now())), '已標成「不是同系列」', '#editBtn'));
+    else if (g.noSeries) mk2('reSeriesBtn', '恢復系列連結', '取消「不是同系列」的標記', () => doEdit(() => pushPatch(setPatch(g.entries, '', 'x:', Date.now())), '已恢復系列連結', '#editBtn'));
+    org.append(or2); body.append(org);
+  }
   if (editMode) {
     const z = document.createElement('div'); z.className = 'delzone';
     const hint = document.createElement('div'); hint.className = 'lbl'; hint.textContent = '從試算表刪掉這部的所有閱讀紀錄（' + g.entries.length + ' 個網站），沒辦法還原。書架那邊下次更新後也會消失。';
@@ -1057,6 +1458,40 @@ function gridMove(cur, key) {
   if (to) to.focus();
   return true; // 到頭了也算處理過（不要讓頁面跟著捲）
 }
+/* ── 手機：詳情（從底部升起的卡片）往下滑關閉 ──
+ * 從最上面那條（小把手＋標題列）往下拖：卡片跟著手指走；拖過一段距離、或快速往下甩就關閉，否則彈回去。
+ * 輕點按鈕（上一部／下一部／✕）照常運作：只有真的拖動才算滑動。 */
+(function swipeDown() {
+  const dr = $('drawer');
+  const mobile = () => matchMedia('(max-width: 640px)').matches;
+  let st = null, justDragged = false;
+  const reset = () => { dr.style.transition = ''; dr.style.transform = ''; };
+  [dr.querySelector('.grab'), dr.querySelector('.dhead')].forEach((el) => {
+    el.addEventListener('pointerdown', (e) => { if (!mobile() || !openKey || (e.pointerType === 'mouse' && e.button !== 0)) return; st = { y0: e.clientY, t0: e.timeStamp, dy: 0, id: e.pointerId, moved: false }; });
+    el.addEventListener('pointermove', (e) => {
+      if (!st || e.pointerId !== st.id) return;
+      const dy = e.clientY - st.y0;
+      if (!st.moved) { if (Math.abs(dy) < 8) return; st.moved = true; try { el.setPointerCapture(e.pointerId); } catch (err) { /* 不支援就算了 */ } dr.style.transition = 'none'; }
+      st.dy = Math.max(0, dy); // 只能往下拖
+      dr.style.transform = 'translateY(' + st.dy + 'px)';
+    });
+    const end = (e, cancelled) => {
+      if (!st || e.pointerId !== st.id) return;
+      const s = st; st = null;
+      if (!s.moved) return;
+      justDragged = true; setTimeout(() => { justDragged = false; }, 60);
+      const v = s.dy / Math.max(1, e.timeStamp - s.t0), h = dr.getBoundingClientRect().height;
+      if (!cancelled && (s.dy > Math.min(120, h * 0.25) || (v > 0.6 && s.dy > 30))) {
+        // 直接關（不等瀏覽器的返回）：同一個動作裡清掉拖動的位移並移掉 .on，卡片就從目前位置滑出去
+        reset(); hideDrawer();
+        if (drawerPushed) { drawerPushed = false; try { history.back(); } catch (err) { /* 回不去就算了 */ } } // 把開詳情時多的那一格紀錄退掉
+      } else reset();
+    };
+    el.addEventListener('pointerup', (e) => end(e, false));
+    el.addEventListener('pointercancel', (e) => end(e, true));
+  });
+  dr.addEventListener('click', (e) => { if (justDragged) { e.stopPropagation(); e.preventDefault(); } }, true); // 拖完放開不要誤觸按鈕
+})();
 function stepDrawer(d) {
   if (!openKey) return;
   const i = shown.findIndex((g) => g.key === openKey);
@@ -1099,34 +1534,43 @@ async function refresh() {
   }
 }
 
-/* ── 更多功能：更新 NicoManga ──
- * NicoManga 的章節清單要網頁自己渲染才讀得到，而圖書館（網頁）沒辦法開別的網站的分頁，所以請油猴腳本 v3.21.0 以上幫忙：
- * 腳本在這個網頁上標 data-tmr-bridge="1"；按下按鈕就對 document 發 'tmr-nico-toggle'；腳本把狀態（JSON 文字）寫在 data-tmr-nico 並發 'tmr-nico-state'。 */
+/* ── 更多功能：書籤檢視器、更新檢查 ──
+ * 檢查更新要讀各個漫畫網站，圖書館（網頁）自己做不到（跨網域限制；NicoManga 還要開分頁讓網頁自己渲染），所以請油猴腳本 v3.22.0 以上幫忙：
+ * 腳本在這個網頁上標 data-tmr-bridge="1"；按鈕對 document 發 'tmr-update-all'（全部網站）或 'tmr-nico-toggle'（只有 NicoManga），再按一次是停止；
+ * 腳本把狀態（JSON 文字）寫在 data-tmr-nico 並發 'tmr-nico-state'；書籤「前往」用 data-tmr-jump＋'tmr-jump' 請腳本記下要跳到第幾頁。 */
 const bridgeOn = () => document.documentElement.getAttribute('data-tmr-bridge') === '1';
-let nicoRunning = false;
+let updRunning = false, updMode = '';
 function setMenu(open) { $('moreMenu').hidden = !open; $('more').setAttribute('aria-expanded', open ? 'true' : 'false'); }
-function updateNicoItem() {
-  $('nicoBtn').textContent = nicoRunning ? '⏹ 停止更新 NicoManga' : '🔄 更新 NicoManga';
-  $('nicoHint').textContent = bridgeOn() ? '用油猴腳本在背景一部一部開 NicoManga 的頁面更新章節，完成後這裡會自動重新整理。更新中再按一次會停止。' : '需要油猴腳本 v3.21.0 以上，並讓它在這個網頁啟用。';
+function updateUpdItems() {
+  $('bmBtn').textContent = '🔖 書籤檢視器' + (bms.length ? '（' + bms.length + '）' : '');
+  $('allBtn').textContent = updRunning && updMode === 'all' ? '⏹ 停止更新' : '🔄 檢查全部網站更新';
+  $('nicoBtn').textContent = updRunning && updMode === 'nico' ? '⏹ 停止更新 NicoManga' : '🔄 只更新 NicoManga';
+  $('allBtn').disabled = updRunning && updMode !== 'all'; $('nicoBtn').disabled = updRunning && updMode !== 'nico';
+  $('nicoHint').textContent = bridgeOn() ? '用油猴腳本在背景更新章節（NicoManga 會一部一部開分頁），完成後這裡會自動重新整理。更新中再按一次會停止。' : '更新檢查需要油猴腳本 v3.22.0 以上，並讓它在這個網頁啟用。';
 }
-$('more').addEventListener('click', () => { const open = $('moreMenu').hidden; setMenu(open); if (open) { updateNicoItem(); $('nicoBtn').focus(); } });
+$('more').addEventListener('click', () => { const open = $('moreMenu').hidden; setMenu(open); if (open) { updateUpdItems(); $('bmBtn').focus(); } });
 document.addEventListener('mousedown', (e) => { if (!$('moreMenu').hidden && !(e.target.closest && e.target.closest('.morewrap'))) setMenu(false); });
-$('nicoBtn').addEventListener('click', () => {
+$('bmBtn').addEventListener('click', () => { setMenu(false); openBm(); });
+function runUpd(mode) {
   setMenu(false);
-  if (!bridgeOn()) { banner('找不到油猴腳本：請把腳本更新到 v3.21.0 以上，並確認它在這個網頁有啟用（Tampermonkey 的圖示上要看得到這支腳本）。', 'err'); return; }
-  document.dispatchEvent(new Event('tmr-nico-toggle'));
-});
-document.addEventListener('tmr-bridge-ready', updateNicoItem);
+  if (!bridgeOn()) { banner('找不到油猴腳本：請把腳本更新到 v3.22.0 以上，並確認它在這個網頁有啟用（Tampermonkey 的圖示上要看得到這支腳本）。', 'err'); return; }
+  updMode = mode;
+  document.dispatchEvent(new Event(mode === 'all' ? 'tmr-update-all' : 'tmr-nico-toggle'));
+}
+$('allBtn').addEventListener('click', () => runUpd('all'));
+$('nicoBtn').addEventListener('click', () => runUpd('nico'));
+document.addEventListener('tmr-bridge-ready', updateUpdItems);
 document.addEventListener('tmr-nico-state', () => {
   let r = null;
   try { r = JSON.parse(document.documentElement.getAttribute('data-tmr-nico') || 'null'); } catch (e) { r = null; }
   if (!r) return;
-  nicoRunning = r.s === 'run' || r.s === 'stopping';
-  updateNicoItem();
-  if (nicoRunning) { banner(String(r.text || ''), 'info'); return; }
+  updRunning = r.s === 'run' || r.s === 'stopping';
+  if (r.all) updMode = 'all';
+  updateUpdItems();
+  if (updRunning) { banner(String(r.text || ''), 'info'); return; }
   if (r.s === 'error') { banner(String(r.text || '更新失敗'), 'err'); return; }
   // 做完（或停止）：腳本已經把最新話數送到試算表，重新載入資料就看得到
-  refresh().then(() => { banner(String(r.text || ''), 'info'); setTimeout(() => { if (!lastError && !nicoRunning) banner(''); }, 12000); });
+  refresh().then(() => { banner(String(r.text || ''), 'info'); setTimeout(() => { if (!lastError && !updRunning) banner(''); }, 12000); });
 });
 
 /* ── 連線設定視窗 ── */
@@ -1177,9 +1621,9 @@ $('cTest').addEventListener('click', testConnect);
 let logoutArmed = false;
 $('cLogout').addEventListener('click', async () => {
   if (!logoutArmed) { logoutArmed = true; $('cLogout').textContent = '確定登出？'; setTimeout(() => { logoutArmed = false; $('cLogout').textContent = '登出並清除本機資料'; }, 4000); return; }
-  try { const db = await idb(); if (db) db.close(); } catch (e) { /* ignore */ }
+  [CFG_KEY, DATA_KEY, UI_KEY].forEach((k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }); // 先同步清掉網址、密鑰、資料（不要等 IndexedDB）
   covUrl.forEach((h) => URL.revokeObjectURL(h.url));
-  [CFG_KEY, DATA_KEY, UI_KEY].forEach((k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } });
+  try { const db = await idb(); if (db) db.close(); } catch (e) { /* ignore */ }
   try { indexedDB.deleteDatabase('manga-library'); } catch (e) { /* ignore */ }
   location.reload();
 });
@@ -1195,16 +1639,18 @@ $('connectForm').addEventListener('submit', async (e) => {
 document.addEventListener('keydown', (e) => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '');
   if (e.key === 'Escape') {
+    if (!$('pick').hidden) { if (pickSt && pickSt.sel) { pickSt.sel = null; renderPick(); $('pickQ').focus(); } else closePick(); return; }
+    if (!$('bm').hidden) { hideModal('bm'); return; }
     if (!$('moreMenu').hidden) { setMenu(false); $('more').focus(); return; }
     if (!$('connect').hidden && connected()) { closeConnect(); return; }
     if (openKey) { closeDrawer(); return; }
     if (document.activeElement === $('q') && $('q').value) { $('q').value = ''; query = ''; render(); return; }
   }
-  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (typing || !$('pick').hidden || !$('bm').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === '/') { e.preventDefault(); $('q').focus(); }
   else if (openKey && e.key === 'ArrowLeft') stepDrawer(-1);
   else if (openKey && e.key === 'ArrowRight') stepDrawer(1);
-  else if (!openKey && $('connect').hidden && e.key.startsWith('Arrow') && gridMove(document.activeElement, e.key)) e.preventDefault();
+  else if (!openKey && $('connect').hidden && $('pick').hidden && $('bm').hidden && e.key.startsWith('Arrow') && gridMove(document.activeElement, e.key)) e.preventDefault();
 });
 // 抽屜打開時，Tab 不要跑到後面的頁面（簡單的焦點圈住）
 $('drawer').addEventListener('keydown', (e) => {
