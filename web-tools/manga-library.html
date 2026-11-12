@@ -102,6 +102,15 @@ select.btn { padding-right: 6px; }
 .covtools { margin-top: 10px; }
 .covmsg { margin-top: 6px; font-size: 12.5px; color: var(--muted); min-height: 18px; word-break: break-word; }
 .covmsg.ok { color: var(--ok); } .covmsg.err { color: var(--danger); }
+.edit { margin: 14px 0 4px; padding: 12px; border-radius: 12px; background: var(--surface2); display: grid; gap: 8px; }
+.edit .lbl { font-size: 12.5px; color: var(--muted); }
+.edit .stchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.edit .stchips .chip { height: 28px; }
+.edit textarea { width: 100%; min-height: 64px; resize: vertical; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 8px 10px; font: inherit; font-size: 14px; }
+.edit .row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, var(--line)); }
+.btn.danger.armed { background: var(--danger); color: var(--accent-ink); }
+.delzone { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
 .hero .poster.drop { outline: 2px dashed var(--accent); outline-offset: 3px; }
 .left { font-size: 12.5px; color: var(--muted); }
 .left.red { color: var(--red); }
@@ -388,7 +397,7 @@ if (ui.site) { if (!ui.sites.includes(ui.site)) ui.sites.push(ui.site); delete u
 const saveUi = () => LS.set(UI_KEY, ui);
 let data = LS.get(DATA_KEY, null);        // { at, rows, groups }
 let groups = [];                          // 歸好的作品
-let query = '', shown = [], openKey = '', drawerOpener = null, drawerPushed = false;
+let query = '', shown = [], openKey = '', drawerOpener = null, drawerPushed = false, editMode = false, editNote = null;
 let lastError = '';
 let loading = false, noCache = false;
 
@@ -749,16 +758,47 @@ function emptyBox(big, title, sub) {
   d.append(a, b, c); return d;
 }
 
+/* ── 編輯：狀態、備註、刪除（寫回試算表，和油猴腳本的書架共用同一份資料）── */
+// patch：{ 設定鍵: 值 }，值是空字串＝取消那筆設定。用「分組設定」送出（和書架同一套：每筆以較新的時間為準），回來的是最新的整份資料
+async function saveGroups(patch) {
+  const t = Date.now(), gs = {};
+  Object.keys(patch).forEach((k) => { gs[k] = { g: patch[k], t }; });
+  const r = await api({ type: 'shelf', groups: gs });
+  data = { at: Date.now(), rows: r.rows || [], groups: r.groups || {} };
+  noCache = !LS.set(DATA_KEY, data);
+}
+// 刪除這些網站紀錄：先從試算表刪掉那幾列，再把它們的分組設定（手動合併、系列、最新話數）一起清掉
+async function deleteEntries(g, entries, whole) {
+  const items = entries.flatMap((e) => e.srcRows || []);
+  if (!items.length) throw new Error('找不到這部的原始紀錄');
+  const r = await api({ type: 'delete', items });
+  if (typeof r.deleted !== 'number') throw new Error('試算表的 Apps Script 是舊版，不支援刪除：請貼上新版 reading-log.gs 並重新部署');
+  const patch = {};
+  const have = (k) => data && data.groups && data.groups[k];
+  entries.forEach((e) => ['', 'x:', 'up:'].forEach((pf) => { if (have(pf + e.key)) patch[pf + e.key] = ''; }));
+  if (whole) ['tag:', 'note:'].forEach((pf) => { if (have(pf + g.key)) patch[pf + g.key] = ''; });
+  await saveGroups(patch); // 沒有要清的也照送：順便拿回最新的整份資料
+}
+// 要按兩次才執行（第一次變成「確定？」，4 秒內再按一次）
+function armButton(btn, label, run) {
+  let armed = false, timer = 0;
+  btn.addEventListener('click', async () => {
+    if (!armed) { armed = true; btn.classList.add('armed'); btn.textContent = '確定刪除？'; timer = setTimeout(() => { armed = false; btn.classList.remove('armed'); btn.textContent = label; }, 4000); return; }
+    clearTimeout(timer); armed = false; btn.disabled = true; await run(); btn.disabled = false; btn.classList.remove('armed'); btn.textContent = label;
+  });
+}
+
 /* ── 詳情 ── */
 function resumeUrl(e) {
   let u = e.url;
   if (e.fam === 'nhentai' && e.page > 1) u = u.replace(/(\/g\/\d+\/)\d+(\/?)(?=[?#]|$)/, (m0, a, b) => a + e.page + b);
   return u;
 }
-function openDrawer(key) {
+function openDrawer(key, focusSel) {
   const g = groups.find((x) => x.key === key);
   if (!g) return;
   if (!openKey) { drawerOpener = document.activeElement; document.body.style.overflow = 'hidden'; try { history.pushState({ lib: 'drawer' }, ''); drawerPushed = true; } catch (e) { drawerPushed = false; } } // 手機的「返回」鍵會先關詳情，不會直接離開圖書館
+  if (key !== openKey) { editMode = false; editNote = null; }
   openKey = key;
   const body = $('dbody');
   body.textContent = '';
@@ -792,8 +832,35 @@ function openDrawer(key) {
   poster.addEventListener('dragleave', () => poster.classList.remove('drop'));
   poster.addEventListener('drop', (e) => { e.preventDefault(); poster.classList.remove('drop'); doUpload(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
   ct.append(cbtn, cfile, cmsg); info.append(ct);
+  const ebtn = document.createElement('button'); ebtn.type = 'button'; ebtn.className = 'btn'; ebtn.id = 'editBtn'; ebtn.setAttribute('aria-pressed', editMode ? 'true' : 'false'); ebtn.textContent = editMode ? '✓ 完成編輯' : '✎ 編輯狀態／備註／刪除'; ebtn.style.marginTop = '8px';
+  ebtn.addEventListener('click', () => { editMode = !editMode; editNote = null; openDrawer(g.key, '#editBtn'); });
+  info.append(ebtn);
   hero.append(poster, info); body.append(hero);
   if (g.note) { const n = document.createElement('div'); n.className = 'note'; n.textContent = g.note; body.append(n); }
+  const msg = document.createElement('div'); msg.className = 'covmsg' + (editNote ? ' ' + editNote.cls : ''); msg.id = 'editMsg'; msg.setAttribute('role', 'status'); msg.textContent = editNote ? editNote.text : ''; editNote = null;
+  // 做一個編輯動作：成功就重畫（資料已更新），失敗在訊息列顯示原因
+  const doEdit = async (work, okText, focus) => {
+    msg.className = 'covmsg'; msg.textContent = '儲存中…';
+    try { await work(); editNote = { cls: 'ok', text: '✓ ' + okText }; render(); if (groups.some((x) => x.key === g.key)) openDrawer(g.key, focus); else closeDrawer(); }
+    catch (err) { msg.className = 'covmsg err'; msg.textContent = '✗ ' + (err && err.message ? err.message : err); }
+  };
+  if (editMode) {
+    const ed = document.createElement('div'); ed.className = 'edit';
+    const l1 = document.createElement('div'); l1.className = 'lbl'; l1.textContent = '狀態（再按一次取消）'; ed.append(l1);
+    const sc = document.createElement('div'); sc.className = 'stchips'; sc.setAttribute('role', 'group'); sc.setAttribute('aria-label', '狀態');
+    STATUS_ORDER.forEach((k) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('data-tag', k); b.setAttribute('aria-pressed', g.tag === k ? 'true' : 'false'); b.textContent = TAG_LABEL[k];
+      b.addEventListener('click', () => doEdit(() => saveGroups({ ['tag:' + g.key]: g.tag === k ? '' : k }), g.tag === k ? '已取消狀態' : '狀態已改成「' + TAG_LABEL[k].replace(/^\S+\s/, '') + '」', '[data-tag="' + k + '"]'));
+      sc.append(b);
+    });
+    ed.append(sc);
+    const l2 = document.createElement('div'); l2.className = 'lbl'; l2.textContent = '備註'; ed.append(l2);
+    const ta = document.createElement('textarea'); ta.id = 'noteTa'; ta.maxLength = 500; ta.value = g.note || ''; ta.setAttribute('aria-label', '備註'); ed.append(ta);
+    const r2 = document.createElement('div'); r2.className = 'row2';
+    const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'btn primary'; sv.id = 'noteSave'; sv.textContent = '儲存備註';
+    sv.addEventListener('click', () => { const v = ta.value.trim(); doEdit(() => saveGroups({ ['note:' + g.key]: v }), v ? '備註已儲存' : '備註已清除', '#noteSave'); });
+    r2.append(sv); ed.append(r2); body.append(ed); body.append(msg);
+  } else if (editNote) body.append(msg);
   const sec = document.createElement('div'); sec.className = 'sec'; sec.textContent = '各網站的進度'; body.append(sec);
   g.entries.forEach((e) => {
     const s = document.createElement('div'); s.className = 'src';
@@ -811,15 +878,25 @@ function openDrawer(key) {
     if (e.fUrl && e.fUrl !== e.url && e.fChapter && e.fChapter !== e.chapter) {
       const a2 = document.createElement('a'); a2.className = 'btn'; a2.href = e.fUrl; a2.target = '_blank'; a2.rel = 'noopener noreferrer'; a2.textContent = '最遠：' + e.fChapter; acts.append(a2);
     }
-    s.append(acts); body.append(s);
+    s.append(acts);
+    if (editMode && g.entries.length > 1) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.setAttribute('data-del', e.key); const lab = '刪除這個網站的紀錄'; d.textContent = lab; armButton(d, lab, () => doEdit(() => deleteEntries(g, [e], false), '已刪除「' + (SITE_LABEL[e.fam] || e.host) + '」的紀錄', '#editBtn')); acts.append(d); }
+    body.append(s);
   });
+  if (editMode) {
+    const z = document.createElement('div'); z.className = 'delzone';
+    const hint = document.createElement('div'); hint.className = 'lbl'; hint.textContent = '從試算表刪掉這部的所有閱讀紀錄（' + g.entries.length + ' 個網站），沒辦法還原。書架那邊下次更新後也會消失。';
+    const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.id = 'delAll'; const lab = '🗑 刪除這部'; d.textContent = lab;
+    armButton(d, lab, async () => { try { await deleteEntries(g, g.entries, true); render(); closeDrawer(); banner('已刪除「' + g.title + '」', 'info'); setTimeout(() => { if (!lastError) banner(''); }, 4000); } catch (err) { msg.className = 'covmsg err'; msg.textContent = '✗ ' + (err && err.message ? err.message : err); } });
+    z.append(hint, d); body.append(z);
+  }
   $('drawer').classList.add('on'); $('drawer').setAttribute('aria-hidden', 'false'); $('scrim').classList.add('on');
-  body.scrollTop = 0;
-  $('dclose').focus({ preventScroll: true });
+  if (!focusSel) body.scrollTop = 0;
+  const fe = focusSel && body.querySelector(focusSel);
+  (fe || $('dclose')).focus({ preventScroll: true });
 }
 function hideDrawer() {
   const was = openKey;
-  openKey = '';
+  openKey = ''; editMode = false; editNote = null;
   $('drawer').classList.remove('on'); $('drawer').setAttribute('aria-hidden', 'true'); $('scrim').classList.remove('on');
   document.body.style.overflow = '';
   if (was) { // 焦點回到打開它的那張封面（鍵盤操作才不會迷路）
