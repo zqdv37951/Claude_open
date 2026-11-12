@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="zh-Hant" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>漫畫圖書館</title>
+<style>
+:root {
+  --bg: #0d0f14; --surface: #151922; --surface2: #1d2230; --surface3: #262c3d;
+  --text: #e9ecf4; --muted: #8d96ab; --line: rgba(255,255,255,.08);
+  --accent: #8aa4ff; --accent-ink: #0d0f14; --danger: #ff8a8a; --ok: #7be0a5;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  --tile: 176px; --gutter: 22px;
+  color-scheme: dark;
+}
+html[data-theme="light"] {
+  --bg: #f3f4f8; --surface: #ffffff; --surface2: #eceef4; --surface3: #e1e4ee;
+  --text: #1a1d27; --muted: #667089; --line: rgba(20,24,40,.1);
+  --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b;
+  --shadow: 0 1px 2px rgba(20,24,40,.12), 0 10px 26px -14px rgba(20,24,40,.35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  html[data-theme="auto"] {
+    --bg: #f3f4f8; --surface: #ffffff; --surface2: #eceef4; --surface3: #e1e4ee;
+    --text: #1a1d27; --muted: #667089; --line: rgba(20,24,40,.1);
+    --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b;
+    --shadow: 0 1px 2px rgba(20,24,40,.12), 0 10px 26px -14px rgba(20,24,40,.35);
+    color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── 頂端列 ── */
+.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid var(--line); padding: 12px var(--gutter) 10px; padding-top: max(12px, env(safe-area-inset-top)); }
+.bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; letter-spacing: .2px; margin-right: 6px; white-space: nowrap; }
+.brand .logo { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), #c4b5fd); color: var(--accent-ink); font-size: 16px; }
+.search { flex: 1 1 280px; min-width: 200px; position: relative; max-width: 640px; }
+.search input { width: 100%; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 0 38px 0 38px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.search .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; pointer-events: none; }
+.search input:not(:placeholder-shown) ~ kbd { display: none; }
+.tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 2px; }
+.seg button { border: 0; background: transparent; height: 30px; min-width: 34px; padding: 0 10px; border-radius: 8px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface3); color: var(--text); }
+.btn { height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; }
+.btn:hover { background: var(--surface2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .55; cursor: default; }
+select.btn { padding-right: 6px; }
+.size { width: 84px; accent-color: var(--accent); }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; height: 30px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; transition: background .15s, color .15s, border-color .15s; }
+.chip:hover { color: var(--text); }
+.chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.chip .n { font-size: 11.5px; opacity: .75; font-variant-numeric: tabular-nums; }
+.chips .sep { flex: none; width: 1px; background: var(--line); margin: 4px 2px; }
+
+.banner { margin: 12px var(--gutter) 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.banner.info { background: var(--surface); border-color: var(--line); }
+.banner .grow { flex: 1; min-width: 160px; }
+
+.stat { padding: 14px var(--gutter) 2px; color: var(--muted); font-size: 12.5px; display: flex; gap: 14px; flex-wrap: wrap; }
+
+/* ── 封面牆 ── */
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--tile), 1fr)); gap: 24px 18px; padding: 14px var(--gutter) 90px; }
+.tile { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; border: 0; padding: 0; text-align: left; color: #fff; border-radius: 14px; overflow: hidden; background: var(--surface2); box-shadow: var(--shadow); transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s; content-visibility: auto; contain-intrinsic-size: auto 235px; }
+.tile:hover, .tile:focus-visible { transform: translateY(-5px) scale(1.02); box-shadow: 0 18px 40px -14px rgba(0,0,0,.65); z-index: 2; }
+.tile .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .4s ease, transform .5s ease; }
+.tile .cv.in { opacity: 1; }
+.tile:hover .cv { transform: scale(1.05); }
+.tile .ph { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--tile) * .42); font-weight: 800; color: rgba(255,255,255,.22); letter-spacing: -2px; user-select: none; transition: opacity .3s; }
+.tile .cv.in ~ .ph { opacity: 0; }
+.tile .shade { position: absolute; left: 0; right: 0; bottom: 0; padding: 44px 11px 11px; background: linear-gradient(to top, rgba(6,8,14,.92) 0%, rgba(6,8,14,.55) 55%, rgba(6,8,14,0) 100%); }
+.tile .t { font-weight: 650; font-size: 13.5px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.tile .m { font-size: 11.5px; opacity: 0; max-height: 0; margin-top: 0; transition: opacity .2s, max-height .25s, margin-top .25s; color: rgba(255,255,255,.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile:hover .m, .tile:focus-visible .m { opacity: 1; max-height: 40px; margin-top: 4px; }
+.tile .prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); border-radius: 0 3px 3px 0; }
+.tile .st { position: absolute; top: 8px; left: 8px; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 9px; background: rgba(8,10,16,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: grid; place-items: center; font-size: 13px; }
+.tile .sc { position: absolute; top: 8px; right: 8px; height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(8,10,16,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-size: 11px; display: grid; place-items: center; }
+.tile.skeleton { background: linear-gradient(100deg, var(--surface2) 30%, var(--surface3) 50%, var(--surface2) 70%); background-size: 300% 100%; animation: shimmer 1.4s infinite linear; box-shadow: none; pointer-events: none; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ── 清單 ── */
+.rows { display: flex; flex-direction: column; gap: 6px; padding: 14px var(--gutter) 90px; }
+.row { display: grid; grid-template-columns: 46px 1fr auto; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 8px 12px 8px 8px; border-radius: 12px; border: 1px solid transparent; background: var(--surface); transition: background .15s, border-color .15s; }
+.row:hover, .row:focus-visible { background: var(--surface2); border-color: var(--line); }
+.row .th { width: 46px; height: 62px; border-radius: 8px; overflow: hidden; position: relative; background: var(--surface3); display: grid; place-items: center; font-weight: 800; color: var(--muted); }
+.row .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.row .tt { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .ss { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .rt { color: var(--muted); font-size: 12px; text-align: right; white-space: nowrap; }
+.row .info { min-width: 0; }
+
+.cont { padding: 10px var(--gutter) 0; }
+.cont h3 { margin: 6px 0 10px; font-size: 15px; }
+.cont-row { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.cc { flex: none; width: 290px; display: grid; grid-template-columns: 1fr 44px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; scroll-snap-align: start; transition: border-color .15s, background .15s; }
+.cc:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.cc-main { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; text-align: left; border: 0; background: transparent; padding: 10px 6px 10px 10px; min-width: 0; }
+.cc .th { width: 52px; height: 70px; border-radius: 8px; overflow: hidden; position: relative; display: grid; place-items: center; font-weight: 800; }
+.cc .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cc .info { min-width: 0; }
+.cc .tt { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc .ss { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc .bar2 { margin: 5px 0; }
+.cc-go { display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 16%, var(--surface)); color: var(--accent); text-decoration: none; font-size: 15px; }
+.cc-go:hover { background: var(--accent); color: var(--accent-ink); }
+.empty { text-align: center; color: var(--muted); padding: 90px 20px; }
+.empty .big { font-size: 42px; margin-bottom: 8px; }
+
+/* ── 詳情側欄 ── */
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(500px, 100vw); background: var(--surface); z-index: 41; transform: translateX(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); box-shadow: -20px 0 50px -20px rgba(0,0,0,.6); display: flex; flex-direction: column; border-left: 1px solid var(--line); }
+.drawer.on { transform: none; }
+.dhead { display: flex; gap: 8px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); padding-top: max(12px, env(safe-area-inset-top)); }
+.dhead .grow { flex: 1; }
+.dbody { overflow-y: auto; padding: 18px 20px 40px; -webkit-overflow-scrolling: touch; }
+.hero { display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: start; }
+.hero .poster { aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; position: relative; background: var(--surface3); box-shadow: var(--shadow); display: grid; place-items: center; font-size: 54px; font-weight: 800; color: rgba(255,255,255,.25); }
+.hero .poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero h2 { margin: 0 0 4px; font-size: 20px; line-height: 1.3; word-break: break-word; }
+.hero .au { color: var(--muted); margin-bottom: 10px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tag { height: 24px; border-radius: 999px; background: var(--surface3); padding: 0 10px; display: inline-flex; align-items: center; font-size: 12px; }
+.note { margin: 16px 0 4px; padding: 10px 12px; border-radius: 10px; background: var(--surface2); white-space: pre-wrap; word-break: break-word; }
+.sec { margin: 22px 0 8px; font-size: 12.5px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
+.src { padding: 12px; border-radius: 12px; background: var(--surface2); margin-bottom: 10px; }
+.src .h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.src .site { font-weight: 650; color: var(--accent); }
+.src .when { color: var(--muted); font-size: 12px; margin-left: auto; }
+.src .ch { word-break: break-word; }
+.bar2 { height: 5px; border-radius: 3px; background: var(--surface3); margin: 8px 0; overflow: hidden; }
+.bar2 > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+a.btn { text-decoration: none; }
+
+/* ── 連線設定 ── */
+.modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.6); }
+.modal[hidden] { display: none; }
+.card { width: min(460px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); }
+.card h2 { margin: 0 0 6px; font-size: 19px; }
+.card p { color: var(--muted); margin: 0 0 16px; }
+.field { display: block; margin-bottom: 12px; }
+.field > span { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+.field input { width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); padding: 0 12px; }
+.msg { min-height: 20px; margin: 4px 0 12px; font-size: 13px; }
+.msg.err { color: var(--danger); } .msg.ok { color: var(--ok); }
+.card .btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  :root { --gutter: 14px; --tile: 140px; }
+  .wall { gap: 18px 12px; }
+  .brand span.name { display: none; }
+  .bar { gap: 8px; }
+  .search { flex: 1 1 0; min-width: 0; }
+  .search kbd { display: none; }
+  .tools { margin-left: 0; width: 100%; justify-content: space-between; flex-wrap: nowrap; }
+  .tools .btn { padding: 0 10px; }
+  #refreshTxt { display: none; }
+  #sort { max-width: 118px; }
+  .cc { width: 250px; }
+  .tools .size { display: none; }
+  .drawer { top: auto; height: 92vh; width: 100vw; transform: translateY(105%); border-left: 0; border-radius: 18px 18px 0 0; }
+  .drawer.on { transform: none; }
+  .hero { grid-template-columns: 110px 1fr; gap: 14px; }
+  .row { grid-template-columns: 46px 1fr; }
+  .row .rt { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="bar">
+      <div class="brand"><div class="logo" aria-hidden="true">📚</div><span class="name">漫畫圖書館</span></div>
+      <div class="search">
+        <span class="ico" aria-hidden="true">🔍</span>
+        <label class="sr" for="q">搜尋</label>
+        <input id="q" type="search" placeholder="搜尋書名、作者…　例：tag:在看 site:紳士" autocomplete="off" spellcheck="false">
+        <kbd>/</kbd>
+      </div>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="檢視方式">
+          <button id="v-wall" type="button" aria-pressed="true" title="封面牆">▦</button>
+          <button id="v-list" type="button" aria-pressed="false" title="清單">☰</button>
+        </div>
+        <label class="sr" for="size">封面大小</label>
+        <input id="size" class="size" type="range" min="120" max="280" step="8" title="封面大小">
+        <select id="sort" class="btn" aria-label="排序">
+          <option value="recent">最近閱讀</option>
+          <option value="name">書名</option>
+          <option value="sites">網站數</option>
+        </select>
+        <button id="theme" class="btn" type="button" title="切換主題">🌓</button>
+        <button id="refresh" class="btn" type="button" title="重新整理">⟳ <span id="refreshTxt">重新整理</span></button>
+        <button id="settings" class="btn" type="button" title="連線設定">⚙</button>
+      </div>
+    </div>
+    <div id="chips" class="chips" role="group" aria-label="篩選"></div>
+  </header>
+  <div id="banner" class="banner" role="status" aria-live="polite" hidden></div>
+  <div id="stat" class="stat"></div>
+  <main id="main"></main>
+</div>
+
+<div id="scrim" class="scrim"></div>
+<aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-label="作品詳情" aria-hidden="true">
+  <div class="dhead">
+    <button id="dprev" class="btn" type="button" title="上一部（←）">‹</button>
+    <button id="dnext" class="btn" type="button" title="下一部（→）">›</button>
+    <span class="grow"></span>
+    <button id="dclose" class="btn" type="button" title="關閉（Esc）">✕</button>
+  </div>
+  <div id="dbody" class="dbody"></div>
+</aside>
+
+<div id="connect" class="modal" hidden>
+  <form class="card" id="connectForm" autocomplete="off">
+    <h2>連線到你的試算表</h2>
+    <p>填入 Apps Script 的網址（結尾是 <code>/exec</code>）和密鑰。只會存在這個瀏覽器，不會傳給別人。</p>
+    <label class="field"><span>Apps Script 網址</span><input id="cUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" required></label>
+    <label class="field"><span>密鑰（TOKEN）</span><input id="cTok" type="password" placeholder="密鑰" required></label>
+    <div id="cMsg" class="msg" role="status"></div>
+    <div class="btns">
+      <button id="cCancel" class="btn" type="button" hidden>取消</button>
+      <button id="cTest" class="btn" type="button">測試連線</button>
+      <button class="btn primary" type="submit">儲存並載入</button>
+    </div>
+  </form>
+</div>
+
+<script>
+'use strict';
+/* ===== 以下共用程式由 build.py 從 manga-desktop-reader.user.js 自動抽出，不要手改 ===== */
+const SITES = [{ id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\.com|bzmh\.org)$/i }, { id: 'nicomanga', match: /(^|\.)nicomanga\.com$/i }, { id: 'nhentai', match: /(^|\.)nhentai\.net$/i }, { id: 'wnacg', match: /(^|\.)wnacg\.[a-z]+$/i }, { id: 'rouman', match: /(^|\.)rouman[a-z0-9]*\.com$/i }, { id: 'manhuagui', match: /(^|\.)manhuagui\.com$/i }];
+  const SITE_LABEL = { twmanga: '包子漫畫', nicomanga: 'NicoManga', nhentai: 'nhentai', wnacg: '紳士漫畫', rouman: '肉漫屋', manhuagui: '看漫畫' };
+  const famOf = (host) => { const s = SITES.find((x) => x.match.test(host || '')); return s ? s.id : ''; };
+  const S2T_FROM = '皑蔼碍爱肮袄奥坝罢摆败颁办绊帮绑镑谤剥饱宝报鲍辈贝钡狈备惫绷笔毕毙币闭辟边编贬变辩辫标鳖别瘪濒滨宾摈饼并拨钵铂驳补财采参蚕残惭惨灿苍舱仓沧厕侧册测层诧搀掺蝉馋谗缠铲产阐颤场尝长偿肠厂畅钞车彻尘陈衬撑称惩诚骋吃痴迟驰耻齿炽冲虫宠畴踌筹绸丑橱厨锄雏础储触处传疮床闯创锤唇纯绰辞词赐聪葱囱从丛凑蹿窜错达带贷担单郸掸胆惮诞弹当挡党荡档捣岛祷导盗灯邓敌涤递缔颠点垫电淀钓调谍叠钉顶锭订丢东动栋冻斗犊独读赌镀锻断缎兑队对吨顿钝夺堕鹅额讹恶饿儿尔饵贰发罚阀珐矾钒烦范贩饭访纺飞诽废费纷坟奋愤粪丰枫峰锋风疯冯缝讽凤肤辐抚辅赋复负讣妇缚该钙盖干赶秆赣冈刚钢纲岗杠镐搁鸽阁铬个给龚宫巩贡钩沟构购够蛊顾雇剐挂关观馆惯贯广规归龟闺轨诡柜贵刽辊滚锅国过骇韩汉号阂鹤贺横恒轰鸿红后壶护沪户哗华画划话怀坏欢环还缓换唤痪焕涣黄谎挥辉毁贿秽会烩汇讳诲绘荤浑伙获货祸击机积饥迹讥鸡绩缉极辑级挤几蓟剂济计记际继纪夹荚颊贾钾价驾歼监坚笺间艰缄茧检碱硷拣捡简俭减荐槛鉴践贱见键舰剑饯渐溅涧将浆蒋桨奖讲酱胶浇骄娇搅铰矫侥脚饺缴绞轿较阶节杰洁结诫届紧锦仅谨进晋烬尽劲荆茎鲸惊经颈静镜径痉竞净纠厩旧驹举据锯惧剧鹃绢觉决诀绝钧军骏开凯颗壳课垦恳抠库裤夸块侩宽矿旷况亏岿窥馈溃扩阔蜡腊莱来赖蓝栏拦篮阑兰澜谰揽览懒缆烂滥捞劳涝乐镭垒类泪厘篱离里鲤礼栗丽厉励砾历沥隶俩联莲连镰怜涟帘敛脸链恋炼练粮凉两辆谅疗辽镣猎临邻鳞凛赁龄铃灵岭领馏刘龙聋咙笼垄拢陇楼娄搂篓芦卢颅庐炉掳卤虏鲁赂禄录陆驴吕铝侣屡缕虑滤绿峦挛孪滦乱抡轮伦仑沦纶论萝罗逻锣箩骡骆络妈玛码蚂马骂吗买麦卖迈脉瞒馒蛮满谩猫锚铆贸么霉没镁门闷们锰梦谜弥秘觅幂绵缅庙灭悯闽鸣铭谬谋亩呐钠纳难挠脑恼闹馁内拟腻撵酿鸟聂啮镊镍柠狞宁拧泞钮纽脓浓农疟诺欧鸥殴呕沤盘庞抛赔喷鹏骗飘频贫苹凭评泼颇扑铺仆朴谱栖凄脐齐骑岂启气弃讫牵钎铅迁签谦钱钳潜浅谴堑枪呛墙蔷强抢锹桥乔侨翘窍窃钦亲寝轻氢倾顷请庆琼穷趋区躯驱龋颧权劝却鹊确群让饶扰绕热韧认纫荣绒软锐闰润洒萨鳃赛叁伞丧骚扫涩杀刹纱筛晒删闪陕赡缮伤赏烧绍赊摄慑设绅审婶肾渗声绳胜圣师狮湿诗尸虱时蚀实识驶势适释饰视试寿兽枢输书赎属术树竖数帅双谁税顺说硕烁丝饲耸怂颂讼诵擞苏诉肃虽随绥岁孙损笋缩琐锁獭挞台态摊贪瘫滩坛谭谈叹汤烫涛绦讨腾誊锑题体屉条贴铁厅听烃铜统头秃图涂团颓蜕托脱鸵驮驼椭洼袜弯湾顽万网韦违围为潍维苇伟伪纬谓卫温闻纹稳问瓮挝蜗涡窝卧呜钨乌诬无芜吴坞雾务误锡牺袭习铣戏细虾辖峡侠狭厦吓锨鲜纤咸贤衔闲显险现献县馅羡宪线厢镶乡详响项萧嚣销晓啸蝎协挟携胁谐写泻谢锌衅兴凶汹锈绣虚嘘须许叙绪续轩悬选癣绚学勋熏询寻驯训讯逊压鸦鸭哑亚讶阉烟盐严岩颜阎艳厌砚彦谚验鸯杨扬疡阳痒养样瑶摇尧遥窑谣药爷页业叶医铱颐遗仪蚁艺亿忆义诣议谊译异绎荫阴银饮隐樱婴鹰应缨莹萤营荧蝇赢颖哟拥佣痈咏涌优忧邮铀犹游诱于舆余鱼渔娱与屿语郁吁狱誉预驭鸳渊辕园员圆缘远愿约跃钥岳粤悦阅云郧匀陨运蕴酝晕韵杂灾载攒暂赞赃脏凿枣皂灶责择则泽贼赠轧铡闸栅诈斋债毡盏斩辗崭栈占战绽张涨帐账胀赵蛰辙锗这贞针侦诊镇阵挣睁征狰争帧郑证织职执纸挚掷帜质滞钟终种肿众诌轴皱昼骤猪诸诛烛瞩嘱贮铸筑驻专砖转赚桩庄装妆壮状锥赘坠缀谆准浊兹咨资渍踪综总纵邹诅组钻亘芈啬厍厣厮靥赝匦匮赜刭刿剀伛伥伧伫侪侬俦俨俪俣偾偬偻傥傧傩佥籴黉冁凫兖衮亵脔禀讠讦讧讪讴讵讷诂诃诋诏诎诒诓诔诖诘诙诜诟诠诤诨诩诮诰诳诶诹诼诿谀谂谄谇谌谏谑谒谔谕谖谙谛谘谝谟谠谡谥谧谪谫谮谯谲谳谵谶卺陉陧邝邬邺郏郐郓郦刍奂劢巯垩圹坜垅垆垭垲垴埘埚埙芗苈苋苌苁苎茏茑茔茕荛荜荞荟荠荦荥荨荩荬荪荭荮莳莴莅莶莸莺莼萦蒇蒉蒌蓦蓠蓥蓣蔹蔺蕲薮藓蘖奁尴扪抟挢掴掼揿摅撄撷撸撺弑叽呒呓呖呗呙咛咝哒哓哔哕哙哜咤哝唛唠唢啧啭喽喾嗫嗳辔嘤噜囵帏帱帻帼岖岘岚岽峄峤峥崂崃嵘嵝巅徕犷犸狯狲猃猡猕猬饣饧饨饩饪饫饬饴饷饽馀馄馇馊馍馐馑馓馔馕庑赓廪忏怃怄忾怅怆怿恸恹恻恺恽悭惬愠愦懔闩闫闱闳闵闶闼闾阃阄阆阈阊阋阌阍阏阒阕阖阗阙阚沣沩泷泸泺泾浃浈浍浏浒浔涞涠渎渑渖渌溆滟滠滢滗潆潇潋潴濑灏骞迩迳逦屦弪妩妪妫姗娅娆娈姹娲娴婵媪嫒嫔嫱嬷驵驷驸驺驿驽骀骁骅骈骊骐骒骓骖骘骛骜骝骟骠骢骣骥骧纟纡纣纥纨纩纭纰纾绀绁绂绉绋绌绐绔绗绛绠绡绨绫绮绯绱绲缍绶绺绻绾缁缂缃缇缈缋缌缏缑缒缗缙缜缛缟缡缢缣缤缥缦缧缪缫缬缭缯缰缱缲缳缵玑玮珑顼玺珲琏瑷璎瓒韪韫韬杩枥枧枨枞枭栉栊栌栀栎柽桠桡桢桤桦桧栾棂椟椠椤椁榄榇榈榉槟槠樯橥橹橼檩殁殇殒殓殚殡轫轭轱轲轳轵轶轸轷轹轺轼轾辁辂辄辇辋辍辎辏辘辚戋戗戬瓯昙昵晔晖暧贲贳贶贻贽赀赅赆赈赉赇赍赕赙觇觊觋觌觎觏觐觑牦毵氇氩氲牍肴胧胨胪胫脍脶腌腼腽腭膑膻欤飑飒飓飕飙飚毂齑斓炀炜炖炝烨焖焘祢祯禅怼悫懑戆泶矶砀砗砜砺砻硖硗碛碜龛眍眦睐睑罴羁钅钆钇钋钊钌钍钏钐钔钗钕钚钛钜钣钤钫钪钭钬钯钰钲钴钶钷钸钹钺钼钽钿铄铈铉铊铋铌铍铎铐铑铒铕铖铗铙铘铛铞铟铠铢铤铥铧铨铪铩铫铮铯铳铴铵铷铹铼铽铿锃锂锆锇锉锊锍锎锏锒锓锔锕锖锘锛锝锞锟锢锪锫锩锬锱锲锴锶锷锸锼锾锿镂锵镄镅镆镉镌镎镏镒镓镔镖镗镘镙镛镞镟镝镡镢镤镥镦镧镨镩镪镫镬镯镱镲镳锺稆穑鸠鸢鸨鸩鸪鸫鸬鸲鸱鸶鸸鸷鸹鸺鸾鹁鹂鹄鹆鹇鹈鹉鹋鹌鹎鹑鹕鹗鹚鹛鹜鹞鹣鹦鹧鹨鹩鹪鹫鹬鹱鹭鹳疖疠疬疴疱痖痨痫瘅瘗瘘瘿瘾癞癫窦窭裆裢裣裥褛褴皲耢耧聍聩顸颀颃颉颌颍颏颔颚颛颞颟颡颢颥颦虬虮虿蚬蚝蛎蛏蛱蛲蛳蛴蝈蝾蝼螨罂笃笕笾筚筝箦箧箨箪箫篑簖籁舣舻袅羟籼粝粜粽糁糇糍絷麸趱酽酾鹾趸跄跖跞跷跸跹跻踬踯蹑蹒蹰躏躜觞觯靓雳霁霭龀龃龅龆龇龈龉龊龌黾鼋鼍隽雠銮錾鱿鲂鲅鲆鲇鲈稣鲋鲎鲐鲑鲒鲔鲕鲚鲛鲞鲟鲠鲡鲢鲣鲥鲦鲧鲨鲩鲫鲭鲮鲰鲱鲲鲳鲴鲵鲶鲷鲺鲻鲼鲽鳄鳅鳆鳇鳊鳋鳌鳍鳎鳏鳐鳓鳔鳕鳗鳘鳙鳜鳝鳟鳢鞑鞒鞯鞲鹘髅髋髌魇魉飨餍鬓麽黩黪鼹';
+  const S2T_TO = '皚藹礙愛骯襖奧壩罷擺敗頒辦絆幫綁鎊謗剝飽寶報鮑輩貝鋇狽備憊繃筆畢斃幣閉闢邊編貶變辯辮標鱉別癟瀕濱賓擯餅並撥鉢鉑駁補財採參蠶殘慚慘燦蒼艙倉滄廁側冊測層詫攙摻蟬饞讒纏鏟產闡顫場嘗長償腸廠暢鈔車徹塵陳襯撐稱懲誠騁喫癡遲馳恥齒熾衝蟲寵疇躊籌綢醜櫥廚鋤雛礎儲觸處傳瘡牀闖創錘脣純綽辭詞賜聰蔥囪從叢湊躥竄錯達帶貸擔單鄲撣膽憚誕彈當擋黨蕩檔搗島禱導盜燈鄧敵滌遞締顛點墊電澱釣調諜疊釘頂錠訂丟東動棟凍鬥犢獨讀賭鍍鍛斷緞兌隊對噸頓鈍奪墮鵝額訛惡餓兒爾餌貳發罰閥琺礬釩煩範販飯訪紡飛誹廢費紛墳奮憤糞豐楓峯鋒風瘋馮縫諷鳳膚輻撫輔賦復負訃婦縛該鈣蓋幹趕稈贛岡剛鋼綱崗槓鎬擱鴿閣鉻個給龔宮鞏貢鉤溝構購夠蠱顧僱剮掛關觀館慣貫廣規歸龜閨軌詭櫃貴劊輥滾鍋國過駭韓漢號閡鶴賀橫恆轟鴻紅後壺護滬戶譁華畫劃話懷壞歡環還緩換喚瘓煥渙黃謊揮輝毀賄穢會燴匯諱誨繪葷渾夥獲貨禍擊機積飢跡譏雞績緝極輯級擠幾薊劑濟計記際繼紀夾莢頰賈鉀價駕殲監堅箋間艱緘繭檢鹼礆揀撿簡儉減薦檻鑑踐賤見鍵艦劍餞漸濺澗將漿蔣槳獎講醬膠澆驕嬌攪鉸矯僥腳餃繳絞轎較階節傑潔結誡屆緊錦僅謹進晉燼盡勁荊莖鯨驚經頸靜鏡徑痙競淨糾廄舊駒舉據鋸懼劇鵑絹覺決訣絕鈞軍駿開凱顆殼課墾懇摳庫褲誇塊儈寬礦曠況虧巋窺饋潰擴闊蠟臘萊來賴藍欄攔籃闌蘭瀾讕攬覽懶纜爛濫撈勞澇樂鐳壘類淚釐籬離裏鯉禮慄麗厲勵礫歷瀝隸倆聯蓮連鐮憐漣簾斂臉鏈戀煉練糧涼兩輛諒療遼鐐獵臨鄰鱗凜賃齡鈴靈嶺領餾劉龍聾嚨籠壟攏隴樓婁摟簍蘆盧顱廬爐擄滷虜魯賂祿錄陸驢呂鋁侶屢縷慮濾綠巒攣孿灤亂掄輪倫侖淪綸論蘿羅邏鑼籮騾駱絡媽瑪碼螞馬罵嗎買麥賣邁脈瞞饅蠻滿謾貓錨鉚貿麼黴沒鎂門悶們錳夢謎彌祕覓冪綿緬廟滅憫閩鳴銘謬謀畝吶鈉納難撓腦惱鬧餒內擬膩攆釀鳥聶齧鑷鎳檸獰寧擰濘鈕紐膿濃農瘧諾歐鷗毆嘔漚盤龐拋賠噴鵬騙飄頻貧蘋憑評潑頗撲鋪僕樸譜棲悽臍齊騎豈啓氣棄訖牽釺鉛遷籤謙錢鉗潛淺譴塹槍嗆牆薔強搶鍬橋喬僑翹竅竊欽親寢輕氫傾頃請慶瓊窮趨區軀驅齲顴權勸卻鵲確羣讓饒擾繞熱韌認紉榮絨軟銳閏潤灑薩鰓賽叄傘喪騷掃澀殺剎紗篩曬刪閃陝贍繕傷賞燒紹賒攝懾設紳審嬸腎滲聲繩勝聖師獅溼詩屍蝨時蝕實識駛勢適釋飾視試壽獸樞輸書贖屬術樹豎數帥雙誰稅順說碩爍絲飼聳慫頌訟誦擻蘇訴肅雖隨綏歲孫損筍縮瑣鎖獺撻臺態攤貪癱灘壇譚談嘆湯燙濤絛討騰謄銻題體屜條貼鐵廳聽烴銅統頭禿圖塗團頹蛻託脫鴕馱駝橢窪襪彎灣頑萬網韋違圍爲濰維葦偉僞緯謂衛溫聞紋穩問甕撾蝸渦窩臥嗚鎢烏誣無蕪吳塢霧務誤錫犧襲習銑戲細蝦轄峽俠狹廈嚇鍁鮮纖鹹賢銜閒顯險現獻縣餡羨憲線廂鑲鄉詳響項蕭囂銷曉嘯蠍協挾攜脅諧寫瀉謝鋅釁興兇洶鏽繡虛噓須許敘緒續軒懸選癬絢學勳燻詢尋馴訓訊遜壓鴉鴨啞亞訝閹煙鹽嚴巖顏閻豔厭硯彥諺驗鴦楊揚瘍陽癢養樣瑤搖堯遙窯謠藥爺頁業葉醫銥頤遺儀蟻藝億憶義詣議誼譯異繹蔭陰銀飲隱櫻嬰鷹應纓瑩螢營熒蠅贏穎喲擁傭癰詠湧優憂郵鈾猶遊誘於輿餘魚漁娛與嶼語鬱籲獄譽預馭鴛淵轅園員圓緣遠願約躍鑰嶽粵悅閱雲鄖勻隕運蘊醞暈韻雜災載攢暫贊贓髒鑿棗皁竈責擇則澤賊贈軋鍘閘柵詐齋債氈盞斬輾嶄棧佔戰綻張漲帳賬脹趙蟄轍鍺這貞針偵診鎮陣掙睜徵猙爭幀鄭證織職執紙摯擲幟質滯鍾終種腫衆謅軸皺晝驟豬諸誅燭矚囑貯鑄築駐專磚轉賺樁莊裝妝壯狀錐贅墜綴諄準濁茲諮資漬蹤綜總縱鄒詛組鑽亙羋嗇厙厴廝靨贗匭匱賾剄劌剴傴倀傖佇儕儂儔儼儷俁僨傯僂儻儐儺僉糴黌囅鳧兗袞褻臠稟訁訐訌訕謳詎訥詁訶詆詔詘詒誆誄詿詰詼詵詬詮諍諢詡誚誥誑誒諏諑諉諛諗諂誶諶諫謔謁諤諭諼諳諦諮諞謨讜謖諡謐謫譾譖譙譎讞譫讖巹陘隉鄺鄔鄴郟鄶鄆酈芻奐勱巰堊壙壢壠壚埡塏堖塒堝壎薌藶莧萇蓯苧蘢蔦塋煢蕘蓽蕎薈薺犖滎蕁藎蕒蓀葒葤蒔萵蒞薟蕕鶯蓴縈蕆蕢蔞驀蘺鎣蕷蘞藺蘄藪蘚櫱奩尷捫摶撟摑摜撳攄攖擷擼攛弒嘰嘸囈嚦唄咼嚀噝噠嘵嗶噦噲嚌吒噥嘜嘮嗩嘖囀嘍嚳囁噯轡嚶嚕圇幃幬幘幗嶇峴嵐崬嶧嶠崢嶗崍嶸嶁巔徠獷獁獪猻獫玀獼蝟飠餳飩餼飪飫飭飴餉餑餘餛餷餿饃饈饉饊饌饢廡賡廩懺憮慪愾悵愴懌慟懨惻愷惲慳愜慍憒懍閂閆闈閎閔閌闥閭閫鬮閬閾閶鬩閿閽閼闃闋闔闐闕闞灃潙瀧瀘濼涇浹湞澮瀏滸潯淶潿瀆澠瀋淥漵灩灄瀅潷瀠瀟瀲瀦瀨灝騫邇逕邐屨弳嫵嫗嬀姍婭嬈孌奼媧嫺嬋媼嬡嬪嬙嬤駔駟駙騶驛駑駘驍驊駢驪騏騍騅驂騭騖驁騮騸驃驄驏驥驤糹紆紂紇紈纊紜紕紓紺紲紱縐紼絀紿絝絎絳綆綃綈綾綺緋鞝緄綞綬綹綣綰緇緙緗緹緲繢緦緶緱縋緡縉縝縟縞縭縊縑繽縹縵縲繆繅纈繚繒繮繾繰繯纘璣瑋瓏頊璽琿璉璦瓔瓚韙韞韜榪櫪梘棖樅梟櫛櫳櫨梔櫟檉椏橈楨榿樺檜欒欞櫝槧欏槨欖櫬櫚櫸檳櫧檣櫫櫓櫞檁歿殤殞殮殫殯軔軛軲軻轤軹軼軫軤轢軺軾輊輇輅輒輦輞輟輜輳轆轔戔戧戩甌曇暱曄暉曖賁貰貺貽贄貲賅贐賑賚賕齎賧賻覘覬覡覿覦覯覲覷犛毿氌氬氳牘餚朧腖臚脛膾腡醃靦膃齶臏羶歟颮颯颶颼飆飈轂齏斕煬煒燉熗燁燜燾禰禎禪懟愨懣戇澩磯碭硨碸礪礱硤磽磧磣龕瞘眥睞瞼羆羈釒釓釔釙釗釕釷釧釤鍆釵釹鈈鈦鉅鈑鈐鈁鈧鈄鈥鈀鈺鉦鈷鈳鉕鈽鈸鉞鉬鉭鈿鑠鈰鉉鉈鉍鈮鈹鐸銬銠鉺銪鋮鋏鐃鋣鐺銱銦鎧銖鋌銩鏵銓鉿鎩銚錚銫銃鐋銨銣鐒錸鋱鏗鋥鋰鋯鋨銼鋝鋶鐦鐧鋃鋟鋦錒錆鍩錛鍀錁錕錮鍃錇錈錟錙鍥鍇鍶鍔鍤鎪鍰鎄鏤鏘鐨鎇鏌鎘鐫鎿鎦鎰鎵鑌鏢鏜鏝鏍鏞鏃鏇鏑鐔钁鏷鑥鐓鑭鐠鑹鏹鐙鑊鐲鐿鑔鑣鍾穭穡鳩鳶鴇鴆鴣鶇鸕鴝鴟鷥鴯鷙鴰鵂鸞鵓鸝鵠鵒鷳鵜鵡鶓鵪鵯鶉鶘鶚鷀鶥鶩鷂鶼鸚鷓鷚鷯鷦鷲鷸鸌鷺鸛癤癘癧痾皰瘂癆癇癉瘞瘻癭癮癩癲竇窶襠褳襝襉褸襤皸耮耬聹聵頇頎頏頡頜潁頦頷顎顓顳顢顙顥顬顰虯蟣蠆蜆蠔蠣蟶蛺蟯螄蠐蟈蠑螻蟎罌篤筧籩篳箏簀篋籜簞簫簣籪籟艤艫嫋羥秈糲糶糉糝餱餈縶麩趲釅釃鹺躉蹌蹠躒蹺蹕躚躋躓躑躡蹣躕躪躦觴觶靚靂霽靄齔齟齙齠齜齦齬齪齷黽黿鼉雋讎鑾鏨魷魴鮁鮃鮎鱸穌鮒鱟鮐鮭鮚鮪鮞鱭鮫鯗鱘鯁鱺鰱鰹鰣鰷鯀鯊鯇鯽鯖鯪鯫鯡鯤鯧鯝鯢鯰鯛鯴鯔鱝鰈鱷鰍鰒鰉鯿鰠鰲鰭鰨鰥鰩鰳鰾鱈鰻鰵鱅鱖鱔鱒鱧韃鞽韉韝鶻髏髖髕魘魎饗饜鬢麼黷黲鼴';
+  const S2T = (() => { const m = {}; for (let i = 0; i < S2T_FROM.length; i++) m[S2T_FROM[i]] = S2T_TO[i]; return m; })();
+  const TAG_LABEL = { fav: '⭐ 收藏', want: '📌 想看', reading: '📖 在看', wait: '⏳ 等更新', pause: '⏸ 暫停', done: '✔ 讀完', drop: '✖ 棄坑' };
+  const tagIcon = (k) => (TAG_LABEL[k] || '').split(' ')[0]; // 其他裝置用了這台不認得的標記時，不要當機
+  const pgTxt = (e) => (e.total ? ' · 第 ' + e.page + '/' + e.total + ' 頁' : '');
+  const lastTxt = (e) => (/^#\d+$/.test(e.chapter || '') && e.total ? '第 ' + e.page + '/' + e.total + ' 頁' : (e.chapter || '') + pgTxt(e));
+  const norm = (s) => String(s || '').normalize('NFKC').toLowerCase()
+    .replace(/\s*-\s*raw\s*$/i, '')
+    .replace(/[^\p{L}\p{N}]/gu, '')
+    .replace(/[一-鿿]/g, (c) => S2T[c] || c);
+  function tocFromUrl(fam, url) {
+    let p, m;
+    try { p = new URL(url).pathname; } catch (e) { return ''; }
+    if (fam === 'twmanga') { m = p.match(/^\/comic\/chapter\/([^/]+)\//) || p.match(/^\/manga\/([^/]+)\/\d+-\d+-\d+/); return m ? '/comic/' + m[1] : ''; }
+    if (fam === 'nicomanga') { m = p.match(/^\/(manga\d+\/[0-9a-f]+)\//i); return m ? '/' + m[1] + '.html' : ''; }
+    if (fam === 'nhentai') { m = p.match(/^\/g\/(\d+)/); return m ? '/g/' + m[1] : ''; }
+    if (fam === 'rouman') { m = p.match(/^\/books\/([^/]+)\//); return m ? '/books/' + m[1] : ''; }
+    if (fam === 'manhuagui') { m = p.match(/^\/comic\/(\d+)\//); return m ? '/comic/' + m[1] : ''; }
+    if (fam === 'wnacg') { m = p.match(/photos-(?:slide|index)-aid-(\d+)/); return m ? '/photos-index-aid-' + m[1] + '.html' : ''; }
+    return '';
+  }
+  function cidOf(fam, toc, url) {
+    let p = '';
+    try { if (toc) p = new URL(toc, location.href).pathname; } catch (e) { /* ignore */ }
+    if (!p) p = tocFromUrl(fam, url);
+    p = p.replace(/\/+$/, '').toLowerCase();
+    if (fam === 'twmanga') p = p.replace(/^\/manga\//, '/comic/'); // bzmh.org 的 /manga/<書> = twmanga 的 /comic/<書>
+    return p ? fam + ':' + p : '';
+  }
+  function rowEntry(r) {
+    const fam = famOf(r.site);
+    if (!fam || !r.url) return null; // 不是本腳本支援的網站
+    const pg = String(r.page || '').match(/^(\d+)\/(\d+)$/);
+    const cid = cidOf(fam, r.toc, r.url);
+    return {
+      key: cid || fam + '|' + (r.comic || ''), fam, host: r.site, comic: r.comic || '', chapter: r.chapter || '', url: r.url,
+      t: Date.parse(r.t) || 0, author: r.author || '', page: pg ? +pg[1] : 0, total: pg ? +pg[2] : 0,
+      fChapter: r.fChapter || r.chapter || '', fUrl: r.fUrl || r.url, fNum: r.fNum == null ? null : Number(r.fNum),
+      toc: r.toc || '', srcRows: [{ site: r.site, comic: r.comic || '', url: r.url }],
+    };
+  }
+  function mergeInto(map, e) {
+    const o = map.get(e.key);
+    if (!o) { map.set(e.key, Object.assign({}, e)); return; }
+    const a = e.t > o.t ? e : o, b = a === e ? o : e; // a 比較新
+    const m = Object.assign({}, a);
+    m.author = a.author || b.author;
+    m.toc = a.toc || b.toc;
+    const far = (e.fNum != null && (o.fNum == null || e.fNum >= o.fNum)) ? e : (o.fNum != null ? o : a);
+    m.fChapter = far.fChapter; m.fUrl = far.fUrl; m.fNum = far.fNum;
+    m.srcRows = (o.srcRows || []).concat(e.srcRows || []);
+    map.set(e.key, m);
+  }
+  function overrides(s) {
+    const out = Object.assign({}, s.sgroups);
+    for (const k in s.lgroups) if (!out[k] || s.lgroups[k].t > out[k].t) out[k] = s.lgroups[k];
+    return out;
+  }
+  function relTime(ms) {
+    if (!ms) return '';
+    const s = (Date.now() - ms) / 1000;
+    if (s < 90) return '剛剛';
+    if (s < 3600) return Math.round(s / 60) + ' 分鐘前';
+    if (s < 86400) return Math.round(s / 3600) + ' 小時前';
+    if (s < 86400 * 60) return Math.round(s / 86400) + ' 天前';
+    return Math.round(s / 86400 / 30) + ' 個月前';
+  }
+  const SQ_OPS = { tag: 'tag', status: 'tag', 狀態: 'tag', 状态: 'tag', 標記: 'tag', 标记: 'tag', site: 'site', 網站: 'site', 网站: 'site', author: 'author', 作者: 'author', note: 'note', 備註: 'note', 备注: 'note', is: 'is' };
+  function parseShelfQuery(raw) {
+    const ops = [], free = [];
+    String(raw || '').trim().split(/\s+/).forEach((tok) => {
+      const m = /^([^:：\s]+)[:：](.+)$/.exec(tok);
+      const op = m && SQ_OPS[m[1].toLowerCase()];
+      if (op) ops.push({ op, val: m[2] }); else if (tok) free.push(tok);
+    });
+    return { ops, free: free.join(' ') };
+  }
+  function filterGroups(groups, raw, gUnread) {
+    const pq = parseShelfQuery(raw), q = norm(pq.free);
+    if (!q && !pq.ops.length) return groups.slice();
+    return groups.filter((g) => {
+      if (q && !norm(g.title + g.author + g.note + g.entries.map((e) => e.chapter + e.comic).join('')).includes(q)) return false;
+      return pq.ops.every(({ op, val }) => {
+        const v = val.toLowerCase();
+        if (op === 'tag') {
+          if (/^(無|无|none|plain|空|沒標記|没标记)$/.test(v)) return !g.tag;
+          return !!g.tag && Object.keys(TAG_LABEL).some((k) => k === g.tag && (k === v || TAG_LABEL[k].split(' ')[1].includes(val)));
+        }
+        if (op === 'site') return g.entries.some((e) => e.fam === v || (SITE_LABEL[e.fam] || '').toLowerCase().includes(v) || String(e.host || '').toLowerCase().includes(v));
+        if (op === 'author') return norm(g.author).includes(norm(val));
+        if (op === 'note') return norm(g.note).includes(norm(val));
+        if (op === 'is') return /^(unread|未讀|未读)$/.test(v) ? gUnread(g) > 0 : false;
+        return false;
+      });
+    });
+  }
+/* ===== 共用程式結束 ===== */
+
+/* ───────────── 圖書館程式 ───────────── */
+const $ = (id) => document.getElementById(id);
+const LS = {
+  get(k, d) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 空間不足或被禁用：忽略 */ } },
+};
+const CFG_KEY = 'lib:cfg', DATA_KEY = 'lib:data', UI_KEY = 'lib:ui';
+let cfg = LS.get(CFG_KEY, { url: '', token: '' });
+const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', status: '', site: '' }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+const saveUi = () => LS.set(UI_KEY, ui);
+let data = LS.get(DATA_KEY, null);        // { at, rows, groups }
+let groups = [];                          // 歸好的作品
+let query = '', shown = [], openKey = '';
+let lastError = '';
+let loading = false;
+
+/* ── 跟 Apps Script 講話 ── */
+async function api(body) {
+  let res;
+  try { res = await fetch(cfg.url, { method: 'POST', body: JSON.stringify(Object.assign({ token: cfg.token }, body)), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', redirect: 'follow' }); }
+  catch (e) { throw new Error('連不上（沒有網路、網址不對，或瀏覽器擋下了跨網域請求；Apps Script 的部署要設成「任何人」都可以存取）'); }
+  const text = await res.text();
+  let j;
+  try { j = JSON.parse(text); } catch (e) { throw new Error(/<html|<!doctype/i.test(text) ? '回傳的是網頁，不是資料（網址不對，或部署的存取權限不是「任何人」）' : '回傳的資料看不懂'); }
+  if (!j || !j.ok) throw new Error((j && j.error) || '伺服器拒絕');
+  return j;
+}
+const connected = () => /^https:\/\/script\.google\.com\/.+\/exec$/.test(cfg.url || '') && !!cfg.token;
+
+/* ── 資料 → 作品 ── 和書架同一套判斷：手動設定 → 別名字典 → 正規化書名 */
+function buildGroups(d) {
+  const map = new Map();
+  (d.rows || []).forEach((r) => { try { const e = r && rowEntry(r); if (e) mergeInto(map, e); } catch (err) { /* 壞掉的一列：略過 */ } });
+  const ov = overrides({ sgroups: d.groups || {}, lgroups: {} });
+  const gs = new Map();
+  map.forEach((e) => {
+    const nk = norm(e.comic);
+    const al = nk && ov['al:' + nk];
+    const gk = (ov[e.key] && ov[e.key].g) || (al && al.g) || (nk ? 'n:' + nk : 'k:' + e.key);
+    let g = gs.get(gk);
+    if (!g) { g = { key: gk, entries: [], t: 0 }; gs.set(gk, g); }
+    g.entries.push(e);
+    g.t = Math.max(g.t, e.t);
+  });
+  const list = [...gs.values()];
+  list.forEach((g) => {
+    g.entries.sort((a, b) => b.t - a.t);
+    g.title = g.entries[0].comic || g.entries[0].chapter;
+    g.author = (g.entries.find((e) => e.author) || {}).author || '';
+    g.tag = (ov['tag:' + g.key] || {}).g || '';
+    g.note = (ov['note:' + g.key] || {}).g || '';
+    g.fams = [...new Set(g.entries.map((e) => e.fam))];
+  });
+  return list.sort((a, b) => b.t - a.t);
+}
+
+/* ── 封面：存在 IndexedDB（原圖 blob），畫面用 object URL ── */
+const covUrl = new Map();   // 漫畫鍵 → { url, c(自訂), t }
+let idbP = null;
+function idb() {
+  if (idbP) return idbP;
+  idbP = new Promise((resolve) => {
+    try {
+      const rq = indexedDB.open('manga-library', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('covers', { keyPath: 'k' });
+      rq.onsuccess = () => resolve(rq.result);
+      rq.onerror = () => resolve(null);
+    } catch (e) { resolve(null); }
+  });
+  return idbP;
+}
+const idbDo = (mode, fn) => idb().then((db) => (!db ? null : new Promise((resolve) => {
+  try { const tx = db.transaction('covers', mode); const r = fn(tx.objectStore('covers')); tx.oncomplete = () => resolve(r && r.result !== undefined ? r.result : true); tx.onerror = () => resolve(null); tx.onabort = () => resolve(null); } catch (e) { resolve(null); }
+})));
+const bytesFromB64 = (b) => { const t = atob(b), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; };
+async function loadCachedCovers() {
+  const all = await idbDo('readonly', (s) => s.getAll());
+  (all || []).forEach((r) => { if (r && r.blob) covUrl.set(r.k, { url: URL.createObjectURL(r.blob), c: !!r.c, t: r.t || 0 }); });
+}
+let covProg = { done: 0, total: 0, err: '' };
+async function syncCovers() {
+  if (!connected()) return;
+  try {
+    const idx = (await api({ type: 'cover_index' })).items || [];
+    const need = idx.filter((it) => { const h = covUrl.get(it.k); return !h || h.t < it.t; }).map((it) => it.k);
+    covProg = { done: 0, total: need.length, err: '' };
+    renderStat();
+    for (let i = 0; i < need.length; i += 6) {
+      const res = await api({ type: 'cover_get', keys: need.slice(i, i + 6) });
+      for (const it of res.items || []) {
+        const blob = new Blob([bytesFromB64(it.b)], { type: it.m });
+        await idbDo('readwrite', (s) => s.put({ k: it.k, blob, m: it.m, c: !!it.c, t: it.t }));
+        const old = covUrl.get(it.k);
+        if (old) URL.revokeObjectURL(old.url);
+        covUrl.set(it.k, { url: URL.createObjectURL(blob), c: !!it.c, t: it.t });
+        paintCover(it.k);
+      }
+      covProg.done = Math.min(need.length, i + 6);
+      renderStat();
+    }
+  } catch (e) { covProg.err = e && e.message ? e.message : String(e); renderStat(); }
+}
+// 這一部的封面：自訂的優先，其次任何一筆有圖的
+function coverOf(g) {
+  let best = null;
+  for (const e of g.entries) { const h = covUrl.get(e.key); if (h && (!best || (h.c && !best.c))) best = h; }
+  return best;
+}
+const stripLead = (t) => String(t || '').replace(/^(?:\s*(?:\[[^\]]*\]|\([^)]*\)|【[^】]*】|（[^）]*）))+\s*/, '') || String(t || '');
+const initial = (t) => Array.from(stripLead(t))[0] || '?';
+const hue = (s) => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) % 360; return h; };
+function setPlaceholder(el, g) {
+  const h = hue(g.title);
+  el.style.background = 'linear-gradient(150deg, hsl(' + h + ' 42% 30%), hsl(' + ((h + 48) % 360) + ' 48% 18%))';
+}
+function repaintCovers() {
+  document.querySelectorAll('[data-covkey]').forEach((box) => { const g = groups.find((x) => x.key === box.dataset.gk); if (g) fillCover(box, g); });
+  renderStat();
+}
+function paintCover(k) {
+  document.querySelectorAll('[data-covkey]').forEach((box) => {
+    const g = groups.find((x) => x.key === box.dataset.gk);
+    if (!g || !g.entries.some((e) => e.key === k)) return;
+    fillCover(box, g);
+  });
+}
+function fillCover(box, g) {
+  const c = coverOf(g);
+  let img = box.querySelector('img');
+  if (!c) { if (img) img.remove(); return; }
+  if (!img) { img = document.createElement('img'); img.alt = ''; img.decoding = 'async'; img.className = box.dataset.covclass || 'cv'; box.prepend(img); }
+  if (img.src !== c.url) { img.classList.remove('in'); img.onload = () => img.classList.add('in'); img.src = c.url; if (img.complete) img.classList.add('in'); }
+}
+
+/* ── 畫面 ── */
+const STATUS_ORDER = Object.keys(TAG_LABEL);
+function visibleGroups() {
+  let list = filterGroups(groups, query, () => false);
+  if (ui.status === '__none') list = list.filter((g) => !g.tag);
+  else if (ui.status) list = list.filter((g) => g.tag === ui.status);
+  if (ui.site) list = list.filter((g) => g.fams.includes(ui.site));
+  if (ui.sort === 'name') list = list.slice().sort((a, b) => stripLead(a.title).localeCompare(stripLead(b.title), 'zh-Hant'));
+  else if (ui.sort === 'sites') list = list.slice().sort((a, b) => (b.entries.length - a.entries.length) || (b.t - a.t));
+  return list;
+}
+function renderChips() {
+  const box = $('chips');
+  box.textContent = '';
+  const mk = (label, n, pressed, onClick, attrs) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    Object.keys(attrs || {}).forEach((k) => b.setAttribute(k, attrs[k]));
+    b.append(label);
+    if (n != null) { const s = document.createElement('span'); s.className = 'n'; s.textContent = n; b.append(s); }
+    b.addEventListener('click', onClick);
+    box.append(b);
+  };
+  const cnt = (f) => groups.filter(f).length;
+  mk('全部', groups.length, !ui.status, () => { ui.status = ''; saveUi(); render(); }, { 'data-status': '' });
+  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.status === k) mk(TAG_LABEL[k], n, ui.status === k, () => { ui.status = ui.status === k ? '' : k; saveUi(); render(); }, { 'data-status': k }); });
+  const none = cnt((g) => !g.tag);
+  if (none && none !== groups.length) mk('沒標記', none, ui.status === '__none', () => { ui.status = ui.status === '__none' ? '' : '__none'; saveUi(); render(); }, { 'data-status': '__none' });
+  const fams = Object.keys(SITE_LABEL).filter((f) => groups.some((g) => g.fams.includes(f)));
+  if (fams.length > 1) {
+    const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
+    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.site === f, () => { ui.site = ui.site === f ? '' : f; saveUi(); render(); }, { 'data-site': f }));
+  }
+}
+function renderStat() {
+  const el = $('stat');
+  if (!data) { el.textContent = ''; return; }
+  const ent = groups.reduce((n, g) => n + g.entries.length, 0);
+  const have = groups.filter((g) => coverOf(g)).length;
+  const parts = ['共 ' + groups.length + ' 部（' + ent + ' 筆網站紀錄）'];
+  if (shown.length !== groups.length) parts.push('符合 ' + shown.length + ' 部');
+  parts.push('封面 ' + have + '/' + groups.length);
+  if (covProg.total && covProg.done < covProg.total) parts.push('下載封面 ' + covProg.done + '/' + covProg.total + '…');
+  if (covProg.err) parts.push('封面同步失敗：' + covProg.err);
+  if (data.at) parts.push('資料更新於 ' + relTime(data.at));
+  el.textContent = '';
+  parts.forEach((t) => { const s = document.createElement('span'); s.textContent = t; el.append(s); });
+}
+function progressOf(g) { const e = g.entries[0]; return e && e.total ? Math.max(0, Math.min(1, e.page / e.total)) : 0; }
+function tile(g) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'tile'; b.dataset.key = g.key; b.dataset.gk = g.key; b.dataset.covkey = '1'; b.dataset.covclass = 'cv';
+  b.setAttribute('aria-label', g.title);
+  setPlaceholder(b, g); // 色塊畫在磚塊本身，封面圖載入後蓋過去，占位的大字再淡出
+  const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = initial(g.title); b.append(ph);
+  const e = g.entries[0];
+  const shade = document.createElement('div'); shade.className = 'shade';
+  const t = document.createElement('div'); t.className = 't'; t.textContent = g.title;
+  const m = document.createElement('div'); m.className = 'm'; m.textContent = lastTxt(e) + (e.t ? ' · ' + relTime(e.t) : '');
+  shade.append(t, m); b.append(shade);
+  if (g.tag && TAG_LABEL[g.tag]) { const s = document.createElement('div'); s.className = 'st'; s.textContent = tagIcon(g.tag); s.title = TAG_LABEL[g.tag].replace(/^\S+\s/, ''); b.append(s); }
+  if (g.fams.length > 1) { const s = document.createElement('div'); s.className = 'sc'; s.textContent = g.fams.length + ' 個網站'; b.append(s); }
+  const p = progressOf(g); if (p) { const pr = document.createElement('div'); pr.className = 'prog'; pr.style.width = Math.round(p * 100) + '%'; b.append(pr); }
+  fillCover(b, g);
+  b.addEventListener('click', () => openDrawer(g.key));
+  return b;
+}
+function row(g) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'row'; b.dataset.key = g.key; b.dataset.gk = g.key;
+  const th = document.createElement('div'); th.className = 'th'; th.dataset.covkey = '1'; th.dataset.gk = g.key; th.dataset.covclass = ''; th.textContent = initial(g.title);
+  setPlaceholder(th, g); th.style.color = 'rgba(255,255,255,.45)';
+  fillCover(th, g);
+  const info = document.createElement('div'); info.className = 'info';
+  const tt = document.createElement('div'); tt.className = 'tt'; tt.textContent = (g.tag && TAG_LABEL[g.tag] ? tagIcon(g.tag) + ' ' : '') + g.title;
+  const e = g.entries[0];
+  const ss = document.createElement('div'); ss.className = 'ss'; ss.textContent = g.fams.map((f) => SITE_LABEL[f]).join('、') + '　' + lastTxt(e);
+  info.append(tt, ss);
+  const rt = document.createElement('div'); rt.className = 'rt'; rt.textContent = relTime(e.t);
+  b.append(th, info, rt);
+  b.addEventListener('click', () => openDrawer(g.key));
+  return b;
+}
+const CHUNK = 160;
+let moreIO = null;
+let groupsFor = null;
+function render() {
+  if (groupsFor !== data) { groups = data ? buildGroups(data) : []; groupsFor = data; } // 作品只在資料變了才重建（搜尋、篩選、切換檢視不用重算）
+  shown = visibleGroups();
+  renderChips();
+  renderStat();
+  $('v-wall').setAttribute('aria-pressed', ui.view === 'wall' ? 'true' : 'false');
+  $('v-list').setAttribute('aria-pressed', ui.view === 'list' ? 'true' : 'false');
+  const main = $('main');
+  if (moreIO) { moreIO.disconnect(); moreIO = null; }
+  main.textContent = '';
+  if (!data) { // 還沒有任何資料
+    if (loading) { const w = document.createElement('div'); w.className = 'wall'; for (let i = 0; i < 18; i++) { const s = document.createElement('div'); s.className = 'tile skeleton'; w.append(s); } main.append(w); }
+    else main.append(emptyBox('📚', connected() ? '還沒有資料' : '還沒有連線', connected() ? '按「重新整理」載入你的書架。' : '按右上角的 ⚙ 填入 Apps Script 網址與密鑰。'));
+    return;
+  }
+  if (!shown.length) { main.append(emptyBox(groups.length ? '🔎' : '📚', groups.length ? '找不到符合的作品' : '書架還是空的', groups.length ? '換個關鍵字，或清掉篩選。' : '用油猴腳本讀幾話漫畫，這裡就會出現。')); return; }
+  if (ui.view === 'wall' && !query.trim() && !ui.status && !ui.site && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
+  const wrap = document.createElement('div'); wrap.className = ui.view === 'list' ? 'rows' : 'wall'; wrap.id = 'items';
+  main.append(wrap);
+  let n = 0;
+  const more = () => {
+    const frag = document.createDocumentFragment();
+    shown.slice(n, n + CHUNK).forEach((g) => frag.append(ui.view === 'list' ? row(g) : tile(g)));
+    n += CHUNK; wrap.append(frag);
+    if (n < shown.length) { const s = document.createElement('div'); s.className = 'sentinel'; s.style.cssText = 'grid-column:1/-1;height:1px'; wrap.append(s); moreIO = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { moreIO.disconnect(); s.remove(); more(); } }, { rootMargin: '600px' }); moreIO.observe(s); }
+  };
+  more();
+}
+// 「接著看」：最近讀的 8 部，一鍵回到上次的章節
+function continueRow() {
+  const sec = document.createElement('section'); sec.className = 'cont'; sec.id = 'cont';
+  const h = document.createElement('h3'); h.textContent = '接著看'; sec.append(h);
+  const rowEl = document.createElement('div'); rowEl.className = 'cont-row';
+  shown.slice(0, 8).forEach((g) => {
+    const e = g.entries[0];
+    const card = document.createElement('div'); card.className = 'cc';
+    const main = document.createElement('button'); main.type = 'button'; main.className = 'cc-main'; main.dataset.key = g.key;
+    const th = document.createElement('div'); th.className = 'th'; th.dataset.covkey = '1'; th.dataset.gk = g.key; th.dataset.covclass = ''; th.textContent = initial(g.title); setPlaceholder(th, g); th.style.color = 'rgba(255,255,255,.45)'; fillCover(th, g);
+    const info = document.createElement('div'); info.className = 'info';
+    const tt = document.createElement('div'); tt.className = 'tt'; tt.textContent = g.title;
+    const ss = document.createElement('div'); ss.className = 'ss'; ss.textContent = lastTxt(e);
+    info.append(tt, ss);
+    if (e.total) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * Math.max(0, Math.min(1, e.page / e.total))) + '%'; bar.append(i); info.append(bar); }
+    const when = document.createElement('div'); when.className = 'ss'; when.textContent = relTime(e.t); info.append(when);
+    main.append(th, info); main.addEventListener('click', () => openDrawer(g.key));
+    const go = document.createElement('a'); go.className = 'cc-go'; go.href = resumeUrl(e); go.target = '_blank'; go.rel = 'noopener noreferrer'; go.textContent = '▶'; go.title = '繼續閱讀'; go.setAttribute('aria-label', '繼續閱讀：' + g.title);
+    card.append(main, go); rowEl.append(card);
+  });
+  sec.append(rowEl); return sec;
+}
+function emptyBox(big, title, sub) {
+  const d = document.createElement('div'); d.className = 'empty';
+  const a = document.createElement('div'); a.className = 'big'; a.textContent = big;
+  const b = document.createElement('div'); b.style.cssText = 'font-size:16px;color:var(--text);margin-bottom:4px'; b.textContent = title;
+  const c = document.createElement('div'); c.textContent = sub;
+  d.append(a, b, c); return d;
+}
+
+/* ── 詳情 ── */
+function resumeUrl(e) {
+  let u = e.url;
+  if (e.fam === 'nhentai' && e.page > 1) u = u.replace(/(\/g\/\d+\/)\d+(\/?)(?=[?#]|$)/, (m0, a, b) => a + e.page + b);
+  return u;
+}
+function openDrawer(key) {
+  const g = groups.find((x) => x.key === key);
+  if (!g) return;
+  openKey = key;
+  const body = $('dbody');
+  body.textContent = '';
+  const hero = document.createElement('div'); hero.className = 'hero';
+  const poster = document.createElement('div'); poster.className = 'poster'; poster.dataset.covkey = '1'; poster.dataset.gk = g.key; poster.dataset.covclass = '';
+  poster.textContent = initial(g.title); setPlaceholder(poster, g); fillCover(poster, g);
+  const info = document.createElement('div');
+  const h2 = document.createElement('h2'); h2.textContent = g.title; info.append(h2);
+  if (g.author) { const a = document.createElement('div'); a.className = 'au'; a.textContent = g.author; info.append(a); }
+  const tags = document.createElement('div'); tags.className = 'tags';
+  if (g.tag && TAG_LABEL[g.tag]) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAG_LABEL[g.tag]; tags.append(t); }
+  g.fams.forEach((f) => { const t = document.createElement('span'); t.className = 'tag'; t.textContent = SITE_LABEL[f] || f; tags.append(t); });
+  info.append(tags);
+  const first = g.entries[0];
+  const go = document.createElement('a'); go.className = 'btn primary'; go.href = resumeUrl(first); go.target = '_blank'; go.rel = 'noopener noreferrer'; go.textContent = '▶ 繼續閱讀'; go.id = 'goResume';
+  info.append(go);
+  hero.append(poster, info); body.append(hero);
+  if (g.note) { const n = document.createElement('div'); n.className = 'note'; n.textContent = g.note; body.append(n); }
+  const sec = document.createElement('div'); sec.className = 'sec'; sec.textContent = '各網站的進度'; body.append(sec);
+  g.entries.forEach((e) => {
+    const s = document.createElement('div'); s.className = 'src';
+    const h = document.createElement('div'); h.className = 'h';
+    const site = document.createElement('span'); site.className = 'site'; site.textContent = SITE_LABEL[e.fam] || e.host;
+    const when = document.createElement('span'); when.className = 'when'; when.textContent = relTime(e.t);
+    h.append(site, when);
+    const ch = document.createElement('div'); ch.className = 'ch'; ch.textContent = lastTxt(e);
+    s.append(h, ch);
+    if (e.total) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * Math.max(0, Math.min(1, e.page / e.total))) + '%'; bar.append(i); s.append(bar); }
+    const acts = document.createElement('div'); acts.className = 'acts';
+    const a1 = document.createElement('a'); a1.className = 'btn'; a1.href = resumeUrl(e); a1.target = '_blank'; a1.rel = 'noopener noreferrer'; a1.textContent = '繼續閱讀'; acts.append(a1);
+    if (e.fUrl && e.fUrl !== e.url && e.fChapter && e.fChapter !== e.chapter) {
+      const a2 = document.createElement('a'); a2.className = 'btn'; a2.href = e.fUrl; a2.target = '_blank'; a2.rel = 'noopener noreferrer'; a2.textContent = '最遠：' + e.fChapter; acts.append(a2);
+    }
+    s.append(acts); body.append(s);
+  });
+  $('drawer').classList.add('on'); $('drawer').setAttribute('aria-hidden', 'false'); $('scrim').classList.add('on');
+  body.scrollTop = 0;
+  $('dclose').focus({ preventScroll: true });
+}
+function closeDrawer() {
+  openKey = '';
+  $('drawer').classList.remove('on'); $('drawer').setAttribute('aria-hidden', 'true'); $('scrim').classList.remove('on');
+}
+function stepDrawer(d) {
+  if (!openKey) return;
+  const i = shown.findIndex((g) => g.key === openKey);
+  const n = shown[i + d];
+  if (n) openDrawer(n.key);
+}
+
+/* ── 載入資料 ── */
+function banner(msg, kind, retry) {
+  const b = $('banner');
+  b.textContent = '';
+  if (!msg) { b.hidden = true; return; }
+  b.hidden = false; b.className = 'banner' + (kind === 'info' ? ' info' : '');
+  const t = document.createElement('span'); t.className = 'grow'; t.textContent = msg; b.append(t);
+  if (retry) { const r = document.createElement('button'); r.className = 'btn'; r.type = 'button'; r.textContent = '重試'; r.addEventListener('click', refresh); b.append(r); }
+}
+async function refresh() {
+  if (!connected()) { openConnect(true); return; }
+  if (loading) return;
+  loading = true;
+  $('refresh').disabled = true; $('refreshTxt').textContent = '載入中…';
+  if (!data) render();
+  try {
+    const r = await api({ type: 'shelf' });
+    data = { at: Date.now(), rows: r.rows || [], groups: r.groups || {} };
+    LS.set(DATA_KEY, data);
+    lastError = '';
+    banner('');
+    loading = false;
+    render();
+    syncCovers();
+  } catch (e) {
+    lastError = e && e.message ? e.message : String(e);
+    loading = false;
+    banner('連線失敗：' + lastError + (/密鑰/.test(lastError) ? '（請按右上角 ⚙ 檢查密鑰）' : '') + (data ? '。目前顯示的是' + relTime(data.at) + '的資料。' : ''), 'err', true);
+    render();
+  } finally {
+    loading = false;
+    $('refresh').disabled = false; $('refreshTxt').textContent = '重新整理';
+  }
+}
+
+/* ── 連線設定視窗 ── */
+function openConnect(force) {
+  $('cUrl').value = cfg.url || ''; $('cTok').value = cfg.token || '';
+  $('cMsg').textContent = ''; $('cMsg').className = 'msg';
+  $('cCancel').hidden = !!force && !connected();
+  $('connect').hidden = false;
+  setTimeout(() => $('cUrl').focus(), 0);
+}
+function closeConnect() { $('connect').hidden = true; }
+$('connect').addEventListener('mousedown', (e) => { if (e.target === $('connect') && connected()) closeConnect(); });
+async function testConnect() {
+  const url = $('cUrl').value.trim(), token = $('cTok').value;
+  const m = $('cMsg');
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) { m.className = 'msg err'; m.textContent = '網址要是 https://script.google.com/…/exec'; return false; }
+  m.className = 'msg'; m.textContent = '測試中…';
+  const keep = cfg; cfg = { url, token };
+  try { await api({ type: 'ping' }); m.className = 'msg ok'; m.textContent = '✓ 連線成功'; return true; }
+  catch (e) { m.className = 'msg err'; m.textContent = '✗ ' + (e && e.message ? e.message : e); return false; }
+  finally { cfg = keep; }
+}
+
+/* ── 事件 ── */
+function applyTheme() { document.documentElement.setAttribute('data-theme', ui.theme); }
+function applySize() {
+  if (ui.size) document.documentElement.style.setProperty('--tile', ui.size + 'px');
+  $('size').value = ui.size || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile'), 10) || 176;
+}
+let qT = 0;
+$('q').addEventListener('input', (e) => { clearTimeout(qT); qT = setTimeout(() => { query = e.target.value; shown = visibleGroups(); render(); }, 120); });
+$('v-wall').addEventListener('click', () => { ui.view = 'wall'; saveUi(); render(); });
+$('v-list').addEventListener('click', () => { ui.view = 'list'; saveUi(); render(); });
+$('sort').addEventListener('change', (e) => { ui.sort = e.target.value; saveUi(); render(); });
+$('size').addEventListener('input', (e) => { ui.size = +e.target.value; saveUi(); applySize(); });
+$('theme').addEventListener('click', () => { ui.theme = ui.theme === 'auto' ? 'dark' : ui.theme === 'dark' ? 'light' : 'auto'; saveUi(); applyTheme(); $('theme').title = '主題：' + ({ auto: '跟隨系統', dark: '深色', light: '淺色' })[ui.theme]; });
+$('refresh').addEventListener('click', refresh);
+$('settings').addEventListener('click', () => openConnect(false));
+$('dclose').addEventListener('click', closeDrawer);
+$('scrim').addEventListener('click', closeDrawer);
+$('dprev').addEventListener('click', () => stepDrawer(-1));
+$('dnext').addEventListener('click', () => stepDrawer(1));
+$('cCancel').addEventListener('click', closeConnect);
+$('cTest').addEventListener('click', testConnect);
+$('connectForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!(await testConnect())) return;
+  cfg = { url: $('cUrl').value.trim(), token: $('cTok').value };
+  LS.set(CFG_KEY, cfg);
+  closeConnect();
+  data = null; try { localStorage.removeItem(DATA_KEY); } catch (x) { /* ignore */ }
+  refresh();
+});
+document.addEventListener('keydown', (e) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '');
+  if (e.key === 'Escape') {
+    if (!$('connect').hidden && connected()) { closeConnect(); return; }
+    if (openKey) { closeDrawer(); return; }
+    if (document.activeElement === $('q') && $('q').value) { $('q').value = ''; query = ''; render(); return; }
+  }
+  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === '/') { e.preventDefault(); $('q').focus(); }
+  else if (openKey && e.key === 'ArrowLeft') stepDrawer(-1);
+  else if (openKey && e.key === 'ArrowRight') stepDrawer(1);
+});
+// 抽屜打開時，Tab 不要跑到後面的頁面（簡單的焦點圈住）
+$('drawer').addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return;
+  const f = [...$('drawer').querySelectorAll('button, a[href]')].filter((x) => !x.disabled);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+addEventListener('online', () => { if (lastError) refresh(); });
+
+/* ── 啟動 ── */
+(async function start() {
+  applyTheme(); applySize(); $('sort').value = ui.sort;
+  $('theme').title = '主題：' + ({ auto: '跟隨系統', dark: '深色', light: '淺色' })[ui.theme];
+  render(); // 先用快取的資料畫出來（不等封面），封面從 IndexedDB 讀好後再補上
+  if (!connected()) { openConnect(true); return; }
+  if (data) banner('顯示的是上次的資料，正在更新…', 'info');
+  await loadCachedCovers();
+  repaintCovers();
+  refresh();
+})();
+</script>
+</body>
+</html>
