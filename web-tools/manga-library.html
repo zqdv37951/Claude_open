@@ -135,7 +135,8 @@ select.btn { padding-right: 6px; }
 .tile .t { font-weight: 650; font-size: 13.5px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
 .pg.red { color: var(--red); font-weight: 600; }
 .tile .m .pg.red { color: #ff8f8f; }
-.covtools { margin-top: 10px; }
+.covtools { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.covtools .covmsg { flex-basis: 100%; margin-top: 0; }
 .covmsg { margin-top: 6px; font-size: 12.5px; color: var(--muted); min-height: 18px; word-break: break-word; }
 .covmsg.ok { color: var(--ok); } .covmsg.err { color: var(--danger); }
 .edit { margin: 14px 0 4px; padding: 12px; border-radius: 12px; background: var(--surface2); display: grid; gap: 8px; }
@@ -789,6 +790,49 @@ async function loadCachedCovers() {
   const all = await idbDo('readonly', (s) => s.getAll());
   (all || []).forEach((r) => { if (r && r.blob) covUrl.set(r.k, { url: URL.createObjectURL(r.blob), c: !!r.c, t: r.t || 0 }); });
 }
+// 存一張從雲端拿到的封面（IndexedDB ＋ 畫面）
+async function storeCover(it) {
+  const blob = new Blob([bytesFromB64(it.b)], { type: it.m });
+  await idbDo('readwrite', (s) => s.put({ k: it.k, blob, m: it.m, c: !!it.c, t: it.t }));
+  const old = covUrl.get(it.k);
+  if (old) URL.revokeObjectURL(old.url);
+  covUrl.set(it.k, { url: URL.createObjectURL(blob), c: !!it.c, t: it.t });
+  paintCover(it.k);
+}
+/* ── 更新封面 ──
+ * 有油猴腳本：請它到網站重新抓這部的封面（腳本抓得到跨網域的圖；和書架封面視窗的「用預設抓取」一樣，會蓋掉自訂的），
+ * 存到 Drive 之後圖書館再從雲端取回。沒有腳本：圖書館自己抓不到網站的圖，只能強制重新從雲端載入（可能是別的裝置新抓的）。 */
+let coverWaitMs = 90000;
+async function refreshCover(g, say) {
+  if (!connected()) throw new Error('還沒有連線');
+  const keys = g.entries.map((e) => e.key);
+  if (bridgeOn()) {
+    say('更新中…（請油猴腳本到網站抓這部的封面）');
+    const r = await new Promise((resolve) => {
+      let timer = 0;
+      const on = () => {
+        let st = null;
+        try { st = JSON.parse(document.documentElement.getAttribute('data-tmr-cover-state') || 'null'); } catch (e) { st = null; }
+        if (st && st.s !== 'run') done(st);
+      };
+      const done = (x) => { clearTimeout(timer); document.removeEventListener('tmr-cover-state', on); resolve(x); };
+      timer = setTimeout(() => done({ ok: false, reason: '等太久，油猴腳本沒有回應' }), coverWaitMs);
+      document.addEventListener('tmr-cover-state', on);
+      document.documentElement.setAttribute('data-tmr-cover', JSON.stringify({ keys }));
+      document.dispatchEvent(new Event('tmr-cover-refresh'));
+    });
+    if (!r.ok) throw new Error('抓不到封面：' + (r.reason || '原因不明') + '（可以改用「上傳封面」）');
+    say('已抓到，正在從雲端取回…');
+    await syncCovers();
+    if (r.uploaded === false) return { text: '△ 已抓到，但油猴腳本沒有設定同步，圖書館拿不到這張（請在腳本的設定面板填入同樣的 Apps Script 網址與密鑰）', warn: true };
+    return { text: '✓ 已更新封面（存到 Drive）' };
+  }
+  say('從雲端重新載入…');
+  const idx = ((await api({ type: 'cover_index' })).items || []).filter((it) => keys.includes(it.k));
+  if (!idx.length) throw new Error('雲端還沒有這部的封面。要到網站抓新封面，需要油猴腳本 v3.24.0 以上（它會幫你抓、存到 Drive）');
+  for (const it of (await api({ type: 'cover_get', keys: idx.map((x) => x.k) })).items || []) await storeCover(it);
+  return { text: '✓ 已重新從雲端載入這部的封面。要重新到網站抓新封面，需要油猴腳本 v3.24.0 以上', warn: true };
+}
 let covProg = { done: 0, total: 0, err: '' };
 async function syncCovers() {
   if (!connected()) return;
@@ -799,14 +843,7 @@ async function syncCovers() {
     renderStat();
     for (let i = 0; i < need.length; i += 6) {
       const res = await api({ type: 'cover_get', keys: need.slice(i, i + 6) });
-      for (const it of res.items || []) {
-        const blob = new Blob([bytesFromB64(it.b)], { type: it.m });
-        await idbDo('readwrite', (s) => s.put({ k: it.k, blob, m: it.m, c: !!it.c, t: it.t }));
-        const old = covUrl.get(it.k);
-        if (old) URL.revokeObjectURL(old.url);
-        covUrl.set(it.k, { url: URL.createObjectURL(blob), c: !!it.c, t: it.t });
-        paintCover(it.k);
-      }
+      for (const it of res.items || []) await storeCover(it);
       covProg.done = Math.min(need.length, i + 6);
       renderStat();
     }
@@ -1199,10 +1236,10 @@ async function deleteEntries(g, entries, whole) {
   await saveGroups(patch); // 沒有要清的也照送：順便拿回最新的整份資料
 }
 // 要按兩次才執行（第一次變成「確定？」，4 秒內再按一次）
-function armButton(btn, label, run) {
+function armButton(btn, label, run, armedText) {
   let armed = false, timer = 0;
   btn.addEventListener('click', async () => {
-    if (!armed) { armed = true; btn.classList.add('armed'); btn.textContent = '確定刪除？'; timer = setTimeout(() => { armed = false; btn.classList.remove('armed'); btn.textContent = label; }, 4000); return; }
+    if (!armed) { armed = true; btn.classList.add('armed'); btn.textContent = armedText || '確定刪除？'; timer = setTimeout(() => { armed = false; btn.classList.remove('armed'); btn.textContent = label; }, 4000); return; }
     clearTimeout(timer); armed = false; btn.disabled = true; await run(); btn.disabled = false; btn.classList.remove('armed'); btn.textContent = label;
   });
 }
@@ -1440,12 +1477,22 @@ function openDrawer(key, focusSel, keepEdit) {
     catch (err) { cmsg.className = 'covmsg err'; cmsg.textContent = '✗ ' + (err && err.message ? err.message : err); }
     finally { cbtn.disabled = false; }
   };
+  const rbtn = document.createElement('button'); rbtn.type = 'button'; rbtn.className = 'btn'; rbtn.id = 'covRefresh'; rbtn.textContent = '🔄 更新封面'; rbtn.title = '重新到網站抓這部的封面（需要油猴腳本）；沒有腳本時改成從雲端重新載入';
+  const doRefresh = async () => {
+    rbtn.disabled = true; cbtn.disabled = true; cmsg.className = 'covmsg'; cmsg.textContent = '更新中…';
+    try { const r = await refreshCover(g, (t) => { cmsg.textContent = t; }); cmsg.className = 'covmsg' + (r.warn ? '' : ' ok'); cmsg.textContent = r.text; }
+    catch (err) { cmsg.className = 'covmsg err'; cmsg.textContent = '✗ ' + (err && err.message ? err.message : err); }
+    finally { rbtn.disabled = false; cbtn.disabled = false; }
+  };
+  const curCov = coverOf(g);
+  if (curCov && curCov.c) armButton(rbtn, '🔄 更新封面', doRefresh, '會蓋掉你上傳的封面，確定？'); // 目前是自己上傳的：要按兩次
+  else rbtn.addEventListener('click', doRefresh);
   cbtn.addEventListener('click', () => cfile.click());
   cfile.addEventListener('change', () => { const f = cfile.files[0]; cfile.value = ''; doUpload(f); });
   poster.addEventListener('dragover', (e) => { e.preventDefault(); poster.classList.add('drop'); });
   poster.addEventListener('dragleave', () => poster.classList.remove('drop'));
   poster.addEventListener('drop', (e) => { e.preventDefault(); poster.classList.remove('drop'); doUpload(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
-  ct.append(cbtn, cfile, cmsg); info.append(ct);
+  ct.append(cbtn, rbtn, cfile, cmsg); info.append(ct);
   const ebtn = document.createElement('button'); ebtn.type = 'button'; ebtn.className = 'btn'; ebtn.id = 'editBtn'; ebtn.setAttribute('aria-pressed', editMode ? 'true' : 'false'); ebtn.textContent = editMode ? '✓ 完成編輯' : '✎ 編輯狀態／備註／刪除'; ebtn.style.marginTop = '8px';
   ebtn.addEventListener('click', () => { editMode = !editMode; editNote = null; openDrawer(g.key, '#editBtn'); });
   info.append(ebtn);
