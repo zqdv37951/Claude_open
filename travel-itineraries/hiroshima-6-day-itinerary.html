@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>廣島 6 天 5 夜：宮島・尾道・岩國・呉</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --bg:#f1f4f2; --surface:#ffffff; --surface-2:#e7ece9;
+  --ink:#1b2422; --ink-soft:#4b5751; --ink-faint:#7c8985;
+  --line:#d7ded9;
+  --teal:#146b6b; --teal-ink:#0e4f4f; --teal-soft:#e1f0ee;
+  --amber:#a3701f; --amber-ink:#855c19; --amber-soft:#f5ead2;
+  --shadow:0 1px 2px rgba(20,30,28,.06),0 8px 24px -12px rgba(20,30,28,.18);
+  --font-display:'Iowan Old Style','Palatino Linotype',Georgia,'Noto Serif TC','PingFang TC',serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'PingFang TC','Microsoft JhengHei','Segoe UI',Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101614; --surface:#171f1c; --surface-2:#1f2925;
+  --ink:#e8ece9; --ink-soft:#a9b5af; --ink-faint:#74827c;
+  --line:#2a3630;
+  --teal:#5fc9c4; --teal-ink:#8fdcd8; --teal-soft:#16302e;
+  --amber:#e3ae5c; --amber-ink:#eec078; --amber-soft:#3a2e17;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5);
+}}
+:root[data-theme="dark"]{
+  --bg:#101614; --surface:#171f1c; --surface-2:#1f2925;
+  --ink:#e8ece9; --ink-soft:#a9b5af; --ink-faint:#74827c;
+  --line:#2a3630;
+  --teal:#5fc9c4; --teal-ink:#8fdcd8; --teal-soft:#16302e;
+  --amber:#e3ae5c; --amber-ink:#eec078; --amber-soft:#3a2e17;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-ink);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:3px}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+section{padding:44px 0 6px;scroll-margin-top:58px}
+h1{font-family:var(--font-display);font-size:clamp(30px,6vw,46px);line-height:1.08;margin:10px 0 0;font-weight:600;text-wrap:balance}
+h2{font-family:var(--font-display);font-size:clamp(22px,3.6vw,30px);margin:0 0 4px;font-weight:600;text-wrap:balance}
+h3{font-family:var(--font-display);font-size:20px;margin:30px 0 10px;font-weight:600}
+h4{font-size:15px;margin:0 0 4px;font-weight:600;line-height:1.45}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint)}
+.lede{color:var(--ink-soft);max-width:66ch;margin:10px 0 0}
+.muted{color:var(--ink-faint);font-size:.86rem}
+/* 待確認清單（page-contract.md#unverified）。刻意跟頁頂待辦（.todo-item）長得不一樣：
+   那是「出發前要辦的事」，這是「我沒能替你驗證的事」，兩種責任性質不同。 */
+/* 租車與共享車（page-contract.md#car-plan） */
+/* 當日二選一／三選一（conditional-features.md#alternatives） */
+.alts{display:grid;gap:8px;margin:10px 0 2px}
+.alt{border:1px solid var(--line);border-left:3px solid var(--ink-faint);border-radius:8px;
+  padding:10px 12px;background:var(--surface)}
+.alt.picked{border-left-color:var(--teal);background:var(--teal-soft)}
+.alt-l{font-weight:700;font-size:14px;line-height:1.5}
+.alt.picked .alt-l{color:var(--teal-ink)}
+.alt-s{font-size:13px;color:var(--ink-soft);line-height:1.75;margin-top:4px}
+.alt-h{font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:14px 0 0}
+.car{display:grid;gap:14px;margin-top:4px}
+.car-rec{border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:10px;
+  padding:14px 16px;background:var(--teal-soft)}
+.car-rec .car-choice{font-weight:700;font-size:15.5px;color:var(--teal-ink);line-height:1.5}
+.car-rec .car-total{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:14px;font-weight:700;margin-top:6px}
+.car-why{font-size:13.5px;line-height:1.75;margin-top:6px}
+.car-caution{font-size:13px;line-height:1.7;margin-top:8px;padding:8px 10px;border-radius:6px;
+  background:var(--amber-soft);color:var(--amber-ink)}
+.car-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.car-tbl th,.car-tbl td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+.car-tbl th{font-size:12px;color:var(--ink-soft);font-weight:600;white-space:nowrap}
+.car-tbl td.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.car-tbl tr.rec td{background:var(--teal-soft)}
+.car-wrap{overflow-x:auto;min-width:0;-webkit-overflow-scrolling:touch}
+.car-h{font-size:13px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:14px 0 4px}
+.car-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.car-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.car-item .t{font-weight:600;font-size:14px;line-height:1.5}
+.car-item .d{font-size:13px;color:var(--ink-soft);line-height:1.7;margin-top:3px}
+.car-item .g{font-size:12.5px;line-height:1.7;margin-top:4px;color:var(--amber-ink)}
+.uv{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.uv-item{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:12px 14px;
+  border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;background:var(--surface)}
+.uv-item input{margin-top:3px;accent-color:var(--teal)}
+.uv-t{font-weight:600;font-size:14.5px;line-height:1.5}
+.uv-why{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.6}
+.uv-how{font-size:13px;color:var(--ink);margin-top:4px;line-height:1.6}
+.uv-how b{color:var(--teal-ink)}
+.uv-where{font-size:12px;color:var(--ink-faint);margin-top:4px;font-family:var(--font-mono)}
+.uv-cat{font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:16px 0 2px}
+.uv-cat:first-child{margin-top:0}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+/* nav (page-contract.md#tab-nav) */
+.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:960px;margin:0 auto;padding:0 20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.nav-in::-webkit-scrollbar{display:none}
+.nav a{flex:0 0 auto;padding:11px 12px;font-size:13.5px;color:var(--ink-soft);text-decoration:none;
+  white-space:nowrap;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--teal-ink);border-bottom-color:var(--teal)}
+/* hero */
+.hero{padding:40px 0 34px;border-bottom:1px solid var(--line)}
+.hero h2{font-size:20px;margin-top:26px}
+.factbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:24px}
+.fact{background:var(--surface);padding:14px 16px}
+.fact-k{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+.fact-v{font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums;margin-top:4px}
+.fact-n{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.5}
+/* cards / grids */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}
+.grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px}
+@media(min-width:768px){.grid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
+.alert{border-left:3px solid var(--amber);background:var(--amber-soft);color:var(--ink);
+  padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0}
+.alert b{display:block;margin-bottom:4px}
+.alert p{margin:4px 0 0;font-size:14.5px;line-height:1.62}
+.pill{display:inline-block;font-family:var(--font-mono);font-size:10.5px;padding:2px 7px;border-radius:4px;
+  background:var(--surface-2);color:var(--ink-soft);white-space:nowrap}
+.status{display:inline-block;font-family:var(--font-mono);font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap}
+/* 預訂徽章（reminders.js 的 reminderBadgeHTML）。刻意是這一行裡唯一帶邊框的元素，
+   讀者才分得出「這個可以點」；季末警示已經佔了 amber，這裡走主色系。 */
+.reminder-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:999px;white-space:nowrap;border:1px solid var(--teal);
+  background:var(--teal-soft);color:var(--teal-ink);text-decoration:none}
+a.reminder-badge:hover{background:var(--teal);color:#fff}
+.reminder-badge.ticket{background:var(--teal-soft);color:var(--teal-ink);border-color:var(--teal)}
+.reminder-badge.reserve{background:transparent;color:var(--teal-ink);border-color:var(--teal);border-style:dashed}
+a.reminder-badge.reserve:hover{background:var(--teal-soft);border-style:solid}
+.reminder-badge.permit{border-color:var(--line);background:var(--surface-2);color:var(--ink-soft)}
+a.reminder-badge.permit:hover{border-color:var(--ink-soft);background:var(--surface-2);color:var(--ink)}
+.status.season{background:var(--amber-soft);color:var(--amber-ink)}
+.status.booking{background:var(--teal-soft);color:var(--teal-ink)}
+.status.free{background:var(--surface-2);color:var(--ink-soft)}
+/* plans + timeline */
+.plan-head{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--teal);
+  border-radius:10px;padding:16px 20px;margin:22px 0 4px;box-shadow:var(--shadow)}
+.plan-head.alt{border-left-color:var(--amber)}
+.plan-head h3{margin:0 0 4px}
+.plan-head p{margin:0;font-size:14.5px;color:var(--ink-soft)}
+.badge-rec{font-family:var(--font-mono);font-size:10.5px;padding:2px 8px;border-radius:4px;
+  background:var(--teal-soft);color:var(--teal-ink);margin-left:8px;vertical-align:3px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:14px 0;
+  box-shadow:var(--shadow);overflow:hidden}
+.day-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;padding:14px 20px;
+  border-bottom:1px solid var(--line);background:var(--surface-2)}
+.day-d{font-family:var(--font-mono);font-size:18px;font-weight:600;color:var(--teal-ink);font-variant-numeric:tabular-nums}
+.day-w{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint)}
+.day-t{font-family:var(--font-display);font-size:17px;font-weight:600;flex:1 1 190px}
+.day-b{padding:6px 20px 18px}
+.tl{list-style:none;margin:0;padding:0}
+.tl>li{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line)}
+.tl>li:last-child{border-bottom:none}
+.tl-t{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-faint);font-variant-numeric:tabular-nums;padding-top:3px}
+.routes{display:grid;grid-template-columns:1fr;gap:0;margin-top:6px}
+@media(min-width:768px){.routes{grid-template-columns:1fr 1fr;gap:0 24px}}
+.route{padding:14px 0}
+.route+.route{border-top:1px solid var(--line)}
+@media(min-width:768px){.route+.route{border-top:none;border-left:1px solid var(--line);padding-left:24px}}
+.route-h{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.route-h.easy{color:var(--teal-ink)} .route-h.mid{color:var(--amber-ink)}
+.route ol{list-style:none;margin:0;padding:0}
+.route li{display:grid;grid-template-columns:56px 1fr;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.route li:last-child{border-bottom:none}
+.route .rt{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);padding-top:2px}
+.route .rn{font-weight:600;font-size:14.5px;line-height:1.45}
+.route .rd{font-size:13px;color:var(--ink-soft);line-height:1.55;margin-top:2px}
+.wx{margin-top:12px;padding:11px 14px;background:var(--surface-2);border-radius:8px;font-size:13.5px;
+  line-height:1.6;color:var(--ink-soft)}
+.wx b{color:var(--ink)}
+.daytip{margin-top:10px;font-size:13.5px;color:var(--ink-soft);border-left:2px solid var(--amber);
+  padding-left:12px;line-height:1.6}
+/* nearby (engine-contract.md#nearby-panel) */
+.nearby-toggle{display:inline-flex;align-items:center;margin:14px 0 0;padding:8px 14px;
+  font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--teal-ink);
+  background:var(--teal-soft);border:1px solid transparent;border-radius:8px;cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s}
+.nearby-toggle:hover{border-color:var(--teal)}
+.nearby-toggle[aria-expanded="true"]{background:var(--surface-2);color:var(--ink-soft)}
+.nearby-panel{margin:12px 0 2px;padding:14px 16px 6px;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:10px}
+.nearby-panel[hidden]{display:none}   /* 蓋過 class 選擇器，確保預設收合（engine-contract.md#nearby-panel 的踩坑記錄） */
+.nb-cat{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);margin:14px 0 6px}
+.nb-cat:first-child{margin-top:2px}
+/* POI 卡片牆（engine-contract.md#poi-wall：2 列 × 橫向捲動） */
+/* grid/flex 子項預設 min-width:auto，會被寬卡片牆撐開而不是讓它內部捲動——
+   這幾條 min-width:0 是讓 .poi-grid 的 overflow-x 真正生效的前提，不要拿掉 */
+.tl>li>div,.route li>div,.day-b,.nearby-panel,#regions-body{min-width:0}
+.poi-grid{max-width:100%;display:grid;grid-template-rows:repeat(2, auto);grid-auto-flow:column;
+  grid-auto-columns:minmax(220px,1fr);gap:10px 16px;overflow-x:auto;padding-bottom:8px;
+  scroll-snap-type:x proximity}
+.poi-card{scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:12px 14px}
+.poi-card h4{margin:4px 0 0}
+.poi-card p{margin:5px 0 0;font-size:13px;color:var(--ink-soft);line-height:1.55}
+.poi-card .hl-shop{color:var(--ink-faint);font-size:12.5px}
+.poi-scroll-hint{margin:0 0 .4rem;font-size:.72rem;color:var(--ink-faint);font-family:var(--font-mono)}
+.source-tag{display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;
+  padding:1px 6px;border-radius:4px}
+.source-tag.highlight{background:var(--teal-soft);color:var(--teal-ink)}
+.source-tag.transit{background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line)}
+.dist-tag{font-family:var(--font-mono);font-size:10.5px;color:var(--amber-ink);
+  background:var(--amber-soft);padding:1px 6px;border-radius:4px;margin-left:6px;white-space:nowrap}
+.poi-maplink{margin:7px 0 0!important;font-size:11.5px!important}
+.tl h4{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* 時間軸的地圖編號徽章：外觀刻意跟 .route-pin 一致（同色實心圓 + 半透明光暈），
+   讀者才會意識到這兩個數字是同一套。改其中一邊的顏色時另一邊要一起改。 */
+.tl-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:50%;background:var(--teal);color:#fff;font-family:var(--font-mono);
+  font-size:11.5px;font-weight:700;flex:0 0 auto;font-variant-numeric:tabular-nums;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 22%,transparent)}
+.poi-maplink--inline{margin:0!important;font-size:11px!important;display:inline-flex;gap:0;align-items:center}
+.poi-maplink--inline a{margin-right:0}
+.poi-maplink a{font-family:var(--font-mono);font-size:11px;margin-right:10px;color:var(--ink-faint);text-decoration:none;border-bottom:1px solid var(--line)}
+.poi-maplink a:hover{color:var(--teal-ink);border-bottom-color:var(--teal)}
+/* map */
+#map{height:440px;border-radius:10px;border:1px solid var(--line);margin-top:16px;background:var(--surface-2)}
+@media(max-width:640px){#map{height:340px}}
+/* tables */
+.tw{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px}
+th{text-align:left;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:500;padding:10px 13px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+td{padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+/* glossary */
+dl.gl{margin:0;display:grid;gap:0}
+dl.gl div{display:grid;grid-template-columns:1fr;gap:2px;padding:11px 0;border-bottom:1px solid var(--line)}
+@media(min-width:768px){dl.gl div{grid-template-columns:230px 150px 1fr;gap:14px;align-items:baseline}}
+dl.gl div:last-child{border-bottom:none}
+dl.gl dt{font-family:var(--font-display);font-weight:600;font-size:15px}
+dl.gl .zh{font-size:14px;color:var(--ink)}
+dl.gl dd{margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.6}
+img{max-width:100%;display:block;object-fit:cover}
+footer{margin-top:50px;padding:26px 0 50px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-faint);line-height:1.7}
+hr.rule{border:none;border-top:1px solid var(--line);margin:38px 0 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- 引擎產生的 class ----------
+   map.js / reminders.js / poi.js 只輸出語意 class，樣式一律由頁面負責。
+   漏寫這一段的後果：地圖標記變成透明 div（38 個點全部看不見）、頁頂待辦清單完全沒樣式。 */
+.route-pin{background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 35%,transparent)}
+.route-pin__num{color:#fff;font-weight:700;font-size:.78rem;font-family:var(--font-mono)}
+.pretrip-todo{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.todo-item{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;
+  display:flex;gap:10px;align-items:baseline;font-size:14.5px;line-height:1.55}
+.todo-item input{accent-color:var(--teal);flex:0 0 auto}
+.todo-deadline{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:11.5px;
+  color:var(--teal-ink);background:var(--teal-soft);border-radius:4px;padding:2px 7px;white-space:nowrap;flex:0 0 auto}
+.todo-text{color:var(--ink-soft)}
+.reminder-badge{display:inline-block;font-family:var(--font-mono);font-size:10.5px;padding:2px 7px;
+  border-radius:4px;background:var(--amber-soft);color:var(--amber-ink);white-space:nowrap}
+.hl-card h4{font-family:var(--font-body);font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.hl-card h4 a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+.hl-card h4 a:hover{border-bottom-color:var(--teal);color:var(--teal-ink)}
+.leaflet-popup-content a{color:var(--teal-ink);font-family:var(--font-mono);font-size:12px;margin-right:6px}
+/* ---------- 主題切換 ---------- */
+.theme-btn{flex:0 0 auto;margin-left:auto;align-self:center;background:none;border:1px solid var(--line);
+  color:var(--ink-soft);border-radius:6px;cursor:pointer;font-size:13px;padding:5px 10px;line-height:1;
+  font-family:var(--font-body)}
+.theme-btn:hover{color:var(--teal-ink);border-color:var(--teal)}
+
+/* ---------- 列印 ----------
+   旅遊行程會被印出來帶著走。最關鍵的一條：橫捲軌道在紙上捲不動，
+   若維持 grid-auto-flow:column，每軌只會印出可視的前兩欄，其餘卡片完全看不到
+   （150 項總覽在紙上只剩約 30 項）。列印時必須改成自動換行的網格。 */
+/* 必買・伴手禮（trip.shopping） */
+.sp-verdict{display:grid;gap:8px;margin:12px 0 4px}
+.sp-v{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;border:1px solid var(--line);
+  border-radius:8px;padding:10px 14px;background:var(--surface)}
+.sp-v-k{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;color:var(--teal-ink);
+  background:var(--teal-soft);align-self:start;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.sp-v-t{font-size:14px;line-height:1.75}
+.sp-h{font-size:13px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:24px 0 8px}
+.sp-plan{list-style:none;padding:0;margin:0;display:grid}
+.sp-plan li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 14px;font-size:13.5px;
+  line-height:1.7;border-bottom:1px solid var(--line);padding:8px 0}
+.sp-plan .d{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.sp-plan .w{font-weight:600}
+.sp-plan .n{grid-column:2;color:var(--ink-soft)}
+.sp-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media(min-width:760px){.sp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sp-card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--surface);
+  display:grid;gap:7px;align-content:start;min-width:0}
+.sp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sp-name{font-weight:700;font-size:15px;line-height:1.4}
+.sp-en{font-size:12px;color:var(--ink-faint);line-height:1.5}
+.sp-tag{flex:0 0 auto;font-family:var(--font-mono);font-size:10.5px;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.sp-tag.value{background:var(--teal-soft);color:var(--teal-ink)}
+.sp-tag.quality{background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line)}
+.sp-tag.keepsake{background:var(--amber-soft);color:var(--amber-ink)}
+.sp-row{font-size:13px;line-height:1.7}
+.sp-row b{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink-soft);font-weight:600;margin-right:6px}
+.sp-why{font-size:13.5px;line-height:1.75}
+.sp-caution{font-size:12.5px;line-height:1.7;padding:7px 10px;border-radius:6px;background:var(--amber-soft);color:var(--amber-ink)}
+.sp-pit{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.sp-pit li{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:10px 14px;
+  background:var(--surface);font-size:13.5px;line-height:1.75}
+.sp-pit .pi{font-weight:700;display:block}
+@media print{.sp-card,.sp-v,.sp-pit li{box-shadow:none!important;background:#fff!important}}
+@media print {
+  .nav, .theme-btn { display: none !important; }
+  #map, #map-sec { display: none !important; }          /* 圖磚不會列印，留白框沒有意義 */
+  body { background: #fff !important; color: #000 !important; }
+  .card, .day, .poi-card, .tw, .plan-head, .nearby-panel {
+    box-shadow: none !important; background: #fff !important;
+  }
+  /* 橫捲 → 換行網格，讓所有卡片都印得到 */
+  .poi-grid {
+    display: grid !important;
+    grid-template-rows: none !important;
+    grid-auto-flow: row !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    overflow: visible !important;
+  }
+  .poi-scroll-hint { display: none !important; }
+  /* 紙上捲不動：橫捲的表格容器要放開，讓表格自己換行縮排（page-contract.md#print） */
+  .tw, .car-wrap { overflow: visible !important; }
+  .tw table, .car-tbl { table-layout: fixed !important; width: 100% !important; font-size: 10.5px !important; }
+  .tw td, .tw th, .car-tbl td, .car-tbl th { word-break: break-word !important; white-space: normal !important; padding: 4px 5px !important; }
+  /* 長網址（Airbnb 訂房連結）被 a::after 印出來時不能斷行，會把表格撐爆 */
+  .tw a::after, .car-tbl a::after { overflow-wrap: anywhere !important; word-break: break-all !important; }
+  .tw td, .car-tbl td { overflow-wrap: anywhere !important; }
+  /* 訂房徽章預設 nowrap，列印時 a::after 把網址接上去會把儲存格撐爆 */
+  .tw .reminder-badge, .car-tbl .reminder-badge {
+    white-space: normal !important; display: inline !important;
+    overflow-wrap: anywhere !important; word-break: break-all !important; }   /* 紙上滑不動，提示是誤導 */
+  .tl-num { box-shadow: none !important; }         /* 紙上不需要光暈，但編號要留著對照 */
+  /* 不要把一天、一張卡、一個表格切成兩頁 */
+  .day, .poi-card, .plan-head, .car-rec, .car-item, table { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+  a { text-decoration: none; color: #000 !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9px; color: #555; word-break: break-all; }
+}
+
+/* ── 本頁新增：站點小標籤、每日餐飲 ── */
+h3.day-h{margin:0;font:inherit}
+.slot-meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.slot-meta .pill{font-family:var(--font-body);font-size:11.5px;background:var(--surface-2);color:var(--ink-soft);
+  border:1px solid var(--line);white-space:normal;line-height:1.5;padding:2px 8px;border-radius:999px}
+.dn-h{font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin:16px 0 4px}
+.dn{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+@media(min-width:768px){.dn{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
+.dn-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);min-width:0}
+.dn-meal{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--teal-ink)}
+.dn-place{font-weight:600;font-size:14px;line-height:1.5;margin-top:2px}
+.dn-hours{font-size:12px;color:var(--ink-faint);line-height:1.5;margin-top:2px}
+.dn-dishes{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:3px;font-size:13px}
+.dn-dishes li{display:flex;justify-content:space-between;gap:10px;border-top:1px dashed var(--line);padding-top:3px}
+.dn-dishes .mono{font-size:12px;color:var(--ink-soft);text-align:right}
+
+</style>
+</head><body>
+
+<nav class="nav"><div class="nav-in" id="nav-in"></div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">2026 · 12 · 03 — 12 · 08　/　TAIPEI → HIROSHIMA　/　三位成人</div>
+  <h1>廣島 6 天 5 夜：宮島・尾道・岩國・呉</h1>
+  <p class="lede">12/3 早班機落地、12/8 午前班機離境，實際可玩的整天是 12/4–12/7 四天，再加上第一天下午。以廣島市為據點，大眾運輸為主，把<b>宮島、尾道、岩國、呉</b>各排一天；每天都先排好時間與交通，再附上每區 30 選的備選庫。</p>
+  <div class="factbar">
+    <div class="fact"><div class="fact-k">Outbound · 12/03 Thu</div><div class="fact-v">07:10 → 10:25</div><div class="fact-n">桃園 TPE T2 → 廣島 HIJ</div></div>
+    <div class="fact"><div class="fact-k">Return · 12/08 Tue</div><div class="fact-v">11:25 → 13:25</div><div class="fact-n">廣島 HIJ → 桃園 TPE T2</div></div>
+    <div class="fact"><div class="fact-k">Base</div><div class="fact-v">廣島市 5 晚</div><div class="fact-n">住宿待訂（見片區建議）</div></div>
+  </div>
+  <h2>出發前待辦清單</h2>
+  <div id="checklist"></div>
+</div></header>
+
+<div class="wrap">
+  <section id="pretrip"><h2>行前總覽</h2><div id="pretrip-body"></div>
+    <div class="alert"><b>⚠️ 調研改變了行程的三件事</b>
+      <p>①廣島城天守閣已於 2026/3/22 閉城，行程不排天守，改排縮景園；②Dreamination 點燈是 12/4 才開幕，所以 12/3 夜晚沒有燈，點燈夜排在 12/7；③和平紀念資料館 12 月 16:30–17:30 要線上預約，所以 12/3 排 14:30 入館以避開。</p></div>
+  </section>
+  <hr class="rule">
+  <section id="transport"><h2>航班・住宿・交通</h2><div id="transport-body"></div></section>
+  <hr class="rule">
+  <section id="plans" data-timeline><h2>逐日行程</h2>
+    <p class="lede">時間軸上每一站都可展開「附近推薦」，依實際座標距離排序；站點旁的 <b>編號</b> 與下方地圖標記一一對應。</p>
+    <div id="plans-body"></div></section>
+  <hr class="rule">
+  <section id="map-sec"><h2>路線地圖</h2><p class="muted" id="map-note"></p><div id="map"></div></section>
+  <hr class="rule">
+  <section id="regions"><h2>五區各 30 選（景點 / 美食 / 店家）</h2>
+    <p class="lede">每區景點、美食、店家各 10 項，是行程之外的備選庫。標題連向地圖；沒有座標的項目（OpenStreetMap 查不到或有多個分店）只給 Google 地圖搜尋連結，避免填入沒驗證過的點位。</p>
+    <div id="regions-body"></div></section>
+  <hr class="rule">
+  <section id="verify"><h2>出發前要自己確認的事</h2>
+    <p class="lede">下面每一條都是這份行程<strong>建置時驗不了</strong>的東西——不是沒查，是查不到或在建置環境打不開。
+      一句籠統的免責宣告沒有用，所以把具體項目列出來讓你逐條勾掉。</p>
+    <div id="verify-body"></div></section>
+  <section id="tips"><h2>全程實用貼士</h2><div id="tips-body"></div></section>
+  <hr class="rule">
+  <section id="glossary"><h2>日文—繁體中文對照表</h2><div id="glossary-body"></div></section>
+  <footer>
+    <p><b>資料查證時間：2026 年 10 月 28 日。</b>營業時間、休館日、票價、點燈日期與交通所需時間，均來自查證當日可取得的官方頁面與公開資料，可能隨時更動。出發前一週請再確認：
+      <a href="https://dreamination.com/" target="_blank" rel="noopener">ひろしまドリミネーション</a>・
+      <a href="https://www.miyajima-ropeway.info/" target="_blank" rel="noopener">宮島ロープウェー運行情報</a>・
+      <a href="https://www.yamato-museum.com/" target="_blank" rel="noopener">大和ミュージアム</a>。</p>
+    <p>骨架與三個引擎（地圖、提醒、卡片牆）沿用同一 skill 先前生成的頁面，資料與行程全部重新整理；「附近推薦」使用已驗證座標的候選池。</p>
+  </footer>
+</div>
+
+<script id="trip-data" type="application/json">{"title":"廣島 6 天 5 夜：宮島・尾道・岩國・呉","startDate":"2026-12-03","colorScheme":"teal-amber","preTrip":{"weather":{"summary":"12 月初廣島日均溫約 7–8°C（1991–2020 年平年值：均溫約 7.5°C、最高約 12°C、最低約 4°C，月降水量約 40–55 mm），晴多雨少，但沿海風大、體感比數字冷。","typhoon":"沒有颱風問題，但冬季海風強時瀨戶內海渡輪與宮島纜車可能臨時停駛；山上（彌山、千光寺山）比平地更冷，早晚溫差也大。"},"packing":"洋蔥式穿法：發熱衣＋毛衣＋防風外套，加圍巾與手套；宮島、尾道有石階與坡道，穿防滑好走的鞋；備一把摺疊傘。","payment":"交通用 IC 卡（Suica／ICOCA／PASMO 等皆通用，手機錢包也可），另備少量現金——宮島烤牡蠣攤、尾道小店與部分廣島燒店只收現金。宮島訪問稅 ¥100 在買船票時一併付。","apps":["Google 地圖／NAVITIME（路線）","乘換案內（JR 時刻與票價）","tabiwa by WESTER（宮島滿喫パス電子票）","Visit Japan Web（入境審查與海關）","Yahoo!天気（雨雲）","Google 翻譯"],"ticketTip":"這趟幾乎不用提前搶票：宮島滿喫パス要先在 tabiwa 買好；和平紀念資料館 12 月 16:30–17:30 入館須線上預約（本行程排 14:30 入館可避開）；牡蠣船「かなわ」建議訂位。"},"flights":{"booked":[{"label":"去程 12/3（四）","code":"桃園 TPE T2 → 廣島 HIJ","time":"07:10 出發 → 10:25 抵達"},{"label":"回程 12/8（二）","code":"廣島 HIJ → 桃園 TPE T2","time":"11:25 出發 → 13:25 抵達"}],"candidates":[]},"hotelAreas":[{"area":"廣島站周邊（推薦）","reason":"機場巴士（新幹線口）、JR 往宮島／尾道／岩國／呉、廣電路面電車全都在站前；6 天裡有 4 天是 JR 出城，住這裡每天少繞一段。缺點：離本通與夜間點燈要再搭電車約 15–20 分。三人入住請先確認是否有三人房或可加床，不然就訂兩間。","options":[{"tier":"經濟","name":"東橫INN 廣島站周邊","priceRange":"各平台最低價約 ¥5,400 起（日期差異大）","note":"離廣島站約步行 3 分；標準房多為 1–2 人，三人需訂兩間或確認加床。"},{"tier":"中檔","name":"Hotel Granvia Hiroshima South Gate（ホテルグランヴィア広島サウスゲート）","priceRange":"請查日期報價","note":"2025/3 開幕，位於廣島站南口上方；有四張床的概念房，適合三到四人同住。"},{"tier":"高階","name":"Hotel Granvia Hiroshima（ホテルグランヴィア広島）","priceRange":"請查日期報價","note":"廣島站直結，最後一天趕機場巴士最省力。"}]},{"area":"本通・八丁堀・紙屋町（市中心）","reason":"走路可達和平公園、お好み村、流川居酒屋與 Dreamination 主會場，晚上逛完回房最快。缺點：JR 出城要先搭電車到廣島站（約 15–20 分）。下面三間確認過位置（OpenStreetMap），但價位級別是粗略分類，實際房型與價格請用訂房網比價。","options":[{"tier":"中檔","name":"廣島華盛頓飯店（広島ワシントンホテル）","priceRange":"請查日期報價","note":"位於八丁堀一帶，離お好み村與流川都近。"},{"tier":"中檔","name":"三井 Garden Hotel 廣島（三井ガーデンホテル広島）","priceRange":"請查日期報價","note":"位於本通南側、平和公園以東，走路可達和平公園與市中心。"},{"tier":"高階","name":"Hotel Intergate Hiroshima（ホテルインターゲート広島）","priceRange":"請查日期報價","note":"位於本通以東的市中心，Dreamination 會場步行可達。"}]}],"transportPlan":{"title":"交通方案：大眾運輸 vs 租車","lede":"價格與時間皆為公開資料整理的參考值，未經訂位系統驗證；實際票價請用乘換案內查。","recommendation":{"choice":"不租車：機場巴士＋廣電路面電車＋JR 山陽線／呉線＋宮島滿喫パス","why":"五個據點（宮島、尾道、岩國、呉、市區）全部有電車／JR／渡輪直達；宮島本來就不能開車，市區停車與還車反而是額外成本；冬季山路與海岸風況不穩，三人輪流開車也沒有比較省。","caution":"岩國與尾道的 JR 單程各約 1 小時起，行程時間壓縮得比較緊；若你想把尾道換成「鞆之浦」或「しまなみ海道」，那才是租車有價值的情境。","howTo":"宮島用滿喫パス；其他區間在 JR 站用 IC 卡直接刷；機場來回各坐一次利木津巴士。"},"compare":[{"option":"大眾運輸（本頁採用）","cost":"機場巴士往返約 ¥3,000／人；宮島滿喫パス ¥1,500；其餘 JR 與電車以乘換案內為準","pros":"不用找停車位、能喝酒、不用還車","cons":"尾道與岩國單程各約 1 小時起；末班車要抓","verdict":"推薦"},{"option":"全程租車","cost":"未查（租金、保險、還車與停車費因業者而異）","pros":"行李多時方便、可自由加點","cons":"宮島與市區不適合開、需要日文譯本與駕照、冬季路況與保險成本","verdict":"不推薦"},{"option":"只租一天（例如尾道）","cost":"未查","pros":"把尾道與鞆之浦、島嶼同天串起來","cons":"需要日文譯本與駕照；也要處理還車時間","verdict":"有特定想去的點時才考慮"}],"carDocuments":[{"item":"台灣駕照需附日文譯本","detail":"台灣不是日內瓦公約簽署國，台灣旅客在日本開車通常是「台灣駕照＋日文譯本」，不是國際駕照。","gotcha":"請在出發前向台灣日本關係協會或租車公司確認最新規定與辦理時間。"}]},"disclaimer":"本頁全部資訊（天氣、航班、酒店、餐廳、景點、門票、價格、營業時間、評分、活動等）均為 AI 基於公開資料整理的參考建議，可能不準確或已過時，不保證與實時情況一致；請務必在官方渠道／訂票訂房／地圖等 App 上核實後再做決定或前往。","tips":["12 月日落早（約 17:00），戶外行程盡量排在上午到下午三點前，傍晚留給點燈與牡蠣。","廣島電車全線同價，可用 IC 卡；市區移動多搭電車，JR 才用在出城。","宮島的鹿會搶紙袋與食物，購買的小吃請在當場吃完。","三人行請在餐廳預約時就講人數，吧台座位常以二人為單位，坐不下三人時會被分開。","尾道、岩國與呉的店家公休日（週一或週二）很常撞上你的日期，出門前一晚再查一次當天營業。"],"reminders":[{"item":"確認機票已出票並取得航班號與 PNR（Trip.com 訂單目前顯示「出票中」）","leadDays":35},{"item":"訂房：廣島 5 晚，三人（建議訂兩間或確認三人房）","leadDays":30},{"item":"登錄 Visit Japan Web（入境審查與海關申報）","leadDays":7},{"item":"預訂牡蠣船「かなわ」晚餐（12/7 或 12/3）","leadDays":14},{"item":"準備行動網路（eSIM 或漫遊）","leadDays":5},{"item":"註冊 WESTER 會員（免費；購買 tabiwa 周遊券需要）","leadDays":7},{"item":"在 tabiwa by WESTER 購買「宮島滿喫パス」兩日券（12/4 使用）","leadDays":3},{"item":"準備 IC 卡（Suica／ICOCA 手機錢包或實體卡）與少量日圓現金","leadDays":3}],"unverified":[{"category":"A. 機票與入境","item":"Trip.com 訂單是否已出票，並取得航班號與 PNR","why":"截圖顯示訂單狀態為「出票中」、尚未出票；截圖裡沒有航班號與航空公司，所以本頁只寫了桃園 T2／廣島的時刻。","how":"到 Trip.com App 看訂單狀態；出票後到航空公司官網用 PNR 查詢，確認 12/3 07:10 與 12/8 11:25 兩段的航班號、航廈與行李額度。","where":["12/3 抵達","12/8 離境"]},{"category":"A. 機票與入境","item":"12/8 機場巴士首班與 7:00–8:00 班次表","why":"搜尋結果只給票價與所需時間（約 50 分、¥1,500），沒有查到 12 月的班次表。","how":"用 JR バス中国「広島空港線」時刻表，確認 12/8 07:45 前後的班次；沒有就把出發時間提前。","where":["12/8"]},{"category":"B. 營業日與營業時間","item":"和平紀念資料館 12 月開館時間與入館費","why":"廣島市官網 FAQ 寫 12–2 月 7:30–18:00（16:30–17:30 須線上預約），但多個旅遊網站仍寫 8:30–17:00；入館費只在舊資料看到 ¥200。","how":"以資料館官網（hpmmuseum.jp）為準，確認時間、費用與線上預約規則。","where":["12/3"]},{"category":"B. 營業日與營業時間","item":"彌山纜車 12 月是否有年度檢修停駛","why":"官網目前沒有列出 12 月的特定日，但提到「冬季每年有一次檢修日」，具體日期要看之後公告；出發前一週還可能更新。","how":"出發前一週再看彌山纜車官網的運行資訊，或電話確認（0829-44-0316）。","where":["12/4"]},{"category":"B. 營業日與營業時間","item":"嚴島神社 12 月閉門時間","why":"搜尋結果有兩種寫法（17:00 與 18:00），旅遊網站資料彼此不一致。","how":"以嚴島神社官方網站為準；行程以 17:00 前離開來排。","where":["12/4"]},{"category":"B. 營業日與營業時間","item":"大和博物館 12 月休館日與觀覽料；鐵鯨館開館日","why":"官網只查到當日（10/28）開館 9:00–18:00；休館日是從第三方資料整理的（週二休，12/29–1/3 無休），觀覽料與鐵鯨館開館日在建置環境沒查到。","how":"看大和博物館官網的開館日曆與觀覽料頁；鐵鯨館另外查。","where":["12/7"]},{"category":"B. 營業日與營業時間","item":"縮景園與岩國城纜車的冬季時間","why":"縮景園有 9:00–17:00 與 18:00 兩種寫法；岩國城纜車資料只標註通年 9:00–17:00，沒有冬季專屬公告。","how":"看縣立縮景園與岩國觀光協會官網；行程以較早結束時間排。","where":["12/6","12/7"]},{"category":"C. 交通與票券","item":"JR 廣島→尾道／岩國／呉的票價、班次與所需時間","why":"本頁只引用到「在來線尾道約 1.5–2 小時」「岩國約 40–50 分」，沒有逐線查證票價與班次。","how":"前一天用乘換案內輸入實際日期與時間確認，並留意末班車。","where":["12/5","12/6","12/7"]},{"category":"C. 交通與票券","item":"宮島滿喫パス購買流程","why":"只確認了價格（¥1,500）與內容、是 tabiwa by WESTER 的電子票、購買需免費註冊 WESTER 會員；官方購買頁網址沒有查到，購買流程與當日啟用也沒有親自走過，所以這一站的預訂徽章不是連結。","how":"在 tabiwa 買一次並先啟用試用，確認使用開始日設為 12/4。","where":["12/4"]},{"category":"D. 餐廳與總覽","item":"五區各 30 項的店家與設施，是否歇業或改時間","why":"這 150 項是整理自公開名單，只用 OpenStreetMap 比對名稱與座標，沒有逐店確認營業狀況；岩國餐廳名單的來源是 2021 年資料。","how":"出發前一晚用 Google 地圖查你要去的那幾間，確認「營業中」與公休日。","where":["五區總覽"]},{"category":"D. 餐廳與總覽","item":"牡蠣船「かなわ」的訂位方式與當季營業","why":"搜尋沒有查到官方訂位頁，也沒有確認 12 月營業日。","how":"用店家官網或電話預約；若訂不到就改去流川的居酒屋。","where":["12/3","12/7"]},{"category":"E. 租車（若你決定考慮）","item":"台灣駕照日文譯本規定與租金","why":"這一項不屬於本頁採用的方案，只提供方向；租金與保險沒有查。","how":"向租車公司與台灣日本關係協會確認最新規定與辦理時間。","where":[]},{"category":"F. 天氣與潮汐","item":"12/4 宮島潮汐表（決定先去神社還是先去纜車）","why":"潮汐是逐日預測，建置時沒有查。","how":"查「宮島 潮見表」，漲潮時神社最像「浮」在海上，退潮才能走到大鳥居腳下。","where":["12/4"]}],"glossary":{"title":"日文—繁體中文對照表","note":"本頁地名、店名多保留日文原文，以下整理全篇出現過的重要詞彙。","groups":[{"category":"交通","items":[{"term":"新幹線口","zh":"新幹線出入口","note":"廣島站的北側出口，機場利木津巴士在這裡上下車。"},{"term":"広電（路面電車）","zh":"廣島電鐵路面電車","note":"市區最方便的移動方式，全線單一車資。"},{"term":"乗換案内","zh":"轉乘查詢","note":"查 JR 與電車時刻與票價的 App／網站。"},{"term":"ICカード","zh":"交通儲值卡","note":"Suica、ICOCA、PASMO 等全國互通。"},{"term":"満喫パス","zh":"滿喫通行證","note":"宮島滿喫パス：兩日有效，含 JR、廣電、渡輪與神社拜觀。"},{"term":"宮島訪問税","zh":"宮島訪問稅","note":"登島時繳納，每人 ¥100，通常在船票處一併支付。"},{"term":"ロープウェー","zh":"空中纜車","note":"彌山、尾道千光寺山與岩國城都有。"},{"term":"潮見表","zh":"潮汐表","note":"決定嚴島神社的大鳥居是浮在水上還是能走到腳邊。"}]},{"category":"景點","items":[{"term":"原爆ドーム","zh":"原爆圓頂館","note":"被爆建築，世界遺產。"},{"term":"慰霊碑","zh":"慰靈碑","note":"平和公園中軸線上的拱形紀念碑。"},{"term":"大鳥居","zh":"大鳥居","note":"宮島海中的紅色鳥居。"},{"term":"千畳閣","zh":"千疊閣","note":"宮島的大殿，榻榻米寬闊、未完工。"},{"term":"弥山","zh":"彌山","note":"宮島最高峰，登山口與纜車入口各有數個。"},{"term":"縮景園","zh":"縮景園","note":"廣島的迴遊式庭園。"},{"term":"錦帯橋","zh":"錦帶橋","note":"岩國的五連拱木橋，日本三名橋之一。"},{"term":"千光寺","zh":"千光寺","note":"尾道山腰的朱紅色古寺。"},{"term":"猫の細道","zh":"貓之細道","note":"尾道石階小巷，有福石貓與手繪貓。"},{"term":"艦船めぐり","zh":"軍艦巡遊","note":"從呉港搭船近看護衛艦與潛艦。"}]},{"category":"美食","items":[{"term":"お好み焼き","zh":"廣島燒","note":"廣島風的疊層麵與蛋，肉玉そば是基本款。"},{"term":"あなごめし","zh":"穴子飯","note":"宮島口名物，炭烤穴子飯。"},{"term":"焼き牡蠣","zh":"烤牡蠣","note":"宮島表參道的人氣小吃。"},{"term":"揚げもみじ","zh":"炸楓葉饅頭","note":"現點現炸的楓葉饅頭。"},{"term":"にぎり天","zh":"握天（魚漿棒）","note":"海鮮魚漿炸成棒狀，邊走邊吃。"},{"term":"尾道ラーメン","zh":"尾道拉麵","note":"背脂醬油湯底與平打麵。"},{"term":"尾道焼き","zh":"尾道燒","note":"加入砂ずり（雞胗）的尾道版廣島燒。"},{"term":"海軍カレー","zh":"海軍咖哩","note":"呉的名物，源自海軍的咖哩。"},{"term":"岩国寿司","zh":"岩國壽司","note":"木桶壓成的方塊押壽司，蓮藕是特色食材。"},{"term":"汁なし担担麺","zh":"無湯擔擔麵","note":"廣島的辣味乾拌麵，常與白飯一起吃。"}]},{"category":"其他","items":[{"term":"ドリミネーション","zh":"Dreamination 點燈","note":"廣島冬季點燈活動，2026/12/4–2027/1/24。"},{"term":"被爆","zh":"被原子彈轟炸","note":"被爆建築是指原爆後仍保存的建築。"},{"term":"白蛇","zh":"白蛇","note":"岩國的天然紀念物，被視為吉祥象徵。"},{"term":"術科学校","zh":"術科學校","note":"江田島的舊海軍兵學校所在地，現屬海上自衛隊。"}]}]},"days":[{"date":"2026-12-03","weekday":"週四","theme":"抵達廣島・和平公園","tips":["10:25 落地後出關約需一小時（入境審查加行李，以現場為準），機場巴士再約 50 分才到廣島站，所以午餐實際會落在 13:00 前後。航班若延誤，優先保住「和平紀念資料館」，其餘可砍。","點燈活動 Dreamination 是 12/4 才開幕，今晚市區沒有燈，改成本通與流川散步。"],"slots":[{"lat":34.4375,"lng":132.9195,"time":"10:25","period":"上午","name":"廣島機場（抵達）","review":"入境後搭利木津巴士往廣島站新幹線口（乘車方式與班次請以巴士公司時刻表為準）；三人行李可先帶去飯店寄放。","transport":{"mode":"機場利木津巴士","fare":"約 ¥1,500／人（市政府 FAQ，2026/4 更新）","duration":"約 50 分"}},{"lat":34.3978,"lng":132.4756,"time":"12:30–13:00","period":"午後","name":"廣島站・寄放行李","review":"站內 ekie 有美食街與置物櫃；若飯店可寄放就直接過去，輕裝出發最省力。"},{"lat":34.3913,"lng":132.4619,"time":"13:00–14:15","period":"午後","name":"お好み村（廣島燒）","review":"一棟樓裡集中多家廣島燒小店，各店營業時間與公休不同（事務局 082-241-2210），挑有空位的一間坐吧台看師傅現做，是第一餐最穩的選擇。","transport":{"mode":"廣電路面電車 → 八丁堀 / 或步行","fare":"電車全線 ¥240（參考）","duration":"約 15–20 分"}},{"lat":34.3918,"lng":132.4521,"time":"14:30–16:15","period":"午後","name":"廣島和平紀念資料館","review":"展示被爆前後的廣島與遺物，情緒沉重，建議留足兩小時。12 月開館 7:30–18:00（入館至 17:30），但 16:30–17:30 常設展需線上預約；14:30 入館剛好避開預約時段。","openingHours":"12–2 月 7:30–18:00（入館至 17:30）","closedDays":"12/30、12/31 休館","ticketPrice":"成人約 ¥200（舊資料，請確認官網）","status":{"label":"16:30 後入館須線上預約","kind":"booking"}},{"lat":34.393,"lng":132.4526,"time":"16:15–17:00","period":"傍晚","name":"平和紀念公園（慰靈碑・原爆之子像）","review":"從資料館出來順著慰靈碑中軸線看過去，正對原爆圓頂館；原爆之子像旁常有各地寄來的千羽鶴。"},{"lat":34.3955,"lng":132.4535,"time":"17:00–17:30","period":"傍晚","name":"原爆圓頂館","review":"12/3 日落約 17:00，趕在天色轉暗前繞一圈：近看鋼骨與磚牆，隔河看輪廓最完整。免費、全天可看。"},{"lat":34.3938,"lng":132.457,"time":"18:30–20:30","period":"晚上","name":"本通商店街・流川","review":"吃完牡蠣或居酒屋沿著本通走回八丁堀。第一天不要排太滿，早點回飯店休息。"}],"dining":[{"meal":"午餐","place":"お好み村（新天地廣場內各店）","hours":"各店不同（部分店家 11:00–23:00，公休不一）","dishes":[{"name":"肉玉そば（廣島燒）","price":"約 ¥900–1,300（參考）"},{"name":"牡蠣入り廣島燒（冬季）","price":"約 ¥1,300–1,800（參考）"}]},{"meal":"晚餐","place":"流川・薬研堀一帶居酒屋；或牡蠣船「かなわ」（建議預約）","hours":"傍晚起，各店不同","dishes":[{"name":"烤牡蠣／牡蠣フライ","price":"約 ¥1,200–2,000（參考）"},{"name":"牡蠣土手鍋（冬季）","price":"約 ¥1,500–2,500（參考）"}]}]},{"date":"2026-12-04","weekday":"週五","theme":"宮島一日・神社、纜車與牡蠣","tips":["潮汐決定嚴島神社的樣子：漲潮時神社與大鳥居「浮」在水上，退潮能走到大鳥居腳下。出發前先查「宮島 潮見表」，決定上午走神社還是下午走（建置時沒查，列在「待確認」）。","彌山纜車（紅葉谷站→獅子岩站）官網目前顯示：上行 9:00–16:00、下行 9:20–16:30，12 月沒有需事先網路預約的特定日；12/4 日落約 17:00，要登頂就別拖到下午三點之後。","今天用宮島滿喫パス（成人 ¥1,500、兩日有效，JR 廣島—宮島口＋廣電全線＋兩家渡輪＋嚴島神社與寶物館拜觀各一次），另付宮島訪問稅 ¥100；12/5 還能再搭廣電市區電車。","Dreamination 12/4 開幕（17:30–22:30，開幕當晚約 18:00 點亮）：體力還行的話，17:30 前後搭船回廣島，傍晚抵達剛好能趕上第一晚。"],"slots":[{"lat":34.3123,"lng":132.3029,"time":"08:30–09:30","period":"上午","name":"宮島口（渡輪乘船處）","review":"JR 與松大兩家渡輪票價相同、約 10 分鐘，平日約每 15 分一班；JR 乘船口從宮島口站步行約 5 分。滿喫パス是 tabiwa 的電子票券，出發前先買好。","transport":{"mode":"JR 山陽本線（廣島→宮島口）＋渡輪","fare":"含於滿喫パス；渡輪單買 ¥200＋訪問稅 ¥100","duration":"電車約 25–30 分＋渡輪約 10 分"},"needsBooking":true,"leadDays":3,"bookingKind":"ticket"},{"lat":34.2965,"lng":132.319,"time":"09:30–10:45","period":"上午","name":"嚴島神社・大鳥居","review":"從碼頭沿海邊走到神社，穿過迴廊到平舞台與火焰燈籠；12 月上旬楓葉已近尾聲，但景色仍然乾淨。","openingHours":"12 月約 6:30–17:00（資料間略有出入）","ticketPrice":"昇殿 ¥300（含於滿喫パス）"},{"lat":34.2973,"lng":132.3203,"time":"10:45–11:30","period":"上午","name":"豐國神社（千疊閣）・五重塔","review":"千疊閣是豐臣秀吉下令興建、未完工的大殿，榻榻米寬闊、能坐下來吹風；旁邊五重塔是遠眺大鳥居的好角度。"},{"lat":34.2986,"lng":132.3217,"time":"11:30–13:00","period":"午後","name":"表參道商店街（牡蠣午餐）","review":"約 350 公尺的主街：烤牡蠣、握天、炸楓葉饅頭都在這裡。鹿很多，食物請當場吃完，紙袋也要收好。"},{"lat":34.2917,"lng":132.3186,"time":"13:15–14:00","period":"午後","name":"大聖院","review":"彌山登山口之一的古寺，沿階梯往上有轉經筒與佛像，人潮比嚴島神社少很多；下山往紅葉谷走即可接纜車。"},{"lat":34.2885,"lng":132.3276,"time":"14:15–16:30","period":"午後","name":"彌山（纜車・獅子岩展望台）","review":"紅葉谷站搭纜車到獅子岩站，眺望瀨戶內海；輕鬆版只到展望台，體力好再走往山頂的步道（單程約 30 分，需預留往返時間）。纜車下行最後一班 16:30，務必抓準。","openingHours":"上行 9:00–16:00／下行 9:20–16:30（官網現況）","seasonal":"冬季末班較早，請以當日官網運行情報為準"},{"lat":34.2973,"lng":132.3181,"time":"16:45–17:30","period":"傍晚","name":"大鳥居日落（回碼頭途中）","review":"從神社前的海岸邊看大鳥居配上日落，是宮島一日最漂亮的收尾；12/4 日落約 17:00。"}],"dining":[{"meal":"午餐","place":"牡蠣屋（表參道）或 焼がきのはやし","hours":"各店不同；午餐時段常排隊","dishes":[{"name":"烤牡蠣","price":"約 ¥300–500／顆（參考）"},{"name":"牡蠣飯・牡蠣フライ","price":"約 ¥1,200–2,000（參考）"}]},{"meal":"點心","place":"紅葉堂 弐番屋／ミヤトヨ","hours":"店面約 9:00–17:00（參考）","dishes":[{"name":"炸楓葉饅頭","price":"約 ¥200–300（參考）"},{"name":"起司楓葉饅頭","price":"約 ¥150–250（參考）"}]},{"meal":"晚餐","place":"あなごめし うえの 宮島口本店（回程）或 ふじたや","hours":"請確認；食堂不接受訂位，常需排隊","dishes":[{"name":"穴子飯（あなごめし）","price":"約 ¥2,000–3,000（參考）"}]}]},{"date":"2026-12-05","weekday":"週六","theme":"尾道・坡道、寺院與貓","tips":["廣島→尾道最便宜的是 JR 山陽本線在來線（約 1.5–2 小時，通常要轉車）；想省時間可搭新幹線到福山再轉在來線，或搭 Kodama 到新尾道（不是尾道站）。三個人搭新幹線票價會明顯拉高，建議用乘換案內比一下再決定。","朱華園（尾道拉麵）資料顯示 11:00–19:00、賣完為止，週四與第三個週三休；12/5 是週六，可以去，但中午一定排隊。","尾道是坡道與石階為主的老街，行程集中在千光寺山一帶，記得穿防滑好走的鞋。"],"slots":[{"lat":34.4048,"lng":133.1931,"time":"10:00","period":"上午","name":"尾道站（抵達）","review":"先從站前沿海邊步道散步，眼前就是對岸向島的尾道水道。","transport":{"mode":"JR 山陽本線（廣島→尾道）","fare":"請用乘換案內確認","duration":"約 1.5–2 小時（需轉乘）"}},{"lat":34.4104,"lng":133.1987,"time":"10:45–12:15","period":"上午","name":"千光寺山纜車・千光寺公園","review":"纜車山麓站到山頂約 3 分鐘，9:00–17:15 每 15 分鐘一班；上山搭纜車，下山沿「文學之路」走回來最輕鬆。山腰的朱紅色千光寺可以眺望尾道水道與對岸向島。","openingHours":"纜車 9:00–17:15（每 15 分一班）","ticketPrice":"纜車片道 ¥500／往復 ¥700"},{"lat":34.4106,"lng":133.2005,"time":"12:15–13:15","period":"午後","name":"貓之細道（福石貓）","review":"在石階與老屋之間找手繪的福石貓，順路買點小物；下山後直接去吃午餐（朱華園在纜車山麓站附近）。"},{"lat":34.412,"lng":133.2108,"time":"14:30–15:30","period":"午後","name":"淨土寺","review":"尾道的國寶級古剎，本堂與多寶塔保存良好；稍離中心區，人潮少，適合在旅程中段放慢腳步。"},{"lat":34.402,"lng":133.1899,"time":"15:45–17:00","period":"傍晚","name":"ONOMICHI U2","review":"把海邊舊倉庫改成的複合設施，有咖啡、麵包、自行車與民宿；趕在 17:00 日落前看一眼尾道水道的夕陽，再搭 17:30 左右的 JR 回廣島。"}],"dining":[{"meal":"午餐","place":"朱華園（尾道拉麵）","hours":"11:00–19:00（賣完為止），週四與第三個週三休（參考）","dishes":[{"name":"中華そば","price":"約 ¥600–800（舊資料）"}]},{"meal":"備案","place":"尾道ラーメン たに（尾道站大樓）／いわべえ（尾道燒）","hours":"請確認","dishes":[{"name":"尾道拉麵","price":"約 ¥800–1,000（參考）"},{"name":"尾道燒（砂ずり）","price":"約 ¥900–1,300（參考）"}]},{"meal":"晚餐","place":"回廣島後：麗ちゃん／八昌（廣島燒）","hours":"各店不同","dishes":[{"name":"肉玉そば","price":"約 ¥900–1,300（參考）"}]}]},{"date":"2026-12-06","weekday":"週日","theme":"岩國・錦帶橋與白蛇","tips":["廣島→岩國站搭 JR 山陽本線約 40–50 分；岩國站前搭往「錦帶橋」的公車約 20 分（約每 10–15 分一班），車費請現場確認。","套票：錦帶橋＋岩國城纜車＋岩國城共約 ¥970（2025 資料，成人）；單買橋約 ¥500、纜車往復約 ¥560。","週日去錦帶橋人潮比平日多，但不影響看橋；晚上回到廣島，Dreamination 點燈（17:30–22:30）已開始，體力夠可順路看。"],"slots":[{"lat":34.1719,"lng":132.2254,"time":"09:30","period":"上午","name":"岩國站（抵達）","review":"從站前直接搭公車到錦帶橋，也可以順便看一眼岩國白蛇神社（離站不遠）。","transport":{"mode":"JR 山陽本線（廣島→岩國）","fare":"請用乘換案內確認","duration":"約 40–50 分"}},{"lat":34.1676,"lng":132.1783,"time":"10:00–11:00","period":"上午","name":"錦帶橋","review":"五連拱的木造橋，是日本三名橋之一；入橋要收費，走在木板拱上能明顯感到橋身的弧度。","ticketPrice":"入橋約 ¥500（2025 資料）","openingHours":"24 小時（官方資料）"},{"lat":34.1699,"lng":132.1756,"time":"11:00–12:00","period":"上午","name":"吉香公園","review":"舊岩國藩主吉川家的居館遺址，園內有吉川史料館、岩國徵古館與舊目加田家住宅；沿河走一圈約 30–45 分。"},{"lat":34.1752,"lng":132.1743,"time":"13:00–14:30","period":"午後","name":"岩國城（纜車）","review":"山麓站搭纜車約 3 分，天守與山頂展望可俯瞰錦川與市區；纜車最終乘車約 17:00。","ticketPrice":"纜車往復約 ¥560（2025 資料）","openingHours":"纜車 9:00–17:00（最終乘車）"}],"dining":[{"meal":"午餐","place":"岩國壽司：づぼら寿司（岩國站旁）／半月庵／よしだ 本店","hours":"各店不同，名單來源為 2021 年資料","dishes":[{"name":"岩國壽司（押壽司）","price":"約 ¥1,500–2,500（參考）"},{"name":"蓮藕料理・蓮藕コロッケ","price":"約 ¥300–800（參考）"}]},{"meal":"點心","place":"海部屋（岩國餅）","hours":"請確認","dishes":[{"name":"岩國餅（紅豆加栗子）","price":"約 ¥150–300（參考）"}]},{"meal":"晚餐","place":"廣島：麗ちゃん／ばくだん屋（辣沾麵）","hours":"各店不同","dishes":[{"name":"辣沾麵","price":"約 ¥900–1,200（參考）"}]}]},{"date":"2026-12-07","weekday":"週一","theme":"縮景園 → 呉・大和博物館 → 點燈夜","tips":["廣島城天守閣已於 2026/3/22 閉城，現在只能看外觀；二之丸（9:00–16:30、免費）仍可入內。所以本行程不把天守排進去，改成縮景園。","大和博物館 2026/4/23 重新開幕：開館 9:00–18:00（入館至 17:30），週二休（週二是國定假日則隔日休；12/29–1/3 無休）。12/7 是週一，正常開館。入館費與當日開館時間請看官網。","Dreamination：2026/12/4–2027/1/24，每日 17:30–22:30，會場以平和大通為中心；今晚是留在廣島的最後一個完整夜晚。","明天 12/8 要在 9:00 前到機場，今晚行李先整理好、不要太晚回飯店。"],"slots":[{"lat":34.4003,"lng":132.4674,"time":"09:00–10:20","period":"上午","name":"縮景園","review":"江戶初期築成的迴遊式庭園，池水與小橋構成的縮景，冬天人少、輪廓清楚；與縣立美術館有聯票。","openingHours":"12 月約 9:00–17:00（入園至 16:30；另有資料寫 18:00，請確認）","ticketPrice":"成人約 ¥350（聯票約 ¥660）","closedDays":"12/29–12/31 休園"},{"lat":34.2447,"lng":132.558,"time":"11:40","period":"上午","name":"呉站（抵達）","review":"從廣島站搭 JR 呉線過來，沿著站前走到大和博物館約 5 分。","transport":{"mode":"JR 呉線（廣島→呉）","fare":"請用乘換案內確認","duration":"約 40 分（參考）"}},{"lat":34.2412,"lng":132.5559,"time":"13:15–15:15","period":"午後","name":"大和博物館","review":"以戰艦「大和」十分之一模型為核心，2026/4 重新開幕後展品增加約 300 件。館內動線多，建議留兩小時。","openingHours":"9:00–18:00（入館至 17:30）","closedDays":"週二休（12/29–1/3 無休）","ticketPrice":"請以官網為準"},{"lat":34.2422,"lng":132.5553,"time":"15:15–16:15","period":"午後","name":"鐵鯨館（海上自衛隊呉史料館）","review":"就在大和博物館隔壁，可近看退役潛水艦「あきしお」；開館與休館日請另外確認。"},{"lat":34.2257,"lng":132.5492,"time":"16:30–17:10","period":"傍晚","name":"Alley Karasukojima（アレイからすこじま）","review":"可以隔著海近看潛水艦與護衛艦的公園，周邊保留舊海軍工廠的紅磚建築；日落約 17:00，趕上最後的光線。"},{"lat":34.3904,"lng":132.4563,"time":"18:30–21:30","period":"晚上","name":"平和大通（Dreamination 點燈）","review":"會場以平和大通為中心，沿線與本通等商店街一併點亮；入場免費，建議晚餐後再慢慢走。","seasonal":"Dreamination 2026/12/4–2027/1/24，17:30–22:30（官方首頁）"}],"dining":[{"meal":"午餐","place":"呉ハイカラ食堂／SEASIDE CAFE BEACON（海軍咖哩）","hours":"請確認；BEACON 緊鄰大和博物館","dishes":[{"name":"海軍咖哩","price":"約 ¥1,000–1,500（參考）"}]},{"meal":"晚餐","place":"牡蠣船「かなわ」（建議預約）／流川居酒屋","hours":"傍晚起","dishes":[{"name":"牡蠣料理","price":"約 ¥1,500–3,000（參考）"}]}]},{"date":"2026-12-08","weekday":"週二","theme":"離境日・提前出發","tips":["班機 11:25，國際線請至少提前一個半到兩小時到機場；建議 9:00 前抵達（以航空公司公告為準）。","前一晚先退房或用寄物，早餐在站內 ekie 解決；廣島站新幹線口發車，請查 JR バス中国時刻表確認 7:00–8:00 的班次（建置時沒查到首班與班次表）。"],"slots":[{"lat":34.3978,"lng":132.4756,"time":"07:45","period":"上午","name":"廣島站新幹線口（搭機場巴士）","review":"預計 07:45–08:00 的班次，約 50 分抵達機場；這個班次表請出發前確認。","transport":{"mode":"機場利木津巴士","fare":"約 ¥1,500／人（市政府 FAQ，2026/4 更新）","duration":"約 50 分"}},{"lat":34.4375,"lng":132.9195,"time":"08:50–09:00","period":"上午","name":"廣島機場（報到）","review":"國際線櫃台報到，三人行李一起託運；機場內可買最後一批伴手禮。"}]}],"highlights":{"regionsTitle":"五區・各 30 選","regions":[{"key":"hiroshima","name":"廣島市區","spots":[{"name":"おりづるタワー","note":"緊鄰原爆圓頂館的展望設施，頂層可 360° 俯瞰平和公園與市區；入場費與營業時間請以官網為準。","lat":34.3957,"lng":132.4547},{"name":"廣島縣立美術館","note":"緊鄰縮景園，館藏以達利等西洋畫與日本近現代美術為主；與縮景園有聯票（參考約 ¥660）。","lat":34.4,"lng":132.4661},{"name":"廣島市現代美術館","note":"蓋在比治山上的現代美術館，建築出自黑川紀章；展覽依企劃更換。","lat":34.3864,"lng":132.4733},{"name":"比治山公園","note":"市區東側的小山丘公園，散步即可眺望市區；是當地人的賞櫻名所。","lat":34.3847,"lng":132.4727},{"name":"袋町小學校平和資料館","note":"被爆後倖存的校舍一部分改成資料館，保留當年的避難痕跡；規模小、約半小時可看完。","lat":34.3915,"lng":132.4583},{"name":"舊日本銀行廣島支店","note":"1936 年落成的被爆建築，現作展覽與活動空間；與平和公園同在市中心，順路即可。","lat":34.3914,"lng":132.4567},{"name":"國立廣島原爆死沒者追悼平和祈念館","note":"位於平和公園內，以地下展示空間與遺影構成，氣氛安靜；與資料館互補。","lat":34.3931,"lng":132.4536},{"name":"世界和平紀念聖堂","note":"丹下健三設計的天主教堂，戰後建築的代表作之一，列為重要文化財。","url":"https://www.google.com/maps/search/?api=1&query=%E4%B8%96%E7%95%8C%E5%92%8C%E5%B9%B3%E7%B4%80%E5%BF%B5%E8%81%96%E5%A0%82%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"MAZDA Zoom-Zoom 球場廣島","note":"廣島東洋鯉魚隊主場，緊鄰廣島站南側；12 月沒有比賽，可作外觀與周邊巡禮。","url":"https://www.google.com/maps/search/?api=1&query=MAZDA%20Zoom-Zoom%20%E7%90%83%E5%A0%B4%E5%BB%A3%E5%B3%B6%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"廣島東照宮","note":"廣島站北側山腰的神社，步行可達，是市區少見的神社建築群。","lat":34.4035,"lng":132.4757}],"food":[{"name":"廣島燒（肉玉そば）","shop":"みっちゃん総本店 八丁堀本店","note":"廣島燒老牌店，麵、蛋、豬肉、高麗菜一層層疊起；招牌是加麵加蛋的「肉玉そば」。","lat":34.3958,"lng":132.4636},{"name":"廣島燒","shop":"みっちゃん総本店 広島駅 ekie 店","note":"開在站內，趕車前後最方便；官方資料標示 11:00–21:30（參考，請以現況為準）。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%BF%E3%81%A3%E3%81%A1%E3%82%83%E3%82%93%E7%B7%8F%E6%9C%AC%E5%BA%97%20%E5%BA%83%E5%B3%B6%E9%A7%85%20ekie%20%E5%BA%97%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"廣島燒","shop":"麗ちゃん","note":"在地人也常去的廣島燒名店；營業時間與公休請出發前確認。","url":"https://www.google.com/maps/search/?api=1&query=%E9%BA%97%E3%81%A1%E3%82%83%E3%82%93%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"廣島燒","shop":"八昌","note":"多分店的廣島燒連鎖，可挑離住宿最近的一間。","url":"https://www.google.com/maps/search/?api=1&query=%E5%85%AB%E6%98%8C%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"牡蠣（冬季限定）","shop":"牡蠣船 かなわ","note":"停在河上的牡蠣船餐廳，冬季才營業；吃牡蠣的氣氛首選，建議事先訂位。","url":"https://www.google.com/maps/search/?api=1&query=%E7%89%A1%E8%A0%A3%E8%88%B9%20%E3%81%8B%E3%81%AA%E3%82%8F%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"辣沾麵","shop":"ばくだん屋","note":"廣島沾麵代表店之一，辣度可選；分店多，擇近的去。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%B0%E3%81%8F%E3%81%A0%E3%82%93%E5%B1%8B%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"汁なし擔擔麵","shop":"キング軒","note":"廣島版「無湯擔擔麵」，辣度與花椒可調，吃完再加飯是常見吃法。","lat":34.3925,"lng":132.4596},{"name":"麵包・早午餐","shop":"アンデルセン 広島本店","note":"源自廣島的麵包品牌本店，可當早餐或下午茶補給。","url":"https://www.google.com/maps/search/?api=1&query=%E3%82%A2%E3%83%B3%E3%83%87%E3%83%AB%E3%82%BB%E3%83%B3%20%E5%BA%83%E5%B3%B6%E6%9C%AC%E5%BA%97%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"居酒屋街","shop":"流川・薬研堀","note":"市中心夜間居酒屋、廣島燒與牡蠣料理集中的街區，晚餐後散步順路。","lat":34.3898,"lng":132.464},{"name":"站內美食街","shop":"広島駅 ekie","note":"站內的美食與伴手禮集中地，雨天、趕車、深夜到站都派得上用場。","lat":34.3978,"lng":132.4756}],"shops":[{"name":"にしき堂 本店","category":"もみじ饅頭","note":"廣島楓葉饅頭老字號；與宮島的店口味略有差別，市區買最方便。","lat":34.398,"lng":132.4759},{"name":"福屋 八丁堀本店","category":"百貨","note":"市中心百貨公司，地下食品街可一次買齊廣島伴手禮。","lat":34.3935,"lng":132.4627},{"name":"天滿屋 八丁堀本店","category":"百貨","note":"另一間市中心百貨，同樣有地下食品街。","lat":34.3933,"lng":132.4638},{"name":"SOGO 廣島店","category":"百貨","note":"位在紙屋町，旁邊就是電車與地下街入口。","lat":34.3959,"lng":132.4571},{"name":"紙屋町地下街 Sharleo","category":"地下街","note":"雨天或寒風天的避難所，連接百貨與電車站。","lat":34.3961,"lng":132.4551},{"name":"EDION 蔦屋家電","category":"家電＋書店","note":"廣島站附近的大型複合店，可逛書與生活雜貨。","lat":34.3958,"lng":132.4763},{"name":"ひろしま夢ぷらざ","category":"縣產特產","note":"集合廣島縣各地特產的店，不想逐區跑時一次買齊。","lat":34.3929,"lng":132.4593},{"name":"廣島 PARCO","category":"流行購物","note":"本館與新館都在市中心，與お好み村步行可達。","lat":34.3922,"lng":132.462},{"name":"Yumetown 廣島","category":"購物中心","note":"大型購物中心，生活用品與藥妝一次逛完。","url":"https://www.google.com/maps/search/?api=1&query=Yumetown%20%E5%BB%A3%E5%B3%B6%20%E5%BB%A3%E5%B3%B6%E5%B8%82"},{"name":"平和公園休憩所（Rest House）","category":"休息處・紀念品","note":"平和公園內的休憩設施，可歇腳、買紀念品。","url":"https://www.google.com/maps/search/?api=1&query=%E5%B9%B3%E5%92%8C%E5%85%AC%E5%9C%92%E4%BC%91%E6%86%A9%E6%89%80%20%E5%BB%A3%E5%B3%B6%E5%B8%82"}]},{"key":"miyajima","name":"宮島・廿日市","spots":[{"name":"宮島水族館（みやじマリン）","note":"以瀨戶內海生物為主的水族館，雨天備案；表演與營業時間請確認。","lat":34.2955,"lng":132.3157},{"name":"紅葉谷公園","note":"宮島賞楓名所；12 月上旬楓葉多已接近尾聲，但步道本身仍好走，是通往彌山的路徑之一。","lat":34.2938,"lng":132.325},{"name":"宮島歷史民俗資料館","note":"展示宮島的生活與歷史，建築本身是舊町家，人潮少、適合歇腳。","lat":34.2952,"lng":132.3176},{"name":"大願寺","note":"宮島上的古寺，與嚴島神社關係深厚，主殿供奉厳島弁財天。","lat":34.2955,"lng":132.3182},{"name":"宮島町家通","note":"保留老町家的小街，比表參道商店街安靜得多，適合避開人潮。","lat":34.2984,"lng":132.3224},{"name":"嚴島神社寶物館","note":"收藏嚴島神社的寶物與平家納經相關資料；與神社參拜券可搭配使用（宮島滿喫パス含）。","lat":34.2949,"lng":132.3186},{"name":"包浦自然公園","note":"位於島西側的自然公園，有海灘與營地，鹿多人少；需搭巴士或步行約 3 公里。","url":"https://www.google.com/maps/search/?api=1&query=%E5%8C%85%E6%B5%A6%E8%87%AA%E7%84%B6%E5%85%AC%E5%9C%92%20%E5%AE%AE%E5%B3%B6"},{"name":"清盛神社","note":"祭祀平清盛的小神社，位於嚴島神社西側，順路即可。","lat":34.2964,"lng":132.3165},{"name":"彌山原始林","note":"彌山一帶的原始林，是世界遺產範圍之一；走紅葉谷或大聖院登山路徑時可見。","url":"https://www.google.com/maps/search/?api=1&query=%E5%BD%8C%E5%B1%B1%E5%8E%9F%E5%A7%8B%E6%9E%97%20%E5%AE%AE%E5%B3%B6"},{"name":"大元神社","note":"位於宮島西側的神社，遠離表參道人潮；若想看另一面的宮島可順路。","lat":34.2947,"lng":132.3141}],"food":[{"name":"穴子飯","shop":"あなごめし うえの 宮島口本店","note":"宮島口名物穴子飯老店，不接受訂位、常需排隊（平日約 1 小時，假日更久）；便當可事先預約。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%82%E3%81%AA%E3%81%94%E3%82%81%E3%81%97%20%E3%81%86%E3%81%88%E3%81%AE%20%E5%AE%AE%E5%B3%B6%E5%8F%A3%E6%9C%AC%E5%BA%97%20%E5%AE%AE%E5%B3%B6"},{"name":"穴子飯套餐（可預約）","shop":"他人吉（うえの 2 樓）","note":"うえの 樓上的預約制和食，以穴子飯為主的套餐；公休資料不一，請電話確認。","url":"https://www.google.com/maps/search/?api=1&query=%E4%BB%96%E4%BA%BA%E5%90%89%20%E5%AE%AE%E5%B3%B6"},{"name":"烤牡蠣","shop":"牡蠣屋","note":"表參道上的名店，烤牡蠣與牡蠣飯是招牌；午餐時段常排隊。","lat":34.2986,"lng":132.3217},{"name":"烤牡蠣","shop":"焼がきのはやし","note":"表參道上的烤牡蠣攤，現烤現吃最適合邊逛邊補給。","lat":34.2984,"lng":132.3216},{"name":"穴子飯","shop":"ふじたや","note":"靠近碼頭的穴子飯店，是不想排うえの時的備案。","lat":34.2942,"lng":132.3186},{"name":"炸楓葉饅頭","shop":"紅葉堂 弐番屋","note":"炸楓葉饅頭的發祥店，現點現炸，熱的最好吃。","lat":34.2985,"lng":132.3217},{"name":"握天（魚漿棒）","shop":"三遊姫","note":"表參道的人氣小吃「にぎり天」（海鮮魚漿炸成棒狀），邊走邊吃。","lat":34.298,"lng":132.3209},{"name":"起司楓葉饅頭","shop":"ミヤトヨ 本店","note":"起司口味楓葉饅頭的發祥店，是和傳統紅豆口味很不同的選擇。","lat":34.2999,"lng":132.3214},{"name":"精釀啤酒","shop":"宮島ブルワリー","note":"島上的精釀啤酒館；與烤牡蠣是一組搭配。","url":"https://www.google.com/maps/search/?api=1&query=%E5%AE%AE%E5%B3%B6%E3%83%96%E3%83%AB%E3%83%AF%E3%83%AA%E3%83%BC%20%E5%AE%AE%E5%B3%B6"},{"name":"牡蠣炸串","shop":"錦水館 一樓「牡蠣フライ串」","note":"牡蠣炸串配啤酒，邊走邊吃；店面位於錦水館一樓，營業時間請確認。","lat":34.2987,"lng":132.3214}],"shops":[{"name":"杓子の家","category":"宮島杓子（飯勺）","note":"宮島傳統工藝「宮島杓子」專賣，楓木迷你湯匙與杓子吊飾是人氣紀念品。","url":"https://www.google.com/maps/search/?api=1&query=%E6%9D%93%E5%AD%90%E3%81%AE%E5%AE%B6%20%E5%AE%AE%E5%B3%B6"},{"name":"宮島傳統產業會館","category":"工藝・體驗","note":"一樓展售杓子、轆轤細工與宮島雕，三樓可體驗；離碼頭步行約 1 分鐘。","lat":34.3021,"lng":132.3235},{"name":"佐佐木文具店","category":"文具・雜貨","note":"島上的老文具店，可挑小件紀念品。","url":"https://www.google.com/maps/search/?api=1&query=%E4%BD%90%E4%BD%90%E6%9C%A8%E6%96%87%E5%85%B7%E5%BA%97%20%E5%AE%AE%E5%B3%B6"},{"name":"三栗屋","category":"伴手禮","note":"島上伴手禮店之一，品項偏牡蠣與在地食品。","url":"https://www.google.com/maps/search/?api=1&query=%E4%B8%89%E6%A0%97%E5%B1%8B%20%E5%AE%AE%E5%B3%B6"},{"name":"民藝藤井屋","category":"民藝品","note":"販售宮島工藝與民藝品，適合想買「不是饅頭」的紀念品。","url":"https://www.google.com/maps/search/?api=1&query=%E6%B0%91%E8%97%9D%E8%97%A4%E4%BA%95%E5%B1%8B%20%E5%AE%AE%E5%B3%B6"},{"name":"藤い屋 宮島本店","category":"楓葉饅頭","note":"楓葉饅頭老店，內餡口味多；碼頭附近就能買到。","url":"https://www.google.com/maps/search/?api=1&query=%E8%97%A4%E3%81%84%E5%B1%8B%20%E5%AE%AE%E5%B3%B6%E6%9C%AC%E5%BA%97%20%E5%AE%AE%E5%B3%B6"},{"name":"やまだ屋 宮島本店","category":"楓葉饅頭","note":"口味超過 20 種，以「コロコロもみじ」沾醬吃法聞名。","lat":34.2999,"lng":132.3219},{"name":"坂本菓子舖","category":"和菓子","note":"以口味上品聞名的楓葉饅頭店。","lat":34.2975,"lng":132.3208},{"name":"宮島棧橋（碼頭商店）","category":"伴手禮","note":"船班等待期間可在碼頭買最後一批伴手禮。","lat":34.3021,"lng":132.3222},{"name":"表參道商店街","category":"商店街","note":"約 350 公尺的主街，牡蠣、穴子、楓葉饅頭與雜貨集中；鹿多，食物請當場吃完。","url":"https://www.google.com/maps/search/?api=1&query=%E8%A1%A8%E5%8F%83%E9%81%93%E5%95%86%E5%BA%97%E8%A1%97%20%E5%AE%AE%E5%B3%B6"}]},{"key":"iwakuni","name":"岩國","spots":[{"name":"吉川史料館","note":"岩國藩主吉川家的史料館，收藏吉川家傳世文物；位於吉香公園旁。","lat":34.1705,"lng":132.1777},{"name":"岩國徵古館","note":"位在吉香公園內，展示岩國藩與錦帶橋的歷史；建築本身也值得看。","lat":34.171,"lng":132.1772},{"name":"岩國白蛇之館","note":"展示天然紀念物「岩國白蛇」的小館，步行可達錦帶橋；參觀約 30 分鐘。","lat":34.171,"lng":132.1757},{"name":"岩國白蛇神社","note":"祭祀白蛇的神社，在岩國駅附近；有人專程為白蛇御守而來。","lat":34.1636,"lng":132.2127},{"name":"舊目加田家住宅","note":"位在吉香公園內的武家住宅，是岩國城下町少數保存下來的老屋。","lat":34.1705,"lng":132.1753},{"name":"柏原美術館","note":"位在吉香公園內的美術館；展覽內容與開館日請確認。","lat":34.1714,"lng":132.1748},{"name":"酒井酒造 五橋文庫","note":"酒井酒造（五橋）經營的小型美術館；開館日請確認，也可順路買當地酒。","lat":34.1694,"lng":132.1777},{"name":"香川家長屋門","note":"岩國城下町的武家長屋門，是城下町遺構之一，路過拍照即可。","url":"https://www.google.com/maps/search/?api=1&query=%E9%A6%99%E5%B7%9D%E5%AE%B6%E9%95%B7%E5%B1%8B%E9%96%80%20%E5%B2%A9%E5%9C%8B"},{"name":"岩國學校教育資料館","note":"展示岩國的教育歷史，小而安靜。","lat":34.1642,"lng":132.184},{"name":"吉香神社","note":"位於吉香公園內的神社，祭祀吉川家歷代，社殿靜謐。","url":"https://www.google.com/maps/search/?api=1&query=%E5%90%89%E9%A6%99%E7%A5%9E%E7%A4%BE%20%E5%B2%A9%E5%9C%8B"}],"food":[{"name":"岩國壽司","shop":"づぼら寿司","note":"岩國駅步行約 5 分，是當地人也去的壽司店；岩國壽司是壓成方塊的木桶押壽司。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%A5%E3%81%BC%E3%82%89%E5%AF%BF%E5%8F%B8%20%E5%B2%A9%E5%9C%8B"},{"name":"郷土料理・鰻魚","shop":"ひらせい","note":"岩國的郷土料理店，有鰻魚與鄉土料理；公休與營業時間請確認。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%B2%E3%82%89%E3%81%9B%E3%81%84%20%E5%B2%A9%E5%9C%8B"},{"name":"割烹・壽司","shop":"味處 割烹 半月庵","note":"明治 2 年創業的料理旅館，可單點用餐；食材以在地蔬菜與瀨戶內海產為主。","url":"https://www.google.com/maps/search/?api=1&query=%E5%91%B3%E8%99%95%20%E5%89%B2%E7%83%B9%20%E5%8D%8A%E6%9C%88%E5%BA%B5%20%E5%B2%A9%E5%9C%8B"},{"name":"岩國壽司御膳","shop":"よしだ 本店","note":"以岩國蓮藕入饌的岩國壽司與壽司御膳，錦帶橋方向。","url":"https://www.google.com/maps/search/?api=1&query=%E3%82%88%E3%81%97%E3%81%A0%20%E6%9C%AC%E5%BA%97%20%E5%B2%A9%E5%9C%8B"},{"name":"烏龍麵・咖啡","shop":"錦帯茶屋（Café いつつばし）","note":"在錦帶橋巴士中心 2 樓，可在登橋前後歇腳。","url":"https://www.google.com/maps/search/?api=1&query=%E9%8C%A6%E5%B8%AF%E8%8C%B6%E5%B1%8B%20%E5%B2%A9%E5%9C%8B"},{"name":"郷土料理・喫茶","shop":"緑の里","note":"郷土料理與喫茶兼營，靠近錦帶橋方向。","url":"https://www.google.com/maps/search/?api=1&query=%E7%B7%91%E3%81%AE%E9%87%8C%20%E5%B2%A9%E5%9C%8B"},{"name":"郷土料理","shop":"パンサー","note":"岩國當地的鄉土料理店。","url":"https://www.google.com/maps/search/?api=1&query=%E3%83%91%E3%83%B3%E3%82%B5%E3%83%BC%20%E5%B2%A9%E5%9C%8B"},{"name":"蕎麥麵・丼飯","shop":"長州屋 錦帯橋店","note":"在錦帶橋旁，蕎麥麵與丼飯類，午餐備案。","url":"https://www.google.com/maps/search/?api=1&query=%E9%95%B7%E5%B7%9E%E5%B1%8B%20%E9%8C%A6%E5%B8%AF%E6%A9%8B%E5%BA%97%20%E5%B2%A9%E5%9C%8B"},{"name":"郷土料理・食堂","shop":"錦果楼","note":"食堂型的鄉土料理店，兼營咖啡。","url":"https://www.google.com/maps/search/?api=1&query=%E9%8C%A6%E6%9E%9C%E6%A5%BC%20%E5%B2%A9%E5%9C%8B"},{"name":"料理旅館的和食","shop":"白為旅館","note":"料理旅館，提供日本料理；需事先確認是否接受非住客用餐。","url":"https://www.google.com/maps/search/?api=1&query=%E7%99%BD%E7%82%BA%E6%97%85%E9%A4%A8%20%E5%B2%A9%E5%9C%8B"}],"shops":[{"name":"海部屋","category":"岩國餅","note":"錦帶橋橋畔的店，招牌「岩國餅」（紅豆餡加栗子，串在竹籤上）。","url":"https://www.google.com/maps/search/?api=1&query=%E6%B5%B7%E9%83%A8%E5%B1%8B%20%E5%B2%A9%E5%9C%8B"},{"name":"ふるた","category":"外郎（ういろう）","note":"包裝以錦帶橋為圖案的外郎，是送禮的好選擇。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%B5%E3%82%8B%E3%81%9F%20%E5%B2%A9%E5%9C%8B"},{"name":"八百新酒造","category":"地酒","note":"岩國今津町的酒造，可買當地清酒與燒酎。","url":"https://www.google.com/maps/search/?api=1&query=%E5%85%AB%E7%99%BE%E6%96%B0%E9%85%92%E9%80%A0%20%E5%B2%A9%E5%9C%8B"},{"name":"酒井酒造（五橋）","category":"清酒","note":"岩國的代表酒造「五橋」，與同名文庫相鄰。","lat":34.1694,"lng":132.1777},{"name":"佐佐木屋小次郎商店","category":"冰品","note":"横山的冰淇淋店，吉香公園一帶散步時可補給。","url":"https://www.google.com/maps/search/?api=1&query=%E4%BD%90%E4%BD%90%E6%9C%A8%E5%B1%8B%E5%B0%8F%E6%AC%A1%E9%83%8E%E5%95%86%E5%BA%97%20%E5%B2%A9%E5%9C%8B"},{"name":"しろやま喫茶室","category":"喫茶","note":"横山的咖啡廳，岩國城下山後可歇腳。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%97%E3%82%8D%E3%82%84%E3%81%BE%E5%96%AB%E8%8C%B6%E5%AE%A4%20%E5%B2%A9%E5%9C%8B"},{"name":"錦帶橋周邊土產店街","category":"商店街","note":"錦帶橋南側有多間土產店，賣錦帶橋形狀的煎餅與岩國餅。","url":"https://www.google.com/maps/search/?api=1&query=%E9%8C%A6%E5%B8%B6%E6%A9%8B%E5%91%A8%E9%82%8A%E5%9C%9F%E7%94%A2%E5%BA%97%E8%A1%97%20%E5%B2%A9%E5%9C%8B"},{"name":"岩國錦帶橋機場 売店","category":"機場伴手禮","note":"山口縣內伴手禮集中，也有本多屋的外郎。","lat":34.1591,"lng":132.2359},{"name":"いろり山賊 玖珂店","category":"山賊飯糰・外帶","note":"岩國市玖珂的名店，山賊むすび、山賊燒等；離錦帶橋較遠，建議當作車程順路或備案。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%84%E3%82%8D%E3%82%8A%E5%B1%B1%E8%B3%8A%20%E7%8E%96%E7%8F%82%E5%BA%97%20%E5%B2%A9%E5%9C%8B"},{"name":"錦帶橋溫泉 岩國國際觀光飯店","category":"體驗・壽司","note":"飯店可體驗自己做岩國壽司（需預約，約 ¥2,200，11:00–14:30，週三休，資料為舊資料）。","url":"https://www.google.com/maps/search/?api=1&query=%E9%8C%A6%E5%B8%B6%E6%A9%8B%E6%BA%AB%E6%B3%89%20%E5%B2%A9%E5%9C%8B%E5%9C%8B%E9%9A%9B%E8%A7%80%E5%85%89%E9%A3%AF%E5%BA%97%20%E5%B2%A9%E5%9C%8B"}]},{"key":"onomichi","name":"尾道","spots":[{"name":"西國寺","note":"尾道三大古剎之一，山門前有巨大草鞋；位於舊市街北側，稍遠但人少。","lat":34.4154,"lng":133.2031},{"name":"天寧寺三重塔（海雲塔）","note":"尾道老街常見的紅色塔身，是明信片經典；在爬坡途中順路即可。","lat":34.4096,"lng":133.2008},{"name":"持光寺","note":"位於尾道老街的古寺，離商店街與尾道駅都近，順路參拜。","lat":34.4072,"lng":133.1958},{"name":"御袖天滿宮","note":"以陡峭石階與「撫牛」聞名的小神社，位於寺院街。","url":"https://www.google.com/maps/search/?api=1&query=%E5%BE%A1%E8%A2%96%E5%A4%A9%E6%BB%BF%E5%AE%AE%20%E5%B0%BE%E9%81%93"},{"name":"尾道市立美術館","note":"位於千光寺公園內的美術館，順著散步路徑即可抵達；展覽內容請確認。","lat":34.41,"lng":133.1957},{"name":"尾道文學之路","note":"沿千光寺山散步路徑立有文學家詩碑，是尾道老街「文學散步」路線。","url":"https://www.google.com/maps/search/?api=1&query=%E5%B0%BE%E9%81%93%E6%96%87%E5%AD%B8%E4%B9%8B%E8%B7%AF%20%E5%B0%BE%E9%81%93"},{"name":"艮神社","note":"尾道舊市街的神社，以老樟樹聞名，安靜好拍。","url":"https://www.google.com/maps/search/?api=1&query=%E8%89%AE%E7%A5%9E%E7%A4%BE%20%E5%B0%BE%E9%81%93"},{"name":"住吉神社","note":"位在尾道舊市街的神社，靠近渡船碼頭。","lat":34.4082,"lng":133.2029},{"name":"寶土寺","note":"位於尾道舊市街的古寺，緊鄰商店街一帶，順路參拜。","lat":34.4083,"lng":133.1993},{"name":"兼吉棧橋（尾道渡船）","note":"搭 5 分鐘渡船到對岸向島，單程只要幾十圓，是最便宜的「看尾道水道」方式。","lat":34.4052,"lng":133.2027}],"food":[{"name":"尾道拉麵","shop":"尾道ラーメン たに","note":"尾道駅大樓內，背脂醬油湯底與平打麵，抵達或離開尾道時順路。","lat":34.4045,"lng":133.193},{"name":"尾道拉麵","shop":"麺屋 響","note":"用廣島產食材做醬油湯頭，商店街入口附近。","url":"https://www.google.com/maps/search/?api=1&query=%E9%BA%BA%E5%B1%8B%20%E9%9F%BF%20%E5%B0%BE%E9%81%93"},{"name":"尾道拉麵","shop":"喰海","note":"海邊吧台座位的拉麵店，可邊吃邊看水道。","lat":34.4056,"lng":133.1972},{"name":"尾道拉麵","shop":"ベッチャー","note":"不休息的通し営業，魚介加動物系湯頭。","lat":34.405,"lng":133.1952},{"name":"角煮拉麵","shop":"壱番館","note":"角煮拉麵是人氣餐點，天寧寺周邊。","url":"https://www.google.com/maps/search/?api=1&query=%E5%A3%B1%E7%95%AA%E9%A4%A8%20%E5%B0%BE%E9%81%93"},{"name":"尾道燒","shop":"いわべえ","note":"商店街內的尾道燒老店，以「砂ずり（雞胗）」口感出名。","lat":34.4101,"lng":133.2024},{"name":"尾道燒・居酒屋","shop":"お好み焼 すみチャン","note":"尾道燒種類多，也兼營居酒屋。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%8A%E5%A5%BD%E3%81%BF%E7%84%BC%20%E3%81%99%E3%81%BF%E3%83%81%E3%83%A3%E3%83%B3%20%E5%B0%BE%E9%81%93"},{"name":"蛋風味冰淇淋最中","shop":"からさわ","note":"商店街內的冰品與喫茶店，蛋香冰淇淋最中是人氣品項。","url":"https://www.google.com/maps/search/?api=1&query=%E3%81%8B%E3%82%89%E3%81%95%E3%82%8F%20%E5%B0%BE%E9%81%93"},{"name":"尾道拉麵","shop":"尾道ラーメン 丸ぼし","note":"小魚高湯的在地人氣店。","lat":34.4076,"lng":133.2016},{"name":"穴子主題咖啡・民宿","shop":"あなごのねどこ","note":"由舊民宅改造的民宿兼咖啡，位於舊市街的小巷。","lat":34.4091,"lng":133.2022}],"shops":[{"name":"工房尾道帆布","category":"帆布製品","note":"以尾道產帆布製作包與小物，工房兼織機展示。","url":"https://www.google.com/maps/search/?api=1&query=%E5%B7%A5%E6%88%BF%E5%B0%BE%E9%81%93%E5%B8%86%E5%B8%83%20%E5%B0%BE%E9%81%93"},{"name":"尾道ええもんや","category":"伴手禮","note":"尾道在地雜貨與帆布製品都有，距離尾道駅約 15 分鐘。","lat":34.4096,"lng":133.2024},{"name":"三阪商店","category":"器皿・和雜貨","note":"明治 10 年創業的器皿與雜貨老舖，也有尾道貓主題商品。","url":"https://www.google.com/maps/search/?api=1&query=%E4%B8%89%E9%98%AA%E5%95%86%E5%BA%97%20%E5%B0%BE%E9%81%93"},{"name":"桂馬蒲鉾商店","category":"魚板","note":"大正 2 年創業的魚板店，無添加是賣點。","url":"https://www.google.com/maps/search/?api=1&query=%E6%A1%82%E9%A6%AC%E8%92%B2%E9%89%BE%E5%95%86%E5%BA%97%20%E5%B0%BE%E9%81%93"},{"name":"松愛堂 尾道本店","category":"和菓子","note":"商店街旁的和菓子老舖，有以廣島柑橘製作的點心。","lat":34.4073,"lng":133.2004},{"name":"金萬堂本舖","category":"檸檬蛋糕","note":"以瀨戶田檸檬製作的檸檬蛋糕，是尾道人氣伴手禮。","url":"https://www.google.com/maps/search/?api=1&query=%E9%87%91%E8%90%AC%E5%A0%82%E6%9C%AC%E8%88%96%20%E5%B0%BE%E9%81%93"},{"name":"尾道本通商店街","category":"商店街","note":"長約 1.6 公里的拱廊商店街，餐廳、雜貨、老舖都集中在這裡。","url":"https://www.google.com/maps/search/?api=1&query=%E5%B0%BE%E9%81%93%E6%9C%AC%E9%80%9A%E5%95%86%E5%BA%97%E8%A1%97%20%E5%B0%BE%E9%81%93"},{"name":"GIANT STORE 尾道 U2","category":"自行車店","note":"在 ONOMICHI U2 內，騎「しまなみ海道」的人在此租還車。","url":"https://www.google.com/maps/search/?api=1&query=GIANT%20STORE%20%E5%B0%BE%E9%81%93%20U2%20%E5%B0%BE%E9%81%93"},{"name":"はっさく屋","category":"八朔大福","note":"因島大濱的「八朔大福」名店；需搭船前往，適合有時間時順遊。","lat":34.3555,"lng":133.1729},{"name":"ドルチェ 本店","category":"瀬戸田檸檬冰淇淋","note":"瀨戶田町面海的義式冰淇淋店；需搭船前往。","url":"https://www.google.com/maps/search/?api=1&query=%E3%83%89%E3%83%AB%E3%83%81%E3%82%A7%20%E6%9C%AC%E5%BA%97%20%E5%B0%BE%E9%81%93"}]},{"key":"kure","name":"呉","spots":[{"name":"入船山紀念館","note":"舊呉鎮守府司令長官官舍，是呉的明治時期建築，現為史料紀念館。","url":"https://www.google.com/maps/search/?api=1&query=%E5%85%A5%E8%88%B9%E5%B1%B1%E7%B4%80%E5%BF%B5%E9%A4%A8%20%E5%91%89%E5%B8%82"},{"name":"呉市立美術館","note":"位於幸町，園內有咖啡廳與雕刻展示；展覽請確認。","lat":34.24,"lng":132.5639},{"name":"音戶大橋（音戶瀨戶）","note":"跨越音戶瀨戶的紅色大橋，瀨戶內海最窄的航道之一，可搭公車前往。","lat":34.1951,"lng":132.5367},{"name":"清盛塚","note":"位於音戶瀨戶旁，相傳平清盛一夜之間開鑿此海峽的傳說地；有「招日」雕像。","lat":34.1941,"lng":132.5363},{"name":"海上自衛隊 第 1 術科學校（江田島）","note":"舊海軍兵學校所在，可預約參觀；需搭船前往，事先申請。","url":"https://www.google.com/maps/search/?api=1&query=%E6%B5%B7%E4%B8%8A%E8%87%AA%E8%A1%9B%E9%9A%8A%20%E7%AC%AC%201%20%E8%A1%93%E7%A7%91%E5%AD%B8%E6%A0%A1%20%E5%91%89%E5%B8%82"},{"name":"呉灣艦船巡遊","note":"從呉港搭船近看護衛艦與潛艦，是「軍港之城」的招牌行程；航班與季節請確認。","url":"https://www.google.com/maps/search/?api=1&query=%E5%91%89%E7%81%A3%E8%89%A6%E8%88%B9%E5%B7%A1%E9%81%8A%20%E5%91%89%E5%B8%82"},{"name":"灰峰（灰ヶ峰）","note":"呉市區後方的山，山頂可眺望瀨戶內海與軍港；需搭車與走路，體力要求中等。","lat":34.2704,"lng":132.5934},{"name":"龜山神社","note":"呉市區的神社，是當地人的信仰中心，順路即可。","lat":34.2415,"lng":132.569},{"name":"呉磚瓦通（れんが通り）","note":"呉駅旁的紅磚老街，咖啡與小店集中。","lat":34.245,"lng":132.5646},{"name":"御手洗町並（大崎下島）","note":"重要傳統建造物群保存地區，保留江戶時代港町風貌；交通不便，通常搭巴士或租車。","url":"https://www.google.com/maps/search/?api=1&query=%E5%BE%A1%E6%89%8B%E6%B4%97%E7%94%BA%E4%B8%A6%20%E5%91%89%E5%B8%82"}],"food":[{"name":"海軍咖哩・洋食","shop":"呉ハイカラ食堂","note":"以海軍相關餐點與潛艦咖哩聞名，數量限定。","lat":34.2417,"lng":132.5575},{"name":"老式洋食","shop":"田舎洋食 いせ屋","note":"1921 年創業的老洋食店，肉じゃが與歐姆蛋飯是人氣菜。","lat":34.2461,"lng":132.5665},{"name":"中華料理","shop":"珍来軒","note":"呉的中華老店，本通商店街附近。","lat":34.2455,"lng":132.5675},{"name":"洋食","shop":"自由軒","note":"呉的老洋食店之一。","lat":34.245,"lng":132.5656},{"name":"烏龍麵","shop":"山乃家 本店","note":"呉的烏龍麵老店。","lat":34.2454,"lng":132.5655},{"name":"廣島燒","shop":"多幸膳","note":"呉的廣島燒店，適合想比較「呉風」廣島燒的人。","lat":34.2452,"lng":132.565},{"name":"拉麵","shop":"關白","note":"呉的拉麵店。","url":"https://www.google.com/maps/search/?api=1&query=%E9%97%9C%E7%99%BD%20%E5%91%89%E5%B8%82"},{"name":"和風甜品・咖啡","shop":"甘加羅","note":"和風咖啡甜品屋，有大和咖哩烏龍麵與檸檬烏龍麵。","url":"https://www.google.com/maps/search/?api=1&query=%E7%94%98%E5%8A%A0%E7%BE%85%20%E5%91%89%E5%B8%82"},{"name":"咖啡・甜點","shop":"cafe the bricks","note":"位在呉市立美術館別館內的咖啡廳，歇腳用。","url":"https://www.google.com/maps/search/?api=1&query=cafe%20the%20bricks%20%E5%91%89%E5%B8%82"},{"name":"海軍咖哩","shop":"SEASIDE CAFE BEACON","note":"緊鄰大和博物館的咖啡廳，午餐提供海軍咖哩（約 ¥1,000，參考）。","lat":34.2413,"lng":132.5552}],"shops":[{"name":"福住 Fry Cake","category":"炸饅頭","note":"昭和 21 年創業，形似炸豆沙麵包，一個約 ¥100（參考）。","lat":34.2463,"lng":132.5662},{"name":"昴珈琲店 呉本店","category":"咖啡","note":"昭和 34 年創業，招牌是「海軍さんの珈琲」。","lat":34.2448,"lng":132.5646},{"name":"メロンパン 本店","category":"麵包","note":"戰前就有的呉名物，橄欖球形狀、內餡奶油滿。","lat":34.2502,"lng":132.5759},{"name":"蔵本通り的屋台","category":"屋台","note":"蔵本通附近的屋台，適合想吃在地小吃的人；營業時段請確認。","url":"https://www.google.com/maps/search/?api=1&query=%E8%94%B5%E6%9C%AC%E9%80%9A%E3%82%8A%E7%9A%84%E5%B1%8B%E5%8F%B0%20%E5%91%89%E5%B8%82"},{"name":"Edelweiss 洋菓子店","category":"洋菓子","note":"呉最老的洋菓子店之一，奶油派是人氣商品。","lat":34.2452,"lng":132.5675},{"name":"澎湃館","category":"雜貨","note":"位於昭和町的雜貨與花店。","url":"https://www.google.com/maps/search/?api=1&query=%E6%BE%8E%E6%B9%83%E9%A4%A8%20%E5%91%89%E5%B8%82"},{"name":"天明堂","category":"和菓子","note":"創業百餘年的和菓子老舖，有以呉檸檬製的「檸檬」包裝點心。","lat":34.2419,"lng":132.5624},{"name":"Tobikiri 本舖","category":"特產","note":"位於 Yumetown 呉內，販售當地特產。","url":"https://www.google.com/maps/search/?api=1&query=Tobikiri%20%E6%9C%AC%E8%88%96%20%E5%91%89%E5%B8%82"},{"name":"制服のフジ","category":"制服雜貨","note":"販售海軍風制服與雜貨，是呉在地特色。","url":"https://www.google.com/maps/search/?api=1&query=%E5%88%B6%E6%9C%8D%E3%81%AE%E3%83%95%E3%82%B8%20%E5%91%89%E5%B8%82"},{"name":"蜜屋本舖","category":"和菓子","note":"呉的和菓子店。","url":"https://www.google.com/maps/search/?api=1&query=%E8%9C%9C%E5%B1%8B%E6%9C%AC%E8%88%96%20%E5%91%89%E5%B8%82"}]}]}}</script>
+<script>
+// Leaflet 地圖引擎。純函式（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84）可單元測試；
+// initTravelMap 需瀏覽器 + Leaflet (L)。瀏覽器與 Node 雙用。
+
+// HTML 轉義，防止 XSS
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 生成跳轉手機地圖導航的連結。
+// iOS 不識別 geo: scheme，用 Apple Maps 的 https 通用連結；其餘平臺用 geo:。
+// ua 可選（瀏覽器裡傳 navigator.userAgent），不傳則回退 geo:。
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地圖 App 的點位連結（免 key 的官方 URI 規範：高德 URI API、Google Maps URLs）。
+// 這不是 page-contract 的 actionLink——不承載實時資料主張，只是"開啟地圖看這個點"。
+//
+// 【高德只在中國境內出現】境內 Google 地圖不可用、底圖座標系還會偏移，所以境內只給高德；
+// 境外（日本、加拿大等）**只給 Google，不附高德**——讀者不會用它，多一個連結只是噪音。
+// 不要「境外也順手加上高德」，那是本函式改過一次才拿掉的（見 engine-contract.md#map-links）。
+//
+// 【境外用「名稱 + 視野錨點」而不是純座標】純座標（?api=1&query=51.04,-114.05）在 Google 地圖上
+// 只會顯示成一串度分秒，沒有店名、營業時間、評論、照片——而那才是讀者點開地圖想看的東西。
+// /maps/search/<名稱>/@lat,lng,zoom 是 Google 自己 UI 產生的 URL 形式，且優雅降級：
+// 名稱匹配得上就落在該地點卡片，匹配不上（如中文別名「硃砂湖日落」）也仍然落在正確座標的視野內。
+// 注意：Google 內部的 place id（如 !1s0x53717aaa864fd43b:0x7609799479e4d20e、/g/11cmdqr136）
+// 查不到也絕不能手拼——拼錯會指到完全不同的地方。要精準 place URL 只能由官方 skill 返回。
+//
+// 輸入座標一律 WGS-84：高德 URI 用 coordinate=wgs84 宣告由其換算，Google 本身即 WGS-84。
+// isInChinaBBox 宣告在下方 GCJ 區塊（函式宣告有提升，此處可用）。
+function buildMapAppLinks(lat, lng, label) {
+  if (isInChinaBBox(lat, lng)) {
+    return [{
+      label: '高德地圖',
+      url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+        + '&name=' + encodeURIComponent(label)
+        + '&coordinate=wgs84&callnative=1&src=travel-plan-aston',
+    }];
+  }
+  return [{
+    label: 'Google 地圖',
+    url: 'https://www.google.com/maps/search/' + encodeURIComponent(label)
+      + '/@' + lat + ',' + lng + ',17z',
+  }];
+}
+
+// —— GCJ-02 → WGS-84 座標轉換 ——
+// 高德/騰訊地圖返回的座標是 GCJ-02（國測局加密），直接畫在 OSM（WGS-84）瓦片上
+// 會偏移一百到幾百米。凡座標來自高德/騰訊類 skill，必須先經此函式轉換。
+// 中國境外座標原樣返回（GCJ-02 僅在境內加偏）。
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+
+function isInChinaBBox(lat, lng) {
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+}
+
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+
+// 從有序點位提取 [lat,lng] 陣列，用於連線
+function routeCoordinates(points) {
+  return (points || []).map(function (p) { return [p.lat, p.lng]; });
+}
+
+// 初始化地圖：編號 divIcon 標記、按序虛線路線、點選彈出 名稱+時間+導航連結。
+// elementId: 容器 id；points: [{lat, lng, name, time}]（按行程順序，座標須為 WGS-84）
+// opts 可選：{ tileUrl, attribution } 替換預設 OSM 瓦片源（如 OSM 訪問不穩時換映象）。
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: opts.attribution || '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({
+      className: 'route-pin',
+      html: '<span class="route-pin__num">' + (i + 1) + '</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '導航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
+      + (p.time ? escapeHTML(p.time) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) {
+    L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
+  }
+  map.fitBounds(coords.length ? coords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
+    routeCoordinates: routeCoordinates,
+    gcj02ToWgs84: gcj02ToWgs84,
+    initTravelMap: initTravelMap,
+  };
+}
+
+// 出發前提醒：截止日期計算 + 渲染。瀏覽器與 Node 雙用。
+
+// startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 為 'YYYY-MM-DD'
+// 用 UTC 做日期運算，避免本地時區導致的偏移。
+function computeReminders(startDateISO, items) {
+  return items
+    .map(function (it) {
+      var d = new Date(startDateISO + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - it.leadDays);
+      return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+    })
+    .sort(function (a, b) {
+      return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+    });
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item">'
+      + '<input type="checkbox"> '
+      + '<span class="todo-deadline">' + r.deadline + '前</span> '
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建議提前' + r.leadDays + '天）</span>'
+      + '</li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+
+// 時間軸上的「這一站要先訂」徽章。
+//
+// opts（可選）：{ kind: 'ticket' | 'reserve' | 'permit', url: '官方訂票／訂位頁' }
+//
+// 為什麼把「要訂什麼」跟「去哪訂」做成同一個徽章、而不是兩個元素：讀者是照時間軸走的，
+// 他在第五天看到「班夫纜車」時才會想到票的事。若那一刻只看到「建議提前 5 天訂」，
+// 他還得回頭翻頁頂待辦清單、再自己去搜官網——中間任何一步斷掉，這條提醒就等於沒有。
+// 徽章本身就是連結，落點才會跟需求發生的位置一致。
+//
+// 不給 opts 時輸出跟舊版完全相同，既有頁面不受影響。
+function reminderBadgeHTML(leadDays, opts) {
+  var o = opts || {};
+  var kind = (o.kind === 'ticket' || o.kind === 'reserve' || o.kind === 'permit') ? o.kind : '';
+  var WORD = { ticket: '需購票', reserve: '需訂位', permit: '需通行證' };
+  var lead = (typeof leadDays === 'number' && leadDays > 0) ? '建議提前 ' + leadDays + ' 天' : '';
+  var text = kind
+    ? (lead ? WORD[kind] + ' · ' + lead : WORD[kind])
+    : ('⚠️ 建議提前' + leadDays + '天訂');
+  var cls = 'reminder-badge' + (kind ? ' ' + kind : '');
+  if (o.url) {
+    return '<a class="' + cls + '" href="' + escapeHTML(o.url) + '" target="_blank" rel="noopener">'
+      + escapeHTML(text) + ' ↗</a>';
+  }
+  return '<span class="' + cls + '">' + escapeHTML(text) + '</span>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    computeReminders: computeReminders,
+    renderChecklistHTML: renderChecklistHTML,
+    reminderBadgeHTML: reminderBadgeHTML,
+  };
+}
+
+// POI 卡片牆引擎：延伸推薦總覽（engine-contract.md#poi-wall）與每站附近推薦面板（#nearby-panel）共用的純函式。
+// 瀏覽器與 Node 雙用。刻意不 require map.js/reminders.js（引擎檔案互相獨立，故意不合並去重，
+// 維護時保持這個邊界）——需要 map.js 的 buildMapAppLinks 時由呼叫方顯式傳入。
+
+// HTML 轉義，防止 XSS（與 map.js/reminders.js 各自一份，屬故意重複，見 page-contract.md）
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  var R = 6371000;
+  var toRad = function (d) { return d * Math.PI / 180; };
+  var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDist(m) {
+  return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km';
+}
+
+// 同一地點常有不同寫法（如「片瀬東浜海岸」vs「片瀬東浜海水浴場」），用寬鬆比對而非精確相等
+function normalizeName(s) {
+  return String(s || '').replace(/[（）()／/・\s]/g, '');
+}
+function commonPrefixLen(a, b) {
+  var n = Math.min(a.length, b.length), i = 0;
+  while (i < n && a.charAt(i) === b.charAt(i)) i += 1;
+  return i;
+}
+// 字首比對用來兜住「同地不同命名尾詞」（片瀬東浜海岸 vs 片瀬東浜海水浴場、
+// The Bison 餐廳 vs The Bison Restaurant）。
+//
+// 曾經用「固定比前 4 個字」，對拉丁文字太寬鬆：'lakelouise' 與 'lakeminnewanka'
+// 前 4 字都是 'lake'，會把 Lake Minnewanka 誤判成 Lake Louise——後果是那個站點被
+// 靜默排除在附近推薦面板之外，面板只是少一項，畫面上完全看不出異常。
+// 而且原本會命中的案例也是「因為錯的理由」命中：thebison 只比到 'theb'，
+// 'The Bridge' 一樣會過。
+//
+// 改成「共同字首必須佔較短字串的 60% 以上」：
+//   片瀬東浜海(5) / 片瀬東浜海岸(6)   = 0.83 ✓
+//   thebison(8)  / thebison餐廳(11)  = 0.73 ✓
+//   lake(4)      / lakelouise(10)    = 0.40 ✗（正確排除）
+function sameCore(a, b) {
+  if (!a || !b) return false;
+  var na = normalizeName(a), nb = normalizeName(b);
+  if (!na || !nb) return false;
+  if (na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return true;
+  var p = commonPrefixLen(na, nb);
+  return p >= 3 && p / Math.min(na.length, nb.length) >= 0.6;
+}
+function titleTokens(title) {
+  return String(title || '').replace(/[（）()]/g, '・').split(/[・／/]/).map(function (s) { return s.trim(); }).filter(Boolean);
+}
+function matchesStopTitle(name, tokens, fullTitle) {
+  if (!name) return false;
+  if (sameCore(name, fullTitle)) return true;
+  return tokens.some(function (tok) { return sameCore(name, tok); });
+}
+
+function linkOrText(label, url) {
+  return url
+    ? '<a href="' + escapeHTML(url) + '" target="_blank" rel="noopener">' + escapeHTML(label) + ' ↗</a>'
+    : escapeHTML(label);
+}
+
+// mapAppLinksFn：呼叫方傳入 map.js 的 buildMapAppLinks（不在這裡 require，保持引擎檔案互相獨立）。
+// 沒有座標或沒傳函式就不渲染這一行，不手拼地圖連結。
+function mapLinkHTML(lat, lng, name, mapAppLinksFn) {
+  if (typeof lat !== 'number' || typeof lng !== 'number' || typeof mapAppLinksFn !== 'function') return '';
+  var links = mapAppLinksFn(lat, lng, name) || [];
+  if (!links.length) return '';
+  return '<p class="poi-maplink">' + links.map(function (l) {
+    return '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHTML(l.label) + '</a>';
+  }).join('') + '</p>';
+}
+
+// category 可以是字串或字串陣列。用陣列是因為一張卡片常常同時要標好幾個維度：
+// 英文名 + 價位（$$$）+ 難度（中等）+ 飲食（純素）。
+// 這些**都不是 status**——status 只有 season／booking／free 三種，硬把價位塞進去
+// 會讓「10/12 封路」跟「$$$」用同一個警示色，警示效果整個消失（真的發生過）。
+function pillsHTML(category) {
+  if (!category) return '';
+  var list = Array.isArray(category) ? category : [category];
+  return list.filter(Boolean).map(function (c) {
+    return ' <span class="pill">' + escapeHTML(c) + '</span>';
+  }).join('');
+}
+
+// 季節狀態標籤（conditional-features.md#season-status）。三種 kind 用不同顏色，
+// 「季末／封路」必須跟「須提前訂」「免費」一眼分得出來——那是這個標籤存在的理由。
+// 曾經因為 poiCardHTML 不認 status，呼叫方把 label 塞進 category 硬渲染，
+// 結果 15 個「10/12 封路」全部退化成中性小標籤，警示效果整個消失。
+function statusHTML(st) {
+  if (!st || !st.label) return '';
+  var kind = (st.kind === 'season' || st.kind === 'booking' || st.kind === 'free') ? st.kind : 'free';
+  return '<span class="status ' + kind + '">' + escapeHTML(st.label) + '</span>';
+}
+
+// it: { name, url, note, shop, category, status, lat, lng }
+// sourceClass/sourceLabel：來源標籤（'highlight'+'精選' 或 'transit'+'行程途經'，見 engine-contract.md#poi-wall「分組標記」）
+// distLabel：可選，附近推薦面板用（如 "190 m"），延伸推薦總覽不傳
+function poiCardHTML(it, sourceClass, sourceLabel, distLabel, mapAppLinksFn) {
+  return '<div class="hl-card poi-card"><span class="source-tag ' + escapeHTML(sourceClass) + '">' + escapeHTML(sourceLabel) + '</span>' +
+    '<h4>' + linkOrText(it.name, it.url) +
+    pillsHTML(it.category) +
+    statusHTML(it.status) +
+    (distLabel ? '<span class="dist-tag">' + escapeHTML(distLabel) + '</span>' : '') +
+    '</h4>' +
+    (it.shop ? '<p class="hl-shop">' + escapeHTML(it.shop) + '</p>' : '') +
+    (it.note ? '<p>' + escapeHTML(it.note) + '</p>' : '') +
+    mapLinkHTML(it.lat, it.lng, it.name, mapAppLinksFn) +
+    '</div>';
+}
+
+// 版面行數固定 2（engine-contract.md#poi-wall「版面」），超過 2 項才需要滑動提示
+var POI_GRID_ROWS = 2;
+function scrollHintHTML(itemCount) {
+  return itemCount > POI_GRID_ROWS ? '<p class="poi-scroll-hint">◂ 左右滑動檢視更多 ▸</p>' : '';
+}
+
+// 卡片牆容器的開標籤。**超過一欄時必須可鍵盤聚焦**——`overflow-x:auto` 的 div 預設
+// 不可聚焦，只用鍵盤的人到不了可視範圍外的卡片（WCAG 2.1.1）。加 tabindex="0" 後
+// 方向鍵就能原生捲動；role="group" + aria-label 讓螢幕閱讀器知道這是一組可捲動內容。
+// 項目數 <= 版面列數（不需要捲動）時不加，避免製造多餘的 Tab 停留點。
+function gridOpenTag(itemCount) {
+  return itemCount > POI_GRID_ROWS
+    ? '<div class="poi-grid" tabindex="0" role="group" aria-label="可左右捲動的卡片列表，共 ' + itemCount + ' 項">'
+    : '<div class="poi-grid">';
+}
+
+// 延伸推薦總覽／「行程途經」分組用：單純把 items 渲染成卡片牆，不做距離排序或排除
+function poiWallHTML(items, sourceClass, sourceLabel, mapAppLinksFn) {
+  var list = items || [];
+  if (!list.length) return '';
+  var cards = list.map(function (it) {
+    return poiCardHTML(it, sourceClass, sourceLabel, null, mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(list.length) + gridOpenTag(list.length) + cards + '</div>';
+}
+
+// 每站附近推薦面板用：按距離排序、排除跟該站同名的項目，可選記錄命中（供「行程途經」分組用）
+// opts: { sourceClass, sourceLabel, hitStore, mapAppLinksFn }
+function nearbyGridHTML(items, fromLat, fromLng, stopTitle, opts) {
+  opts = opts || {};
+  var tokens = titleTokens(stopTitle);
+  var withDist = (items || [])
+    .filter(function (it) { return typeof it.lat === 'number' && typeof it.lng === 'number'; })
+    .filter(function (it) { return !matchesStopTitle(it.name, tokens, stopTitle) && !matchesStopTitle(it.shop, tokens, stopTitle); })
+    .map(function (it) { return { it: it, dist: haversineMeters(fromLat, fromLng, it.lat, it.lng) }; })
+    .sort(function (a, b) { return a.dist - b.dist; });
+  if (opts.hitStore) {
+    // 記錄命中過的 day.slots 項目，跨全部站點去重（一個地點只記一次），供延伸推薦「行程途經」分組使用
+    withDist.forEach(function (row) {
+      var key = normalizeName(row.it.name);
+      if (key) opts.hitStore[key] = row.it;
+    });
+  }
+  if (!withDist.length) return '<p class="muted">暫無座標資料。</p>';
+  var cards = withDist.map(function (row) {
+    return poiCardHTML(row.it, opts.sourceClass || 'highlight', opts.sourceLabel || '精選', formatDist(row.dist), opts.mapAppLinksFn);
+  }).join('');
+  return scrollHintHTML(withDist.length) + gridOpenTag(withDist.length) + cards + '</div>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    escapeHTML: escapeHTML,
+    haversineMeters: haversineMeters,
+    formatDist: formatDist,
+    normalizeName: normalizeName,
+    commonPrefixLen: commonPrefixLen,
+    sameCore: sameCore,
+    titleTokens: titleTokens,
+    matchesStopTitle: matchesStopTitle,
+    pillsHTML: pillsHTML,
+    statusHTML: statusHTML,
+    linkOrText: linkOrText,
+    mapLinkHTML: mapLinkHTML,
+    poiCardHTML: poiCardHTML,
+    poiWallHTML: poiWallHTML,
+    nearbyGridHTML: nearbyGridHTML,
+  };
+}
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var trip;
+  try {
+    trip = JSON.parse(document.getElementById('trip-data').textContent);
+  } catch (e) {
+    // 使用者手改 trip-data 是預期用法，打錯一個逗號不該變成沒有線索的空白頁
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div style="margin:20px;padding:16px 20px;border-left:3px solid #a3701f;background:#f5ead2;'
+      + 'color:#1b2422;font:15px/1.7 -apple-system,sans-serif">⚠️ 行程資料（<code>trip-data</code>）格式有誤，頁面無法渲染。<br>'
+      + '錯誤：' + String(e && e.message) + '<br>請檢查 <code>&lt;script id="trip-data"&gt;</code> 裡的 JSON'
+      + '——最常見的是多一個逗號或少一個引號。</div>');
+    return;
+  }
+  var E = (typeof escapeHTML === 'function') ? escapeHTML : function (s) { return String(s); };
+  var $ = function (id) { return document.getElementById(id); };
+  // 日本境內的地圖連結改成只給 Google 地圖（名稱＋視野錨點，engine-contract.md#map-links ②）。
+  // 原因：引擎的 isInChinaBBox 是粗略矩形（經度到 137.83°E），會把廣島（132.5°E）也判成「中國境內」而只輸出高德連結，
+  // 與契約「境外只給 Google」相違。這是頁面層的暫時處置，沒有改引擎；詳見交付時給使用者的說明。
+  (function () {
+    if (typeof buildMapAppLinks !== 'function') return;
+    var orig = buildMapAppLinks;
+    buildMapAppLinks = function (lat, lng, label) {
+      if (lng >= 122 && lng <= 146 && lat >= 24 && lat <= 46) {
+        return [{ label: 'Google 地圖', url: 'https://www.google.com/maps/search/' + encodeURIComponent(label) + '/@' + lat + ',' + lng + ',17z' }];
+      }
+      return orig(lat, lng, label);
+    };
+  })();
+  var hl = trip.highlights || {};
+  // 附近推薦候選池：五區總覽裡「有座標」的項目（景點／美食／店家一起算，依實際距離排序）
+  var NEAR_POOL = [];
+  (hl.regions || []).forEach(function (r) {
+    ['spots', 'food', 'shops'].forEach(function (k) {
+      (r[k] || []).forEach(function (x) {
+        if (typeof x.lat === 'number' && typeof x.lng === 'number') NEAR_POOL.push(x);
+      });
+    });
+  });
+  var transitHits = {};
+
+  function linkOrPlain(name, url) {
+    return url ? '<a href="' + E(url) + '" target="_blank" rel="noopener">' + E(name) + ' ↗</a>' : E(name);
+  }
+
+  /* ---------- 1. tab 導覽（page-contract.md#tab-nav，項目跟著 trip 實際區塊產生） ---------- */
+  var tabs = [['#pretrip', '行前總覽'], ['#transport', '航班・住宿・交通'], ['#plans', '逐日行程'], ['#map-sec', '路線地圖']];
+  (hl.regions || []).forEach(function (r) { tabs.push(['#rg-' + r.key, r.name + ' 30 選']); });
+  tabs.push(['#verify', '待確認'], ['#tips', '實用貼士'], ['#glossary', '日文對照']);
+  $('nav-in').innerHTML = tabs.map(function (t) {
+    return '<a href="' + t[0] + '">' + E(t[1]) + '</a>';
+  }).join('') + '<button class="theme-btn" id="theme-btn" type="button" aria-label="切換淺色／深色主題"></button>';
+  // tab 太多會橫向溢出，但滑鼠滾輪預設只認垂直滾動：把垂直滾動量轉成橫向捲動，
+  // 且只在真的有橫向空間可捲時才攔截，不搶頁面本身的垂直捲動。
+  (function () {
+    var nav = $('nav-in');
+    nav.addEventListener('wheel', function (e) {
+      if (nav.scrollWidth <= nav.clientWidth) return;
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      nav.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  })();
+  // 主題切換：色票本來就定義了 :root[data-theme]，這裡只補上 UI 與記憶
+  (function () {
+    var root = document.documentElement, btn = $('theme-btn');
+    function sysDark() { return matchMedia('(prefers-color-scheme: dark)').matches; }
+    function cur() { return root.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+    function paint() { btn.textContent = cur() === 'dark' ? '☀ 淺色' : '☾ 深色'; }
+    try { var save = localStorage.getItem('travel-plan-theme'); if (save) root.setAttribute('data-theme', save); } catch (e) {}
+    paint();
+    btn.addEventListener('click', function () {
+      var next = cur() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('travel-plan-theme', next); } catch (e) {}
+      paint();
+    });
+  })();
+
+  /* ---------- 2. 頁頂待辦清單 ---------- */
+  $('checklist').innerHTML = renderChecklistHTML(computeReminders(trip.startDate, trip.reminders || []));
+
+  /* ---------- 3. 行前須知 ---------- */
+  var pt = trip.preTrip || {}, ptRows = [
+    ['天氣', pt.weather && (pt.weather.summary || '') + (pt.weather.typhoon ? '　' + pt.weather.typhoon : '')],
+    ['穿搭', pt.packing], ['支付', pt.payment],
+    ['必備 App', Array.isArray(pt.apps) ? pt.apps.join('・') : pt.apps],
+    ['購票時機', pt.ticketTip]
+  ].filter(function (r) { return r[1]; });
+  $('pretrip-body').innerHTML = '<div class="tw"><table><tbody>' + ptRows.map(function (r) {
+    return '<tr><th style="width:110px">' + E(r[0]) + '</th><td>' + E(r[1]) + '</td></tr>';
+  }).join('') + '</tbody></table></div>';
+
+  /* ---------- 4. 航班 + 住宿 + 交通方案 + 免責聲明 ---------- */
+  var f = trip.flights || {}, fh = '<h3>航班</h3><div class="grid">';
+  (f.booked || []).forEach(function (b) {
+    fh += '<div class="card"><div class="eyebrow">' + E(b.label) + '　<span class="pill">已預訂</span></div>'
+       + '<div class="fact-v">' + E(b.code) + '</div><div class="fact-n">' + E(b.time) + '</div></div>';
+  });
+  fh += '</div>';
+  if ((f.candidates || []).length) {
+    fh += '<h3>待選班次</h3><div class="grid">' + f.candidates.map(function (c) {
+      return '<div class="card"><div class="eyebrow">待選 · 請自行核實預訂</div><div class="fact-v">' + E(c.code || '') + '</div>'
+        + '<div class="fact-n">' + E(c.time || '') + (c.note ? '<br>' + E(c.note) : '') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  fh += '<h3>住宿</h3><p class="muted">住宿尚未訂：5 晚、三位成人，由你自己決定。下面只給「片區」建議與各價位的代表旅館；價格是公開資料的粗估，請以訂房網的日期報價為準，本頁不查實時房價。</p>';
+  (trip.hotelAreas || []).forEach(function (a) {
+    fh += '<div class="card" style="margin-top:14px"><h4>' + E(a.area) + '</h4><p class="muted" style="margin:4px 0 10px">' + E(a.reason) + '</p>'
+      + ((a.options || []).length
+        ? '<div class="tw"><table><thead><tr><th>價位</th><th>選項</th><th>參考價</th><th>備註</th></tr></thead><tbody>'
+          + a.options.map(function (o) {
+            // 住宿的訂房連結跟時間軸站點共用 bookingUrl 機制（page-contract.md#booking）
+            var bk = o.bookingUrl
+              ? ' ' + reminderBadgeHTML(o.leadDays, { kind: o.bookingKind || 'reserve', url: o.bookingUrl })
+              : (o.actionLink && o.actionLink.url
+                  ? ' <a class="action-link" href="' + escapeHTML(o.actionLink.url)
+                    + '" target="_blank" rel="noopener">' + escapeHTML(o.actionLink.label || '前往') + ' →</a>'
+                  : '');
+            return '<tr><td><span class="pill">' + E(o.tier) + '</span></td><td><b>' + E(o.name) + '</b>' + bk + '</td>'
+              + '<td class="mono">' + E(o.priceRange || '') + '</td><td>' + E(o.note || '') + '</td></tr>';
+          }).join('') + '</tbody></table></div>'
+        : '')
+      + '</div>';
+  });
+  fh += '<div class="alert"><b>免責聲明</b><p>' + E(trip.disclaimer) + '</p></div>';
+  // 交通方案：這趟行程是「大眾運輸為主、租車列入考慮」，所以給一個明確結論，再給比較表與條件
+  // （比照 page-contract.md#car-plan 的精神：給結論，不是給清單）。
+  (function () {
+    var c = trip.transportPlan;
+    if (!c) return;
+    var h = '<h3 style="margin-top:22px">' + E(c.title || '交通方案') + '</h3>';
+    if (c.lede) h += '<p class="lede">' + E(c.lede) + '</p>';
+    h += '<div class="car">';
+    var r = c.recommendation;
+    if (r) {
+      h += '<div class="car-rec"><div class="car-choice">✅ ' + E(r.choice) + '</div>'
+        + (r.why ? '<div class="car-why">' + E(r.why) + '</div>' : '')
+        + (r.caution ? '<div class="car-caution">⚠️ ' + E(r.caution) + '</div>' : '')
+        + (r.howTo ? '<div class="car-why"><b>怎麼做：</b>' + E(r.howTo) + '</div>' : '')
+        + '</div>';
+    }
+    if ((c.compare || []).length) {
+      h += '<div class="car-h">比較：三種做法</div><div class="car-wrap"><table class="car-tbl">'
+        + '<thead><tr><th>方案</th><th>費用</th><th>優點</th><th>缺點</th><th>結論</th></tr></thead><tbody>'
+        + c.compare.map(function (x) {
+          return '<tr' + (/推薦/.test(x.verdict || '') && !/不推薦/.test(x.verdict || '') ? ' class="rec"' : '') + '><td>' + E(x.option)
+            + '</td><td>' + E(x.cost || '') + '</td><td>' + E(x.pros || '')
+            + '</td><td>' + E(x.cons || '') + '</td><td>' + E(x.verdict || '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+    if ((c.carDocuments || []).length) {
+      h += '<div class="car-h">如果你還是想租車：證件</div><ul class="car-list">'
+        + c.carDocuments.map(function (x) {
+          return '<li class="car-item"><div class="t">' + E(x.item) + '</div>'
+            + (x.detail ? '<div class="d">' + E(x.detail) + '</div>' : '')
+            + (x.gotcha ? '<div class="g">⚠️ ' + E(x.gotcha) + '</div>' : '') + '</li>';
+        }).join('') + '</ul>';
+    }
+    h += '</div>';
+    fh += h;
+  })();
+
+  $('transport-body').innerHTML = fh;
+
+  // 當日二選一／三選一（conditional-features.md#alternatives）；有給就必須渲染。
+  function altsHTML(day) {
+    var a = day.alternatives || [];
+    if (!a.length) return '';
+    return '<div class="alt-h">這一天有 ' + a.length + ' 種走法</div><div class="alts">'
+      + a.map(function (x) {
+          var picked = /本頁採用|（採用）/.test(x.label || '');
+          return '<div class="alt' + (picked ? ' picked' : '') + '">'
+            + '<div class="alt-l">' + (picked ? '✅ ' : '') + E(x.label || '') + '</div>'
+            + (x.summary ? '<div class="alt-s">' + E(x.summary) + '</div>' : '')
+            + '</div>';
+        }).join('') + '</div>';
+  }
+
+  // 每日餐飲（page-contract.md#blocks 第 8 條）：有給就渲染，每餐含 place、hours 與必點菜的名稱＋價格
+  function diningHTML(day) {
+    var d = day.dining || [];
+    if (!d.length) return '';
+    return '<div class="dn-h">這一天吃什麼</div><div class="dn">' + d.map(function (m) {
+      return '<div class="dn-card"><div class="dn-meal">' + E(m.meal || '') + '</div>'
+        + '<div class="dn-place">' + E(m.place || '') + '</div>'
+        + (m.hours ? '<div class="dn-hours">' + E(m.hours) + '</div>' : '')
+        + ((m.dishes || []).length ? '<ul class="dn-dishes">' + m.dishes.map(function (x) {
+            return '<li><span>' + E(x.name) + '</span><span class="mono">' + E(x.price || '') + '</span></li>';
+          }).join('') + '</ul>' : '')
+        + '</div>';
+    }).join('') + '</div>';
+  }
+
+  // 站點的實用小標籤：營業時間、公休、票價、如何到達、時令（page-contract.md#blocks 第 7 條）
+  function metaHTML(s) {
+    var m = [];
+    if (s.openingHours) m.push('<span class="pill">🕘 ' + E(s.openingHours) + '</span>');
+    if (s.closedDays) m.push('<span class="pill">⛔ ' + E(s.closedDays) + '</span>');
+    if (s.ticketPrice) m.push('<span class="pill">🎟 ' + E(s.ticketPrice) + '</span>');
+    if (s.seasonal) m.push('<span class="pill">🗓 ' + E(s.seasonal) + '</span>');
+    if (s.transport) {
+      var t = s.transport;
+      m.push('<span class="pill">🚃 ' + E(t.mode || '') + (t.duration ? '・' + E(t.duration) : '') + (t.fare ? '・' + E(t.fare) : '') + '</span>');
+      if (t.actionLink && t.actionLink.url) {
+        m.push('<a class="action-link" href="' + E(t.actionLink.url) + '" target="_blank" rel="noopener">' + E(t.actionLink.label || '導航') + ' →</a>');
+      }
+    }
+    return m.length ? '<div class="slot-meta">' + m.join('') + '</div>' : '';
+  }
+
+  /* ---------- 5. 逐日行程（單一方案；若將來改成雙方案，plans 結構仍然相容） ---------- */
+  var plans = trip.plans && trip.plans.length ? trip.plans
+            : [{ key: 'main', name: '行程', recommended: true, days: trip.days || [] }];
+  // 地圖只畫「推薦方案」的站點。編號必須跟地圖用同一套順序，所以 mainPlan 在時間軸渲染之前就決定。
+  var mainPlan = plans.filter(function (p) { return p.recommended; })[0] || plans[0];
+  var mapNo = 0;   // 只對 mainPlan 的站點遞增，數字與地圖標記一一對應
+  var panelSeq = 0, html = '';
+  plans.forEach(function (pl) {
+    if (plans.length > 1) {
+      html += '<div class="plan-head' + (pl.recommended ? '' : ' alt') + '" id="plan-' + E(pl.key) + '">'
+        + '<h3>' + E(pl.name) + (pl.recommended ? '<span class="badge-rec">推薦</span>' : '') + '</h3>'
+        + (pl.reason ? '<p>' + E(pl.reason) + '</p>' : '')
+        + (pl === mainPlan ? '' : '<p class="muted" style="margin:6px 0 0">此方案的站點沒有編號——地圖畫的是推薦方案。</p>')
+        + '</div>';
+    }
+    function statusBadge(o) {
+      if (!o || !o.status || typeof statusHTML !== 'function') return '';
+      return statusHTML(o.status);
+    }
+    function bookBadge(o) {
+      if (!o || !o.needsBooking || typeof reminderBadgeHTML !== 'function') return '';
+      return reminderBadgeHTML(o.leadDays, { kind: o.bookingKind, url: o.bookingUrl });
+    }
+    (pl.days || []).forEach(function (d) {
+      html += '<div class="day"><h3 class="day-h">'
+        + '<span class="day-d">' + E(d.date.slice(5).replace('-', '/')) + '</span>'
+        + '<span class="day-w">' + E(d.weekday || '') + '</span>'
+        + '<span class="day-t">' + E(d.theme || '') + '</span></h3><div class="day-b">';
+      html += '<ul class="tl">' + (d.slots || []).map(function (s) {
+        var pid = 'nb-' + pl.key + '-' + (panelSeq++);
+        // 地圖連結排在標題與時段標籤之間（同一行），不要另起一行
+        var maps = (typeof buildMapAppLinks === 'function' && typeof s.lat === 'number')
+          ? '<span class="poi-maplink poi-maplink--inline">' + buildMapAppLinks(s.lat, s.lng, s.name).map(function (l) {
+              return '<a href="' + l.url + '" target="_blank" rel="noopener">' + E(l.label) + '</a>'; }).join('') + '</span>' : '';
+        var num = (pl === mainPlan) ? (++mapNo) : null;
+        var numBadge = num ? '<span class="tl-num" title="地圖上的第 ' + num + ' 個標記">' + num + '</span>' : '';
+        return '<li><span class="tl-t">' + E(s.time || '') + '</span><div>'
+          + '<h4>' + numBadge + linkOrPlain(s.name, s.url) + maps + statusBadge(s) + bookBadge(s)
+            + (s.period ? '<span class="pill">' + E(s.period) + '</span>' : '') + '</h4>'
+          + (s.review ? '<p class="muted">' + E(s.review) + '</p>' : '')
+          + metaHTML(s)
+          + '<button class="nearby-toggle" data-target="' + pid + '" aria-expanded="false">▸ 顯示附近特色美食・店家・景點</button>'
+          + '<div class="nearby-panel" id="' + pid + '" data-lat="' + s.lat + '" data-lng="' + s.lng + '" data-name="' + E(s.name) + '" data-plan="' + E(pl.key) + '" hidden></div>'
+          + '</div></li>';
+      }).join('') + '</ul>';
+      if ((d.routes || []).length) {
+        html += '<div class="routes">' + d.routes.map(function (r) {
+          return '<div class="route"><div class="route-h ' + (r.kind === 'easy' ? 'easy' : 'mid') + '">' + E(r.label || '') + '</div><ol>'
+            + (r.stops || []).map(function (st) {
+              return '<li><span class="rt">' + E(st.time || '') + '</span><div>'
+                + '<div class="rn">' + linkOrPlain(st.name, st.url) + statusBadge(st) + bookBadge(st) + '</div>'
+                + (st.note ? '<div class="rd">' + E(st.note) + '</div>' : '') + '</div></li>';
+            }).join('') + '</ol></div>';
+        }).join('') + '</div>';
+      }
+      if (d.planB) html += '<div class="wx"><b>☔️ 雨天備案：</b>' + E(d.planB) + '</div>';
+      (d.tips || []).forEach(function (t) { html += '<div class="daytip">' + E(t) + '</div>'; });
+      html += diningHTML(d);
+      html += altsHTML(d);
+      html += '</div></div>';
+    });
+  });
+  $('plans-body').innerHTML = html;
+
+  /* ---------- 6. 附近推薦：事件代理（engine-contract.md#nearby-panel） ---------- */
+  function slotsOfPlan(k) {
+    var p = plans.filter(function (x) { return x.key === k; })[0];
+    return p ? (p.days || []).reduce(function (a, d) { return a.concat(d.slots || []); }, []) : [];
+  }
+  document.querySelectorAll('[data-timeline]').forEach(function (tl) {
+    tl.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.nearby-toggle') : null;
+      if (!btn || !tl.contains(btn)) return;
+      var panel = $(btn.getAttribute('data-target'));
+      if (!panel) return;
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      if (!open && !panel.dataset.rendered) {
+        var lat = parseFloat(panel.dataset.lat), lng = parseFloat(panel.dataset.lng), nm = panel.dataset.name;
+        var others = slotsOfPlan(panel.dataset.plan).filter(function (x) { return x.name !== nm; });
+        panel.innerHTML =
+          '<p class="nb-cat">附近精選（' + NEAR_POOL.length + ' 項候選，依實際距離排序）</p>'
+          + nearbyGridHTML(NEAR_POOL, lat, lng, nm, { sourceClass: 'highlight', sourceLabel: '精選', mapAppLinksFn: buildMapAppLinks })
+          + '<p class="nb-cat">附近行程其他站點</p>'
+          + nearbyGridHTML(others, lat, lng, nm, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHits, mapAppLinksFn: buildMapAppLinks });
+        panel.dataset.rendered = '1';
+      }
+      panel.hidden = open;
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.textContent = (open ? '▸ 顯示' : '▾ 隱藏') + '附近特色美食・店家・景點';
+    });
+  });
+
+  /* ---------- 7. 地圖（用推薦方案的站點） ---------- */
+  var pts = (mainPlan.days || []).reduce(function (a, d) {
+    return a.concat((d.slots || []).map(function (s) {
+      return { lat: s.lat, lng: s.lng, name: s.name, time: (d.date.slice(5).replace('-', '/')) + ' ' + (s.time || '') };
+    }));
+  }, []);
+  $('map-note').textContent = '地圖顯示「' + mainPlan.name + '」的 ' + pts.length
+    + ' 個站點，依行程順序連線。標記上的編號與上方逐日行程的編號一一對應——'
+    + '看到地圖上第 7 個點，往上找編號 7 就是那一站。';
+  if (typeof L !== 'undefined' && typeof initTravelMap === 'function') {
+    initTravelMap('map', pts);
+  } else {
+    // 離線／CDN 不可達：收掉空容器，說明文字改成誠實的版本
+    $('map').style.display = 'none';
+    $('map-note').textContent = '地圖需要連網才能顯示。目前離線，站點位置請看上方逐日行程——每一站標題旁都有可點的地圖連結。';
+  }
+
+  /* ---------- 7.5 預先跑一遍每站附近推薦，只為了餵滿 transitHits ---------- */
+  document.querySelectorAll('.nearby-panel').forEach(function (panel) {
+    var lat = parseFloat(panel.dataset.lat), lng = parseFloat(panel.dataset.lng), nm = panel.dataset.name;
+    if (!nm || isNaN(lat) || isNaN(lng)) return;
+    var others = slotsOfPlan(panel.dataset.plan).filter(function (x) { return x.name !== nm; });
+    nearbyGridHTML(others, lat, lng, nm, { hitStore: transitHits });
+  });
+
+  /* ---------- 8. 五區各 30 選（poiWallHTML，engine-contract.md#poi-wall） ---------- */
+  var rg = '';
+  (hl.regions || []).forEach(function (r) {
+    rg += '<h3 id="rg-' + E(r.key) + '" style="scroll-margin-top:58px">' + E(r.name) + '</h3>';
+    [['spots', '推薦景點'], ['food', '特色美食'], ['shops', '店家與伴手禮']].forEach(function (c) {
+      var items = r[c[0]] || [];
+      if (!items.length) return;
+      rg += '<p class="nb-cat">' + E(c[1]) + '（' + items.length + ' 項）</p>'
+          + poiWallHTML(items.map(function (it) {
+              return { name: it.name, url: it.url, note: it.note, shop: it.shop,
+                       category: it.category, status: it.status, lat: it.lat, lng: it.lng };
+            }), 'highlight', '精選', buildMapAppLinks);
+    });
+  });
+  rg += '<div id="transit-wall"></div>';
+  $('regions-body').innerHTML = rg;
+
+  var hlAllNames = [];
+  (hl.regions || []).forEach(function (r) {
+    ['spots', 'food', 'shops'].forEach(function (k) {
+      (r[k] || []).forEach(function (it) { hlAllNames.push(it.name); });
+    });
+  });
+  var transitItems = Object.keys(transitHits)
+    .map(function (k) { return transitHits[k]; })
+    .filter(function (it) { return !hlAllNames.some(function (hn) { return sameCore(hn, it.name); }); });
+  if (transitItems.length) {
+    $('transit-wall').innerHTML = '<p class="nb-cat">行程途經（' + transitItems.length + ' 項）</p>'
+      + poiWallHTML(transitItems, 'transit', '行程途經', buildMapAppLinks);
+  }
+
+  /* ---------- 9. 待確認清單 + 貼士 + 對照表 ---------- */
+  (function () {
+    var uv = trip.unverified || [];
+    if (!uv.length) { var sec = document.getElementById('verify'); if (sec) sec.style.display = 'none'; return; }
+    var byCat = [];
+    uv.forEach(function (u) {
+      var g = byCat.filter(function (x) { return x.cat === (u.category || '其他'); })[0];
+      if (!g) { g = { cat: u.category || '其他', items: [] }; byCat.push(g); }
+      g.items.push(u);
+    });
+    $('verify-body').innerHTML = byCat.map(function (g) {
+      return '<div class="uv-cat">' + E(g.cat) + '</div><ul class="uv">' + g.items.map(function (u) {
+        return '<li class="uv-item"><input type="checkbox"><div>'
+          + '<div class="uv-t">' + E(u.item) + '</div>'
+          + (u.why ? '<div class="uv-why">驗不了的原因：' + E(u.why) + '</div>' : '')
+          + (u.how ? '<div class="uv-how"><b>怎麼確認：</b>' + E(u.how) + '</div>' : '')
+          + ((u.where || []).length ? '<div class="uv-where">影響：' + E(u.where.join(' · ')) + '</div>' : '')
+          + '</div></li>';
+      }).join('') + '</ul>';
+    }).join('');
+  })();
+
+  $('tips-body').innerHTML = '<div class="grid">' + (trip.tips || []).map(function (t) {
+    return '<div class="card"><p style="margin:0;font-size:14.5px;line-height:1.65">' + E(t) + '</p></div>';
+  }).join('') + '</div>';
+
+  var g = trip.glossary || {};
+  $('glossary-body').innerHTML = (g.note ? '<p class="lede">' + E(g.note) + '</p>' : '')
+    + (g.groups || []).map(function (grp) {
+      return '<h3>' + E(grp.category) + '</h3><dl class="gl">' + (grp.items || []).map(function (it) {
+        return '<div><dt>' + E(it.term) + '</dt><span class="zh">' + E(it.zh || '') + '</span><dd>' + E(it.note || '') + '</dd></div>';
+      }).join('') + '</dl>';
+    }).join('');
+})();
+
+</script>
+</body></html>
