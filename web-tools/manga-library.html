@@ -430,19 +430,19 @@ function buildGroups(d) {
     g.note = (ov['note:' + g.key] || {}).g || '';
     g.fams = [...new Set(g.entries.map((e) => e.fam))];
     const pg = progressOf(g.entries[0]); // 作品的進度 = 最近讀的那一筆（和封面上顯示的一致）
-    g.pst = pg.text ? (pg.red ? 'unread' : 'latest') : ''; g.left = pg.red ? (pg.left || 0) : 0;
+    g.pst = pg.text && !pg.unknown ? (pg.red ? 'unread' : 'latest') : ''; g.left = pg.red ? (pg.left || 0) : 0;
   });
   return list.sort((a, b) => b.t - a.t);
 }
 
 /* ── 進度顯示 ──
  * 有章節編號的漫畫：顯示 (讀到第幾話/最新第幾話 話)，不顯示頁數；沒有章節（單行本）才顯示 (第幾頁/共幾頁 頁)。
- * 還沒看完用紅字，已經看到最新就不用紅字；不知道最新到第幾話時只顯示章節名稱。單位（話／頁）一定標出來。 */
+ * 還沒看完用紅字，已經看到最新就不用紅字；不知道最新到第幾話時顯示 (讀到/? 話)，不判斷看完沒。單位（話／頁）一定標出來。 */
 const fmtN = (x) => String(Math.round(Number(x) * 100) / 100);
 function progressOf(e) {
   if (e.fNum != null) { // 有章節編號
     const latest = e.upd ? (e.upd.n || e.upd.c) : 0;
-    if (!latest) return { text: '', red: false, ratio: 0, unit: '話' };
+    if (!latest) return { text: '(' + fmtN(e.fNum) + '/? 話)', red: false, ratio: 0, unit: '話', unknown: true }; // 最新話數還不知道：先標出單位，不判斷看完沒
     return { text: '(' + fmtN(e.fNum) + '/' + fmtN(latest) + ' 話)', red: e.fNum < latest, ratio: Math.min(1, e.fNum / latest), unit: '話', left: Math.max(0, Math.round(latest - e.fNum)) };
   }
   if (e.total) return { text: '(' + e.page + '/' + e.total + ' 頁)', red: e.page < e.total, ratio: Math.min(1, e.page / e.total), unit: '頁' };
@@ -452,7 +452,7 @@ function progressOf(e) {
 function fillProgress(el, e) {
   el.textContent = e.chapter || '';
   const p = progressOf(e);
-  if (p.text) { const sp = document.createElement('span'); sp.className = 'pg' + (p.red ? ' red' : ''); sp.textContent = (e.chapter ? '　' : '') + p.text; sp.title = p.unit === '話' ? '話數：讀到第幾話／最新第幾話' : '頁數：第幾頁／共幾頁'; el.append(sp); }
+  if (p.text) { const sp = document.createElement('span'); sp.className = 'pg' + (p.red ? ' red' : ''); sp.textContent = (e.chapter ? '　' : '') + p.text; sp.title = p.unknown ? '最新話數還不知道（用油猴腳本檢查更新後會補上）' : p.unit === '話' ? '話數：讀到第幾話／最新第幾話' : '頁數：第幾頁／共幾頁'; el.append(sp); }
   return p;
 }
 
