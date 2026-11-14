@@ -214,6 +214,9 @@ select.btn { padding-right: 6px; }
 .dbody { overflow-y: auto; padding: 18px 20px 40px; -webkit-overflow-scrolling: touch; }
 .hero { display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: start; }
 .hero .poster { aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; position: relative; background: var(--surface3); box-shadow: var(--shadow); display: grid; place-items: center; font-size: 54px; font-weight: 800; color: rgba(255,255,255,.25); }
+.hero .poster { cursor: zoom-in; }
+.covpop { position: fixed; z-index: 70; pointer-events: none; padding: 4px; background: #222; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+.covpop img { display: block; border-radius: 4px; }
 .hero .poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero h2 { margin: 0 0 4px; font-size: 20px; line-height: 1.3; word-break: break-word; }
 .hero .au { color: var(--muted); margin-bottom: 10px; }
@@ -844,6 +847,33 @@ async function storeCover(it) {
   covUrl.set(it.k, { url: URL.createObjectURL(blob), c: !!it.c, t: it.t });
   paintCover(it.k);
 }
+/* ── 檢查最新話數 ──
+ * 圖書館自己連不到各漫畫網站，所以請油猴腳本去查這一部（它底下所有網站的紀錄）：腳本把結果寫進試算表（up:<紀錄鍵>），
+ * 圖書館再重新載入就看得到「已讀／共幾話」與還沒看完。流程和「更新封面」一樣：document 發 'tmr-update-one'（data-tmr-upd＝{keys}），腳本回 'tmr-upd-state'。 */
+let updOneWaitMs = 180000;
+async function checkLatest(g) {
+  if (!connected()) throw new Error('還沒有連線');
+  if (!bridgeOn()) throw new Error('需要油猴腳本 v3.28.0 以上：圖書館自己連不到各漫畫網站，要請腳本去查。請更新腳本，並確認它在這個網頁有啟用（Tampermonkey 的圖示上要看得到這支腳本）');
+  const keys = g.entries.map((e) => e.key);
+  const r = await new Promise((resolve) => {
+    let timer = 0;
+    const on = () => {
+      let st = null;
+      try { st = JSON.parse(document.documentElement.getAttribute('data-tmr-upd-state') || 'null'); } catch (e) { st = null; }
+      if (st && st.s !== 'run') done(st);
+    };
+    const done = (x) => { clearTimeout(timer); document.removeEventListener('tmr-upd-state', on); resolve(x); };
+    timer = setTimeout(() => done({ s: 'error', reason: '等太久，油猴腳本沒有回應' }), updOneWaitMs);
+    document.addEventListener('tmr-upd-state', on);
+    document.documentElement.setAttribute('data-tmr-upd', JSON.stringify({ keys }));
+    document.dispatchEvent(new Event('tmr-update-one'));
+  });
+  if (r.s === 'error') throw new Error(r.reason || '原因不明');
+  if (!r.ok) throw new Error(r.reason || '沒抓到最新話數');
+  const text = '最新第 ' + (r.n != null ? r.n : '?') + ' 話' + (r.total ? '（清單共 ' + r.total + ' 話）' : '') + (r.title ? '：' + r.title : '');
+  if (r.synced === false) return { text: '△ 查到了（' + text + '），但油猴腳本沒有設定同步，圖書館拿不到（請在腳本的設定面板填入同樣的 Apps Script 網址與密鑰）', warn: true };
+  return { text: '✓ ' + text, n: r.n, total: r.total };
+}
 /* ── 更新封面 ──
  * 有油猴腳本：請它到網站重新抓這部的封面（腳本抓得到跨網域的圖；和書架封面視窗的「用預設抓取」一樣，會蓋掉自訂的），
  * 存到 Drive 之後圖書館再從雲端取回。沒有腳本：圖書館自己抓不到網站的圖，只能強制重新從雲端載入（可能是別的裝置新抓的）。 */
@@ -1467,9 +1497,36 @@ function resumeUrl(e) {
   if (e.fam === 'nhentai' && e.page > 1) u = u.replace(/(\/g\/\d+\/)\d+(\/?)(?=[?#]|$)/, (m0, a, b) => a + e.page + b);
   return u;
 }
+/* ── 封面放大（和油猴書架一樣）──
+ * 滑鼠移到詳情欄的海報上，就放大成視窗放得下的最大尺寸（直的圖撐滿高、橫的圖撐滿寬），移開就恢復。觸控裝置沒有 hover，不做。 */
+let covPop = null;
+function hideCovPop() { if (covPop) { covPop.remove(); covPop = null; } }
+function coverHover(box) {
+  if (!window.matchMedia || !matchMedia('(hover: hover)').matches) return;
+  box.addEventListener('mouseenter', () => {
+    hideCovPop();
+    const im = box.querySelector('img');
+    if (!im || !im.src) return; // 還沒有封面（只有字母）
+    const big = document.createElement('img'); big.alt = ''; big.src = im.currentSrc || im.src;
+    const pop = covPop = document.createElement('div'); pop.className = 'covpop'; pop.style.visibility = 'hidden'; pop.append(big);
+    const place = () => {
+      if (covPop !== pop || !big.naturalWidth) return;
+      const sc = Math.min((innerWidth - 56) / big.naturalWidth, (innerHeight - 56) / big.naturalHeight);
+      big.style.width = Math.round(big.naturalWidth * sc) + 'px'; big.style.height = Math.round(big.naturalHeight * sc) + 'px';
+      pop.style.left = Math.max(0, Math.round((innerWidth - pop.offsetWidth) / 2)) + 'px';
+      pop.style.top = Math.max(0, Math.round((innerHeight - pop.offsetHeight) / 2)) + 'px';
+      pop.style.visibility = '';
+    };
+    big.addEventListener('load', place);
+    document.body.append(pop);
+    if (big.complete) place();
+  });
+  box.addEventListener('mouseleave', hideCovPop);
+}
 function openDrawer(key, focusSel, keepEdit) {
   const g = groups.find((x) => x.key === key);
   if (!g) return;
+  hideCovPop();
   if (!openKey) { drawerOpener = document.activeElement; document.body.style.overflow = 'hidden'; try { history.pushState({ lib: 'drawer' }, ''); drawerPushed = true; } catch (e) { drawerPushed = false; } } // 手機的「返回」鍵會先關詳情，不會直接離開圖書館
   if (key !== openKey && !keepEdit) { editMode = false; editNote = null; }
   openKey = key;
@@ -1477,7 +1534,7 @@ function openDrawer(key, focusSel, keepEdit) {
   body.textContent = '';
   const hero = document.createElement('div'); hero.className = 'hero';
   const poster = document.createElement('div'); poster.className = 'poster'; poster.dataset.covkey = '1'; poster.dataset.gk = g.key; poster.dataset.covclass = '';
-  poster.textContent = initial(g.title); setPlaceholder(poster, g); fillCover(poster, g);
+  poster.textContent = initial(g.title); setPlaceholder(poster, g); fillCover(poster, g); coverHover(poster);
   const info = document.createElement('div');
   const h2 = document.createElement('h2'); h2.textContent = g.title; info.append(h2);
   if (g.authors.length) { // 作者：點名字只看他的作品；♡／♥ 切換喜歡的作者
@@ -1526,7 +1583,21 @@ function openDrawer(key, focusSel, keepEdit) {
   poster.addEventListener('dragover', (e) => { e.preventDefault(); poster.classList.add('drop'); });
   poster.addEventListener('dragleave', () => poster.classList.remove('drop'));
   poster.addEventListener('drop', (e) => { e.preventDefault(); poster.classList.remove('drop'); doUpload(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
-  ct.append(cbtn, rbtn, cfile, cmsg); info.append(ct);
+  const ubtn = document.createElement('button'); ubtn.type = 'button'; ubtn.className = 'btn'; ubtn.id = 'updOne'; ubtn.textContent = '🔄 檢查最新話數'; ubtn.title = '請油猴腳本到網站查這部最新到第幾話（需要油猴腳本 v3.28.0 以上），結果會同步到這裡';
+  ubtn.addEventListener('click', async () => {
+    ubtn.disabled = true; rbtn.disabled = true; cbtn.disabled = true; cmsg.className = 'covmsg'; cmsg.textContent = '檢查中…（請油猴腳本到網站查這部的最新話數）';
+    let note = null;
+    try {
+      const r = await checkLatest(g);
+      await refresh(); // 腳本已把最新話數寫進試算表：重新載入，詳情與清單上的「共幾話」「還沒看完」就更新了
+      note = { cls: r.warn ? '' : 'ok', text: r.text };
+    } catch (err) { note = { cls: 'err', text: '✗ ' + (err && err.message ? err.message : err) }; }
+    if (groups.some((x) => x.key === g.key) && openKey === g.key) { // 重畫詳情（「已讀／共幾話」才會更新），再把訊息放回封面按鈕下面那一列
+      openDrawer(g.key, '#updOne');
+      const m = $('covMsg'); if (m) { m.className = 'covmsg' + (note.cls ? ' ' + note.cls : ''); m.textContent = note.text; }
+    } else { ubtn.disabled = false; rbtn.disabled = false; cbtn.disabled = false; cmsg.className = 'covmsg' + (note.cls ? ' ' + note.cls : ''); cmsg.textContent = note.text; }
+  });
+  ct.append(cbtn, rbtn, ubtn, cfile, cmsg); info.append(ct);
   const ebtn = document.createElement('button'); ebtn.type = 'button'; ebtn.className = 'btn'; ebtn.id = 'editBtn'; ebtn.setAttribute('aria-pressed', editMode ? 'true' : 'false'); ebtn.textContent = editMode ? '✓ 完成編輯' : '✎ 編輯狀態／備註／刪除'; ebtn.style.marginTop = '8px';
   ebtn.addEventListener('click', () => { editMode = !editMode; editNote = null; openDrawer(g.key, '#editBtn'); });
   info.append(ebtn);
@@ -1654,6 +1725,7 @@ function hideDrawer() {
   drawerOpener = null;
 }
 function closeDrawer() {
+  hideCovPop();
   if (drawerPushed) { drawerPushed = false; try { history.back(); return; } catch (e) { /* 退回直接關 */ } }
   hideDrawer();
 }
