@@ -1294,13 +1294,25 @@ async function saveGroups(patch) {
 async function deleteEntries(g, entries, whole) {
   const items = entries.flatMap((e) => e.srcRows || []);
   if (!items.length) throw new Error('找不到這部的原始紀錄');
-  const r = await api({ type: 'delete', items });
+  const covKeys = whole ? entries.map((e) => e.key) : []; // 整部刪除才連 Drive 的封面圖一起刪（只刪某個網站的紀錄時，那張封面可能還是這部在用，不動）
+  const hadCov = covKeys.some((k) => covUrl.has(k));
+  const r = await api({ type: 'delete', items, coverKeys: covKeys });
   if (typeof r.deleted !== 'number') throw new Error('試算表的 Apps Script 是舊版，不支援刪除：請貼上新版 reading-log.gs 並重新部署');
+  if (covKeys.length) await dropCovers(covKeys);
   const patch = {};
   const have = (k) => data && data.groups && data.groups[k];
   entries.forEach((e) => ['', 'x:', 'up:'].forEach((pf) => { if (have(pf + e.key)) patch[pf + e.key] = ''; }));
   if (whole) ['tag:', 'note:'].forEach((pf) => { if (have(pf + g.key)) patch[pf + g.key] = ''; });
   await saveGroups(patch); // 沒有要清的也照送：順便拿回最新的整份資料
+  return hadCov && typeof r.coversDeleted !== 'number' ? '（Apps Script 還不是最新版，Drive 裡的封面圖沒有一併刪除：請貼上新版 reading-log.gs 並重新部署）' : '';
+}
+// 本機（這個瀏覽器）的封面快取也清掉：畫面上的圖、IndexedDB
+async function dropCovers(keys) {
+  for (const k of keys) {
+    const old = covUrl.get(k);
+    if (old) { URL.revokeObjectURL(old.url); covUrl.delete(k); }
+    await idbDo('readwrite', (st) => st.delete(k));
+  }
 }
 // 要按兩次才執行（第一次變成「確定？」，4 秒內再按一次）
 function armButton(btn, label, run, armedText) {
@@ -1730,7 +1742,7 @@ function openDrawer(key, focusSel, keepEdit) {
     const z = document.createElement('div'); z.className = 'delzone';
     const hint = document.createElement('div'); hint.className = 'lbl'; hint.textContent = '從試算表刪掉這部的所有閱讀紀錄（' + g.entries.length + ' 個網站），沒辦法還原。書架那邊下次更新後也會消失。';
     const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.id = 'delAll'; const lab = '🗑 刪除這部'; d.textContent = lab;
-    armButton(d, lab, async () => { try { await deleteEntries(g, g.entries, true); render(); closeDrawer(); banner('已刪除「' + g.title + '」', 'info'); setTimeout(() => { if (!lastError) banner(''); }, 4000); } catch (err) { msg.className = 'covmsg err'; msg.textContent = '✗ ' + (err && err.message ? err.message : err); } });
+    armButton(d, lab, async () => { try { const note = await deleteEntries(g, g.entries, true); render(); closeDrawer(); banner('已刪除「' + g.title + '」' + note, note ? 'err' : 'info'); setTimeout(() => { if (!lastError) banner(''); }, note ? 15000 : 4000); } catch (err) { msg.className = 'covmsg err'; msg.textContent = '✗ ' + (err && err.message ? err.message : err); } });
     z.append(hint, d); body.append(z);
   }
   $('drawer').classList.add('on'); $('drawer').setAttribute('aria-hidden', 'false'); $('scrim').classList.add('on');
