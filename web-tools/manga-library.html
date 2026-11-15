@@ -399,7 +399,7 @@ const SITES = [{ id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\
   function tocFromUrl(fam, url) {
     let p, m;
     try { p = new URL(url).pathname; } catch (e) { return ''; }
-    if (fam === 'twmanga') { m = p.match(/^\/comic\/chapter\/([^/]+)\//) || p.match(/^\/manga\/([^/]+)\/\d+-\d+-\d+/); return m ? '/comic/' + m[1] : ''; }
+    if (fam === 'twmanga') { m = p.match(/^\/comic\/chapter\/([^/]+)\//) || p.match(/^\/manga\/([^/]+)\/(?:\d+-\d+-\d+|\d+_\d+)/); return m ? '/comic/' + m[1] : ''; }
     if (fam === 'nicomanga') { m = p.match(/^\/(manga\d+\/[0-9a-f]+)\//i); return m ? '/' + m[1] + '.html' : ''; }
     if (fam === 'nhentai') { m = p.match(/^\/g\/(\d+)/); return m ? '/g/' + m[1] : ''; }
     if (fam === 'rouman') { m = p.match(/^\/books\/([^/]+)\//); return m ? '/books/' + m[1] : ''; }
