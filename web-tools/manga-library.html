@@ -97,8 +97,15 @@ select.btn { padding-right: 6px; }
 .banner { margin: 12px var(--gutter) 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .banner.info { background: var(--surface); border-color: var(--line); }
 .morewrap { position: relative; }
+#more { position: relative; }
+@media (hover: hover) {
+  #more::after { content: attr(data-tip); position: absolute; right: 0; top: calc(100% + 8px); padding: 4px 10px; border-radius: 6px; background: var(--surface3); color: var(--text); border: 1px solid var(--line); font-size: 12px; font-weight: 500; line-height: 1.4; white-space: nowrap; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 45; }
+  #more:hover::after, #more:focus-visible::after { opacity: 1; }
+  #more[aria-expanded="true"]::after { opacity: 0; }
+}
 .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; width: 280px; max-width: calc(100vw - 2 * var(--gutter)); padding: 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
 .menu .menuitem { width: 100%; height: 36px; border-radius: 8px; padding: 0 10px; display: flex; align-items: center; text-align: left; font-size: 14px; }
+.menu a.menuitem { color: inherit; text-decoration: none; }
 .menu .menuitem:hover, .menu .menuitem:focus-visible { background: var(--surface2); }
 .menu .menuitem[disabled] { opacity: .5; cursor: default; }
 .pickcard { width: min(580px, 100%); max-height: min(88vh, 760px); display: flex; flex-direction: column; }
@@ -111,7 +118,15 @@ select.btn { padding-right: 6px; }
 .pickrow .sug { color: var(--ok); font-size: 12px; font-weight: 600; }
 .pickconfirm { padding: 10px 12px; border-radius: 10px; background: var(--surface2); margin-bottom: 10px; line-height: 1.6; word-break: break-word; }
 .bmgroup { padding: 10px 12px; border-radius: 12px; background: var(--surface2); }
-.bmgroup .gt { font-weight: 650; word-break: break-word; margin-bottom: 4px; text-align: left; }
+.bmgroup .gt { font-weight: 650; word-break: break-word; text-align: left; }
+.bmhead { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.bmhead .gt { flex: 0 1 auto; min-width: 0; }
+.bmhead .bmtog { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--muted); font-size: 12px; transition: transform .15s; }
+.bmhead .bmtog:hover, .bmhead .bmtog:focus-visible { background: var(--surface3); color: var(--text); }
+.bmgroup.open .bmtog { transform: rotate(90deg); }
+.bmhead .bmn { flex: none; margin-left: auto; font-size: 12px; color: var(--muted); }
+.bmitems { margin-top: 4px; }
+.bmitems[hidden] { display: none; }
 .bmrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
 .bmrow .bt { flex: 1 1 140px; font-size: 13.5px; word-break: break-word; }
 .rel { padding: 10px 12px; border-radius: 12px; background: var(--surface2); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -303,8 +318,9 @@ a.btn { text-decoration: none; }
         <button id="refresh" class="btn" type="button" title="重新整理">⟳ <span id="refreshTxt">重新整理</span></button>
         <button id="settings" class="btn" type="button" title="連線設定">⚙</button>
         <div class="morewrap">
-          <button id="more" class="btn" type="button" title="更多功能" aria-label="更多功能" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">⋯</button>
+          <button id="more" class="btn" type="button" data-tip="更多功能" aria-label="更多功能" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">⋯</button>
           <div id="moreMenu" class="menu" role="menu" hidden>
+            <a id="galBtn" class="menuitem" href="https://zqdv37951.github.io/Claude_open/web-tools/gallery-viewer.html" target="_blank" rel="noopener noreferrer" role="menuitem" title="在新分頁開啟圖片瀏覽器（本機資料夾的圖片）">🖼 圖片瀏覽器</a>
             <button id="bmBtn" class="menuitem" type="button" role="menuitem">🔖 書籤檢視器</button>
             <button id="auBtn" class="menuitem" type="button" role="menuitem">✍ 作者清單</button>
             <button id="allBtn" class="menuitem" type="button" role="menuitem">🔄 檢查全部網站更新</button>
@@ -1476,7 +1492,8 @@ $('auQ').addEventListener('input', () => renderAu());
 $('auClose').addEventListener('click', () => hideModal('au'));
 
 /* ── 書籤檢視器 ── */
-function openBm() { $('bmQ').value = ''; $('bmMsg').textContent = ''; renderBm(); showModal('bm', 'bmQ', $('more')); }
+let bmOpen = new Set(); // 展開的那幾部（每次打開書籤檢視器都從全部收起來開始）
+function openBm() { $('bmQ').value = ''; $('bmMsg').textContent = ''; bmOpen = new Set(); renderBm(); showModal('bm', 'bmQ', $('more')); }
 function renderBm() {
   const q = norm($('bmQ').value), list = $('bmList');
   list.textContent = '';
@@ -1492,14 +1509,25 @@ function renderBm() {
   items.sort((a, b) => (b.t - a.t) || (a.title < b.title ? -1 : 1));
   $('bmDesc').textContent = bms.length ? '共 ' + bms.length + ' 個書籤（' + by.size + ' 部）。' + (bridgeOn() ? '' : '沒有油猴腳本時，「前往」只會開到那一話，不會自動跳到該頁。') : '還沒有書籤。在閱讀器裡加書籤後，這裡就會出現（和書架共用）。';
   if (bms.length && !items.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '找不到符合的書籤'; list.append(e); return; }
-  items.forEach((x) => {
-    const box = document.createElement('div'); box.className = 'bmgroup';
-    if (x.g) { const t = document.createElement('button'); t.type = 'button'; t.className = 'gt'; t.setAttribute('data-bm-open', x.g.key); t.textContent = x.title; t.title = '開啟這部的詳情'; t.addEventListener('click', () => { hideModal('bm'); openDrawer(x.g.key); }); box.append(t); }
-    else { const t = document.createElement('div'); t.className = 'gt'; t.textContent = x.title; box.append(t); }
-    x.items.sort((a, b) => (a.chapter < b.chapter ? -1 : a.chapter > b.chapter ? 1 : 0) || (a.page - b.page)).forEach((b) => box.append(bmRowEl(b, async (bk) => {
+  items.forEach((x, gi) => {
+    const gk = x.g ? x.g.key : 'c:' + norm(x.title);
+    const open = !!q || bmOpen.has(gk); // 有搜尋時全部展開（不然看不到是哪一話符合）
+    const box = document.createElement('div'); box.className = 'bmgroup' + (open ? ' open' : ''); box.setAttribute('data-bm-group', gk);
+    const head = document.createElement('div'); head.className = 'bmhead';
+    const tog = document.createElement('button'); tog.type = 'button'; tog.className = 'bmtog'; tog.textContent = '▸'; tog.setAttribute('aria-expanded', open ? 'true' : 'false'); tog.setAttribute('aria-controls', 'bmItems' + gi); tog.setAttribute('aria-label', (open ? '收起' : '展開') + '「' + x.title + '」的書籤');
+    head.append(tog);
+    if (x.g) { const t = document.createElement('button'); t.type = 'button'; t.className = 'gt'; t.setAttribute('data-bm-open', x.g.key); t.textContent = x.title; t.title = '開啟這部的詳情'; t.addEventListener('click', () => { hideModal('bm'); openDrawer(x.g.key); }); head.append(t); }
+    else { const t = document.createElement('div'); t.className = 'gt'; t.textContent = x.title; head.append(t); }
+    const n = document.createElement('span'); n.className = 'bmn'; n.textContent = x.items.length + ' 個'; head.append(n);
+    const body = document.createElement('div'); body.className = 'bmitems'; body.id = 'bmItems' + gi; body.hidden = !open;
+    // 點標題旁邊的空白、箭頭、數量：展開／收起；點書名本身仍然是開啟這部的詳情
+    const toggle = () => { const on = body.hidden; body.hidden = !on; box.classList.toggle('open', on); tog.setAttribute('aria-expanded', on ? 'true' : 'false'); tog.setAttribute('aria-label', (on ? '收起' : '展開') + '「' + x.title + '」的書籤'); if (on) bmOpen.add(gk); else bmOpen.delete(gk); };
+    head.addEventListener('click', (e) => { if (e.target.closest('[data-bm-open]')) return; toggle(); });
+    x.items.sort((a, b) => (a.chapter < b.chapter ? -1 : a.chapter > b.chapter ? 1 : 0) || (a.page - b.page)).forEach((b) => body.append(bmRowEl(b, async (bk) => {
       try { await pushPatch({ [bk.k]: { g: '', t: Date.now() } }); render(); renderBm(); }
       catch (err) { $('bmMsg').className = 'msg err'; $('bmMsg').textContent = '✗ 移除失敗：' + (err && err.message ? err.message : err); renderBm(); }
     })));
+    box.append(head, body);
     list.append(box);
   });
 }
@@ -1884,8 +1912,9 @@ function updateUpdItems() {
   $('allBtn').disabled = updRunning && updMode !== 'all'; $('nicoBtn').disabled = updRunning && updMode !== 'nico';
   $('nicoHint').textContent = bridgeOn() ? '用油猴腳本在背景更新章節（NicoManga 會一部一部開分頁），完成後這裡會自動重新整理。更新中再按一次會停止。' : '更新檢查需要油猴腳本 v3.22.0 以上，並讓它在這個網頁啟用。';
 }
-$('more').addEventListener('click', () => { const open = $('moreMenu').hidden; setMenu(open); if (open) { updateUpdItems(); $('bmBtn').focus(); } });
+$('more').addEventListener('click', () => { const open = $('moreMenu').hidden; setMenu(open); if (open) { updateUpdItems(); $('galBtn').focus(); } });
 document.addEventListener('mousedown', (e) => { if (!$('moreMenu').hidden && !(e.target.closest && e.target.closest('.morewrap'))) setMenu(false); });
+$('galBtn').addEventListener('click', () => setMenu(false)); // 連結在新分頁開，選單收起來
 $('bmBtn').addEventListener('click', () => { setMenu(false); openBm(); });
 $('auBtn').addEventListener('click', () => { setMenu(false); openAu(); });
 function runUpd(mode) {
