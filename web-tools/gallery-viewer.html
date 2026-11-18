@@ -311,8 +311,12 @@ refreshBtn.addEventListener("click", () => {
 //   - 同名的書（同一個大資料夾裡，或別的最近開過的大資料夾裡）會標「⚠ 同名」：圖書館用書名認作品，同名會被當成同一部
 const BOOKS_INDEX_PREFIX = "gallery-books:";   // localStorage：gallery-books:<大資料夾名稱> = [{name,path,count}]（讓圖書館的「繼續閱讀」只靠書名找得到這本書在哪個大資料夾）
 const LASTBOOK_PREFIX = "gallery-lastbook:";   // localStorage：每個大資料夾最後打開的那一本（path）
+let scanDirs = 0;   // 掃描進度：已經看過幾個資料夾（顯示在右上角，大資料夾掃很久時才不會像卡住）
 async function scanBooks(dirHandle, path, out) {
   const files = [], subdirs = [];
+  scanDirs++;
+  if (scanDirs % 5 === 1 || path === "") pageIndicator.textContent = `掃描中… ${scanDirs} 個資料夾、${out.length} 本書`;
+  if (scanDirs % 20 === 0) await new Promise((r) => setTimeout(r, 0)); // 讓畫面有機會更新
   for await (const [name, entry] of dirHandle.entries()) {
     if (entry.kind === "file") {
       const ext = name.split(".").pop().toLowerCase();
@@ -514,6 +518,7 @@ async function loadAndRender(handle, want) {   // want：要打開的書（路�
   pageIndicator.textContent = "掃描中…";
 
   const found = [];
+  scanDirs = 0;
   await scanBooks(handle, "", found);
   books = found;
   markDuplicates();
@@ -554,7 +559,9 @@ async function openBook(book) {
   const items = [];
   for (let i = 0; i < book.files.length; i++) {
     pageIndicator.textContent = `載入中 ${i + 1}/${book.files.length}`;
-    const file = await book.files[i].entry.getFile();
+    let file;
+    try { file = await book.files[i].entry.getFile(); }
+    catch (e) { if (seq === openSeq) showError(`讀不到「${book.files[i].name}」（第 ${i + 1}/${book.files.length} 張）`, e); items.forEach((it) => URL.revokeObjectURL(it.url)); return; }
     if (seq !== openSeq) { items.forEach((it) => URL.revokeObjectURL(it.url)); return; } // 已經切到別本了
     items.push({ name: book.files[i].name, url: URL.createObjectURL(file) });
   }
@@ -572,7 +579,7 @@ function renderImages() {
     img.alt = item.name;
     img.title = item.name;
     img.loading = "lazy";
-    img.onerror = () => img.classList.add("broken");
+    img.onerror = () => { img.classList.add("broken"); const n = mainEl.querySelectorAll("img.broken").length; footerEl.textContent = `已顯示全部 ${currentImages.length} 張圖片（依檔名排序）　⚠ 其中 ${n} 張無法顯示（檔案壞掉或瀏覽器不支援這種格式）`; };
     pageEls.push(img);
     return img;
   }
@@ -803,17 +810,27 @@ window.addEventListener("keydown", (e) => {
 });
 
 // ---------- folder picking ----------
+// 失敗時要看得到原因（以前只寫進 console，畫面上看起來就是「沒反應」）
+function showError(prefix, e) {
+  console.error(prefix, e);
+  pageIndicator.textContent = "";
+  let box = document.getElementById("gvError");
+  if (!box) { box = document.createElement("div"); box.id = "gvError"; box.style.cssText = "width:100%;max-width:720px;margin:20px auto;padding:14px 16px;border:1px solid #633;background:#2a1414;color:#f99;border-radius:8px;font-size:14px;line-height:1.7;white-space:pre-wrap;"; }
+  box.textContent = "⚠ " + prefix + "\n" + (e && e.name ? e.name + "：" : "") + (e && e.message ? e.message : String(e));
+  mainEl.prepend(box);
+}
 async function pickFolder() {
   try {
+    if (!window.showDirectoryPicker) throw new Error("這個瀏覽器沒有提供「選擇資料夾」的功能（要用電腦版 Chrome 或 Edge，並且用 https 網址開啟）");
     const handle = await window.showDirectoryPicker();
     const perm = await handle.requestPermission({ mode: "read" });
-    if (perm !== "granted") return;
-    await saveRecentHandle(handle);
-    await refreshRecentSelect();
+    if (perm !== "granted") { showError("沒有取得讀取這個資料夾的權限", new Error("請再選一次，並在瀏覽器詢問時按「允許」")); return; }
+    try { await saveRecentHandle(handle); await refreshRecentSelect(); }
+    catch (e) { console.warn("記不住最近的資料夾（不影響閱讀）", e); } // 存不進「最近的資料夾」時照樣讀，只是下次要重選
     await loadAndRender(handle);
     pickBtn.textContent = "選擇其他資料夾";
   } catch (e) {
-    if (e.name !== "AbortError") console.error(e);
+    if (e.name !== "AbortError") showError("選擇／讀取資料夾失敗", e);
   }
 }
 pickBtn.addEventListener("click", pickFolder);
