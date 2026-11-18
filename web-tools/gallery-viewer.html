@@ -819,12 +819,24 @@ function showError(prefix, e) {
   box.textContent = "⚠ " + prefix + "\n" + (e && e.name ? e.name + "：" : "") + (e && e.message ? e.message : String(e));
   mainEl.prepend(box);
 }
+// 讀取權限：剛用選擇器選的資料夾本來就有讀取權限，先用 queryPermission 看；不夠才 requestPermission。
+// Opera 等 Chromium 衍生瀏覽器的 requestPermission 可能不跳詢問、甚至一直不回應，所以最多等幾秒，
+// 之後照樣試著讀——真的沒權限，讀取時會丟出錯誤，由 showError 顯示。
+async function grantRead(handle, waitMs) {
+  const opts = { mode: "read" };
+  const within = (p) => Promise.race([p, new Promise((r) => setTimeout(() => r("timeout"), waitMs))]);
+  let perm = "prompt";
+  try { if (handle.queryPermission) perm = await within(handle.queryPermission(opts)); } catch (e) { perm = "prompt"; }
+  if (perm === "granted") return "granted";
+  try { if (handle.requestPermission) perm = await within(handle.requestPermission(opts)); } catch (e) { /* 當作沒回應 */ }
+  return perm;
+}
 async function pickFolder() {
   try {
     if (!window.showDirectoryPicker) throw new Error("這個瀏覽器沒有提供「選擇資料夾」的功能（要用電腦版 Chrome 或 Edge，並且用 https 網址開啟）");
     const handle = await window.showDirectoryPicker();
-    const perm = await handle.requestPermission({ mode: "read" });
-    if (perm !== "granted") { showError("沒有取得讀取這個資料夾的權限", new Error("請再選一次，並在瀏覽器詢問時按「允許」")); return; }
+    const perm = await grantRead(handle, 4000);
+    if (perm === "denied") { showError("沒有取得讀取這個資料夾的權限", new Error("請再選一次，並在瀏覽器詢問時按「允許」")); return; }
     try { await saveRecentHandle(handle); await refreshRecentSelect(); }
     catch (e) { console.warn("記不住最近的資料夾（不影響閱讀）", e); } // 存不進「最近的資料夾」時照樣讀，只是下次要重選
     await loadAndRender(handle);
@@ -837,8 +849,7 @@ pickBtn.addEventListener("click", pickFolder);
 pickBtn2.addEventListener("click", pickFolder);
 
 async function ensurePermissionAndLoad(handle, want) {
-  let perm = await handle.queryPermission({ mode: "read" });
-  if (perm !== "granted") perm = await handle.requestPermission({ mode: "read" });
+  const perm = await grantRead(handle, 15000); // 重新打開網頁後要使用者按允許，多等一下
   if (perm !== "granted") return false;
   await saveRecentHandle(handle);
   await loadAndRender(handle, want);
