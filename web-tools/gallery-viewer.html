@@ -367,12 +367,14 @@ function renderAddLib() {
 }
 let libTimer = 0, libPending = null, libLastSent = null, libRetry = 0;
 function queueLibSync(folder, idx, total) {
+  if (takenOver()) return; // 閱讀器接管了：由它記進圖書館
   if (!folder || !total || !getAddLib(folder) || !getLibCfg()) return;
   libPending = { folder, idx, total };
   if (!libTimer) libTimer = setTimeout(() => { libTimer = 0; flushLibSync(false); }, LIB_SYNC_DELAY); // 捲動中最多每幾秒送一次
 }
 async function flushLibSync(keepalive) {
   clearTimeout(libTimer); libTimer = 0;
+  if (takenOver()) { libPending = null; return; }
   const p = libPending, cfg = getLibCfg();
   if (!p || !cfg || !getAddLib(p.folder)) { libPending = null; return; }
   if (libLastSent && libLastSent.folder === p.folder && libLastSent.idx === p.idx && libLastSent.total === p.total) { libPending = null; return; } // 沒有變
@@ -524,9 +526,42 @@ function renderImages() {
   footerEl.textContent = `已顯示全部 ${currentImages.length} 張圖片（依檔名排序）`;
   renderHistoryNav();
   restoreProgress();
-  updateCurrentPage();
+  // 剛排好版時圖片還沒載入、算不出真正的位置：不要在這裡把「第幾張」寫成進度（原本會把剛打開的新書記成第 2 張）；
+  // 實際位置由捲動事件更新。這裡只顯示目前記著的位置（沒有就是第 1 張），並讓「加入圖書館」記下這本。
+  { const pr = getProgress(currentFolderName); const at = pr && pageEls[pr.idx] ? pr.idx : 0;
+    pageIndicator.textContent = `${at + 1} / ${pageEls.length}`;
+    queueLibSync(currentFolderName, at, pageEls.length); }
   renderChapters();
+  announceProvider();
 }
+
+// ---------- 圖片提供者（給油猴閱讀器用）----------
+// 這個網頁本身是「選資料夾 → 把圖片依順序放在 #main」。如果你裝了油猴閱讀器（manga-desktop-reader），它會把這個頁面當成又一個閱讀網站、
+// 接管整個版面（寬度、雙頁、書籤、快捷鍵、進度、加入圖書館…），這裡只提供圖片；沒裝油猴時就用這個頁面自己的介面（原樣）。
+// 約定（只用 DOM 屬性和事件，字串傳遞）：
+//   #main[data-gv-folder]、#main[data-gv-total]；#main 底下的 <img> 依閱讀順序，帶 data-gv-idx、data-gv-name，src 是 blob 網址
+//   <html data-gv-folder>、<html data-gv-recents>（JSON：最近的資料夾 [{key,name,idx,total}]）
+//   事件：載好資料夾時發 'gv-loaded'；閱讀器發 'tmr-gv-pick'（選資料夾）、'tmr-gv-recent'（<html data-tmr-gv-want>＝最近資料夾的 key）
+//   閱讀器接管時會在 <html> 標 data-tmr-gallery="1"，這裡自己的「加入圖書館」同步就不再送（閱讀器會送）
+function announceProvider() {
+  const total = currentImages.length;
+  mainEl.setAttribute("data-gv-folder", currentFolderName);
+  mainEl.setAttribute("data-gv-total", String(total));
+  document.documentElement.setAttribute("data-gv-folder", currentFolderName);
+  pageEls.forEach((img, i) => { img.setAttribute("data-gv-idx", String(i)); });
+  const imgs = [...mainEl.querySelectorAll("img")];
+  imgs.forEach((img, i) => { img.setAttribute("data-gv-idx", String(i)); if (currentImages[i]) img.setAttribute("data-gv-name", currentImages[i].name); });
+  document.dispatchEvent(new Event("gv-loaded"));
+}
+const takenOver = () => document.documentElement.hasAttribute("data-tmr-gallery");
+document.addEventListener("tmr-gv-pick", () => { pickFolder(); });
+document.addEventListener("tmr-gv-recent", async () => {
+  const key = document.documentElement.getAttribute("data-tmr-gv-want");
+  if (!key) return;
+  const recents = await getAllRecents();
+  const found = recents.find((r) => r.key === key);
+  if (found) await ensurePermissionAndLoad(found.handle).catch(() => false);
+});
 
 // ---------- chapters (subfolders) ----------
 let chapters = []; // [{folder, index, btn}]
@@ -659,7 +694,7 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 function updateCurrentPage() {
-  if (!pageEls.length) return;
+  if (takenOver() || !pageEls.length) return; // 閱讀器接管後，版面和進度顯示由它負責（這裡的 header 等元素已經被移除）
   const headerH = document.querySelector("header").offsetHeight + 4;
   let idx = 0;
   for (let i = 0; i < pageEls.length; i++) {
@@ -732,6 +767,10 @@ async function ensurePermissionAndLoad(handle) {
 async function refreshRecentSelect() {
   const recents = await getAllRecents();
   recentSelect.innerHTML = '<option value="">最近的資料夾…</option>';
+  document.documentElement.setAttribute("data-gv-recents", JSON.stringify(recents.map((r) => {
+    const pr = getProgress(r.handle.name);
+    return { key: r.key, name: r.handle.name, idx: pr ? pr.idx : 0, total: pr && pr.total ? pr.total : 0 };
+  })));
   for (const item of recents) {
     const opt = document.createElement("option");
     opt.value = item.key;
