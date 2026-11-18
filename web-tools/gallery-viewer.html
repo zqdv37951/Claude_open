@@ -58,6 +58,13 @@
   }
   #backToTop:hover { background: #383838; }
 
+  /* 有多本書時，每本書最底下：左＝上一本、右＝下一本 */
+  #bookNav { display: none; justify-content: space-between; gap: 12px; max-width: var(--img-width); margin: 24px auto 0; padding: 0 14px; }
+  #bookNav button { flex: 1 1 0; min-width: 0; padding: 12px 14px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #bookNav button.prev { text-align: left; }
+  #bookNav button.next { text-align: right; }
+  #bookNav .gap { flex: 1 1 0; }
+
   #chapterNav { display: none; position: relative; flex-shrink: 0; }
   #chapterBtn {
     display: flex; align-items: center; gap: 5px;
@@ -145,6 +152,7 @@
     <div><button id="pickBtn2">選擇資料夾</button></div>
   </div>
 </main>
+<div id="bookNav"></div>
 <footer id="pageFooter"></footer>
 <div id="backToTop" title="回到頂部">↑</div>
 
@@ -155,9 +163,10 @@ const STORE = "handles";
 const LEGACY_KEY = "lastFolder";
 const MAX_RECENTS = 8;
 
-// ---------- 排序：和 Finder 一樣（數字依數值、英文不分大小寫、中日文依系統語系的順序）----------
-// 書（資料夾）和圖片檔名都用這個。完全相同才退回比較字元編碼，確保結果固定。
-const NAME_COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+// ---------- 排序：和 Finder 一樣（數字依數值、英文不分大小寫、中日文依日文的順序）----------
+// 書（資料夾）和圖片檔名都用這個。固定用日文語系：Finder 用的是系統語言（日文），瀏覽器若是中文語系，
+// 漢字的順序會不一樣（例如「谷」會排在「空」前面、日文漢字「漢」會排在簡體「汉」後面）。完全相同時退回比字元編碼，確保結果固定。
+const NAME_COLLATOR = new Intl.Collator("ja", { numeric: true, sensitivity: "base" });
 function naturalCompare(a, b) {
   const r = NAME_COLLATOR.compare(a, b);
   if (r) return r;
@@ -404,6 +413,7 @@ async function loadAndRender(handle, want) {   // want：要打開的書（路�
   footerEl.textContent = "";
   pageEls = []; currentImages = [];
   pageIndicator.textContent = "掃描中…";
+  if (typeof bookNavEl !== "undefined") bookNavEl.style.display = "none";
 
   const found = [];
   scanDirs = 0;
@@ -442,6 +452,7 @@ async function openBook(book) {
   mainEl.innerHTML = "";
   footerEl.textContent = "";
   pageEls = [];
+  if (typeof bookNavEl !== "undefined") bookNavEl.style.display = "none";
 
   const items = [];
   for (let i = 0; i < book.files.length; i++) {
@@ -496,7 +507,26 @@ function renderImages() {
   { const pr = getProgress(currentFolderName); const at = pr && pageEls[pr.idx] ? pr.idx : 0;
     pageIndicator.textContent = `${at + 1} / ${pageEls.length}`; }
   renderBookshelf();
+  renderBookNav();
   announceProvider();
+}
+
+// 每本書最底下的「上一本／下一本」（順序就是書櫃裡的順序）；只有一本書或沒有上／下一本的那一邊不顯示
+const bookNavEl = document.getElementById("bookNav");
+function renderBookNav() {
+  bookNavEl.textContent = "";
+  const i = books.indexOf(currentBook);
+  if (takenOver() || books.length <= 1 || i < 0) { bookNavEl.style.display = "none"; return; }
+  const mk = (cls, b, label) => {
+    if (!b) { const g = document.createElement("span"); g.className = "gap"; return g; }
+    const btn = document.createElement("button");
+    btn.className = cls; btn.textContent = label; btn.title = b.name;
+    btn.addEventListener("click", async () => { window.scrollTo(0, 0); await openBook(b); });
+    return btn;
+  };
+  const cut = (t) => (t.length > 26 ? t.slice(0, 26) + "…" : t);
+  bookNavEl.append(mk("prev", books[i - 1], books[i - 1] ? "‹ 上一本：" + cut(books[i - 1].name) : ""), mk("next", books[i + 1], books[i + 1] ? "下一本：" + cut(books[i + 1].name) + " ›" : ""));
+  bookNavEl.style.display = "flex";
 }
 
 // ---------- 圖片提供者（給油猴閱讀器用）----------
