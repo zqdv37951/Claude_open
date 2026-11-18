@@ -86,13 +86,6 @@
   .chapter-item.dup { color: #e9a; }
   .chapter-item.active { background: #3a4d63; color: #fff; }
 
-  .addlib { display: flex; align-items: center; gap: 5px; color: #aaa; font-size: 12px; cursor: pointer; white-space: nowrap; }
-  .addlib input { width: 14px; height: 14px; accent-color: #4da3ff; cursor: pointer; }
-  .addlib.off { opacity: .6; cursor: not-allowed; }
-  .addlib.off input { cursor: not-allowed; }
-  #addLibStatus { color: #777; font-size: 12px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #addLibStatus.err { color: #e88; }
-  #addLibStatus.ok { color: #7c9; }
   #historyNav { display: none; position: relative; flex-shrink: 0; }
   #historyBtn {
     display: flex; align-items: center; gap: 5px;
@@ -132,10 +125,6 @@
       <input type="range" id="widthSlider" min="300" max="1600" step="20">
     </div>
     <span class="right" style="margin-left:auto;">
-      <label class="addlib" id="addLibWrap" title="把這個資料夾的閱讀進度記到「漫畫圖書館」（要在同一個瀏覽器、同一個網址底下開過圖書館並填好連線）">
-        <input type="checkbox" id="addLibChk"><span>加入圖書館</span>
-      </label>
-      <span id="addLibStatus"></span>
       <div id="historyNav">
         <button id="historyBtn" title="閱讀紀錄">
           <span class="chapter-icon">🕘</span><span class="chapter-label" id="historyLabel"></span>
@@ -356,101 +345,8 @@ function lastBookName(root) {
   return b ? b.name : root;
 }
 
-// ---------- 加入漫畫圖書館（可選）----------
-// 圖書館（manga-library.html）在同一個網域下，把 Apps Script 網址與密鑰存在 localStorage 的 lib:cfg，這裡直接讀來用。
-// 每本書（資料夾）各自決定要不要加入；預設加入，而且每次你改變勾選，就成為「下一本書」的預設。
-// 送出的紀錄和油猴腳本的格式一樣：網站＝gallery-viewer.local、書名＝資料夾名稱、頁數＝第幾張／共幾張，網址帶 #資料夾名稱，圖書館的「繼續閱讀」就能開回這裡。
-const LIB_CFG_KEY = "lib:cfg";
-const ADDLIB_DEFAULT_KEY = "gallery-addlib-default";
-const GALLERY_SITE = "gallery-viewer.local";
-const LIB_SYNC_DELAY = 4000;
-function getLibCfg() {
-  try {
-    const c = JSON.parse(localStorage.getItem(LIB_CFG_KEY) || "null");
-    return c && /^https:\/\/script\.google\.com\/.+\/exec$/.test(c.url || "") && c.token ? c : null;
-  } catch (e) { return null; }
-}
-const addLibDefault = () => localStorage.getItem(ADDLIB_DEFAULT_KEY) !== "0"; // 沒設定過＝加入
-const addLibKey = (folder) => "addlib:" + folder;
-function getAddLib(folder) {
-  const v = localStorage.getItem(addLibKey(folder));
-  return v === null ? null : v === "1";
-}
-// 第一次打開某本書：沿用目前的預設，並記下來（之後改預設不會回頭改這本）
-function ensureAddLib(folder) {
-  let v = getAddLib(folder);
-  if (v === null) { v = addLibDefault(); localStorage.setItem(addLibKey(folder), v ? "1" : "0"); }
-  return v;
-}
-function setAddLib(folder, on) {
-  localStorage.setItem(addLibKey(folder), on ? "1" : "0");
-  localStorage.setItem(ADDLIB_DEFAULT_KEY, on ? "1" : "0"); // 改變即成為預設，持續到下一本書
-}
-function galleryUrl(folder) {
-  return location.origin + location.pathname + "#" + encodeURIComponent(folder);
-}
-const addLibChk = document.getElementById("addLibChk");
-const addLibWrap = document.getElementById("addLibWrap");
-const addLibStatus = document.getElementById("addLibStatus");
-function setLibStatus(text, cls) {
-  addLibStatus.textContent = text || "";
-  addLibStatus.className = cls || "";
-}
-function renderAddLib() {
-  const has = !!currentFolderName;
-  const cfg = getLibCfg();
-  const on = has ? ensureAddLib(currentFolderName) : addLibDefault();
-  addLibChk.checked = on;
-  addLibChk.disabled = !has || !cfg;
-  addLibWrap.classList.toggle("off", !has || !cfg);
-  if (!has) setLibStatus("");
-  else if (!cfg) setLibStatus("尚未連線：先在圖書館填好 Apps Script 網址與密鑰（要用同一個網址開）", "err");
-  else if (!on) setLibStatus("沒有加入圖書館");
-  else if (currentBook && currentBook.dup) setLibStatus("⚠ 有同名的書：圖書館用書名認作品，同名的會被當成同一部", "err");
-  else if (!addLibStatus.className) setLibStatus("會記到圖書館");
-}
-let libTimer = 0, libPending = null, libLastSent = null, libRetry = 0;
-function queueLibSync(folder, idx, total) {
-  if (takenOver()) return; // 閱讀器接管了：由它記進圖書館
-  if (!folder || !total || !getAddLib(folder) || !getLibCfg()) return;
-  libPending = { folder, idx, total };
-  if (!libTimer) libTimer = setTimeout(() => { libTimer = 0; flushLibSync(false); }, LIB_SYNC_DELAY); // 捲動中最多每幾秒送一次
-}
-async function flushLibSync(keepalive) {
-  clearTimeout(libTimer); libTimer = 0;
-  if (takenOver()) { libPending = null; return; }
-  const p = libPending, cfg = getLibCfg();
-  if (!p || !cfg || !getAddLib(p.folder)) { libPending = null; return; }
-  if (libLastSent && libLastSent.folder === p.folder && libLastSent.idx === p.idx && libLastSent.total === p.total) { libPending = null; return; } // 沒有變
-  libPending = null;
-  const ev = { site: GALLERY_SITE, comic: p.folder, chapter: "", author: "", url: galleryUrl(p.folder), toc: "", page: p.idx + 1, total: p.total, t: new Date().toISOString() };
-  try {
-    const res = await fetch(cfg.url, { method: "POST", body: JSON.stringify({ token: cfg.token, events: [ev] }), headers: { "Content-Type": "text/plain;charset=utf-8" }, credentials: "omit", redirect: "follow", keepalive: !!keepalive });
-    const j = await res.json();
-    if (!j || !j.ok) throw new Error((j && j.error) || "伺服器拒絕");
-    libLastSent = { folder: p.folder, idx: p.idx, total: p.total };
-    const d = new Date();
-    const dupBook = books.find((x) => x.name === p.folder && x.dup);
-    setLibStatus("已記到圖書館 " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + (dupBook ? "　⚠ 有同名的書：圖書館會把它們當成同一部" : ""), dupBook ? "err" : "ok");
-  } catch (e) {
-    if (!libPending) libPending = p; // 之後再試
-    setLibStatus("圖書館同步失敗：" + (e && e.message ? e.message : e), "err");
-    clearTimeout(libRetry); libRetry = setTimeout(() => flushLibSync(false), 30000);
-  }
-}
-addLibChk.addEventListener("change", () => {
-  if (!currentFolderName) return;
-  setAddLib(currentFolderName, addLibChk.checked);
-  libLastSent = null; setLibStatus("");
-  renderAddLib();
-  if (addLibChk.checked && pageEls.length) { // 剛打開：馬上記一筆，圖書館才找得到這本
-    const idx = Math.max(0, pageEls.findIndex((el) => el.getBoundingClientRect().bottom > document.querySelector("header").offsetHeight + 4));
-    libPending = { folder: currentFolderName, idx, total: pageEls.length };
-    flushLibSync(false);
-  } else libPending = null;
-});
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") renderAddLib(); });
-renderAddLib(); // 一開始還沒選資料夾：先把勾選顯示成灰的
+// ---------- 加入圖書館 ----------
+// 這個網頁本身不碰圖書館：沒有勾選、不上傳、不同步。要把看過的書記進圖書館（含封面），要裝油猴閱讀器（manga-desktop-reader），由它的 📚 負責。
 
 // ---------- progress + reading history (last 5 per folder) ----------
 const MAX_HISTORY = 5;
@@ -551,7 +447,6 @@ async function openBook(book) {
   currentFolderName = book.name;
   try { localStorage.setItem(LASTBOOK_PREFIX + currentRootName, book.path); } catch (e) { /* 沒有就算了 */ }
   folderNameEl.textContent = books.length > 1 ? currentRootName + (book.path ? " › " + book.path.replace(/\//g, " › ") : "") : book.name;
-  libLastSent = null; libPending = null; setLibStatus(""); renderAddLib();
   mainEl.innerHTML = "";
   footerEl.textContent = "";
   pageEls = [];
@@ -605,10 +500,9 @@ function renderImages() {
   renderHistoryNav();
   restoreProgress();
   // 剛排好版時圖片還沒載入、算不出真正的位置：不要在這裡把「第幾張」寫成進度（原本會把剛打開的新書記成第 2 張）；
-  // 實際位置由捲動事件更新。這裡只顯示目前記著的位置（沒有就是第 1 張），並讓「加入圖書館」記下這本。
+  // 實際位置由捲動事件更新。這裡只顯示目前記著的位置（沒有就是第 1 張）。
   { const pr = getProgress(currentFolderName); const at = pr && pageEls[pr.idx] ? pr.idx : 0;
-    pageIndicator.textContent = `${at + 1} / ${pageEls.length}`;
-    queueLibSync(currentFolderName, at, pageEls.length); }
+    pageIndicator.textContent = `${at + 1} / ${pageEls.length}`; }
   renderBookshelf();
   announceProvider();
 }
@@ -753,9 +647,9 @@ document.addEventListener("click", (e) => {
   if (!historyNav.contains(e.target)) historyPanel.classList.remove("open");
 });
 
-window.addEventListener("beforeunload", () => { snapshotCurrentProgress(); flushLibSync(true); });
+window.addEventListener("beforeunload", () => { snapshotCurrentProgress(); });
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") { snapshotCurrentProgress(); flushLibSync(true); }
+  if (document.visibilityState === "hidden") snapshotCurrentProgress();
 });
 
 // ---------- page counter / progress / back-to-top ----------
@@ -776,7 +670,7 @@ function updateCurrentPage() {
     if (rect.bottom > headerH) break;
   }
   pageIndicator.textContent = `${idx + 1} / ${pageEls.length}`;
-  if (currentFolderName) { setProgress(currentFolderName, idx, pageEls.length); queueLibSync(currentFolderName, idx, pageEls.length); }
+  if (currentFolderName) setProgress(currentFolderName, idx, pageEls.length);
   backToTop.style.display = window.scrollY > 600 ? "flex" : "none";
 }
 
