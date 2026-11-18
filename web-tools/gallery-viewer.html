@@ -84,6 +84,13 @@
   .chapter-item:hover { background: #333; }
   .chapter-item.active { background: #3a4d63; color: #fff; }
 
+  .addlib { display: flex; align-items: center; gap: 5px; color: #aaa; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .addlib input { width: 14px; height: 14px; accent-color: #4da3ff; cursor: pointer; }
+  .addlib.off { opacity: .6; cursor: not-allowed; }
+  .addlib.off input { cursor: not-allowed; }
+  #addLibStatus { color: #777; font-size: 12px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #addLibStatus.err { color: #e88; }
+  #addLibStatus.ok { color: #7c9; }
   #historyNav { display: none; position: relative; flex-shrink: 0; }
   #historyBtn {
     display: flex; align-items: center; gap: 5px;
@@ -123,6 +130,10 @@
       <input type="range" id="widthSlider" min="300" max="1600" step="20">
     </div>
     <span class="right" style="margin-left:auto;">
+      <label class="addlib" id="addLibWrap" title="把這個資料夾的閱讀進度記到「漫畫圖書館」（要在同一個瀏覽器、同一個網址底下開過圖書館並填好連線）">
+        <input type="checkbox" id="addLibChk"><span>加入圖書館</span>
+      </label>
+      <span id="addLibStatus"></span>
       <div id="historyNav">
         <button id="historyBtn" title="閱讀紀錄">
           <span class="chapter-icon">🕘</span><span class="chapter-label" id="historyLabel"></span>
@@ -302,6 +313,98 @@ async function collectImageEntries(dirHandle, prefix) {
   return entries;
 }
 
+// ---------- 加入漫畫圖書館（可選）----------
+// 圖書館（manga-library.html）在同一個網域下，把 Apps Script 網址與密鑰存在 localStorage 的 lib:cfg，這裡直接讀來用。
+// 每本書（資料夾）各自決定要不要加入；預設加入，而且每次你改變勾選，就成為「下一本書」的預設。
+// 送出的紀錄和油猴腳本的格式一樣：網站＝gallery-viewer.local、書名＝資料夾名稱、頁數＝第幾張／共幾張，網址帶 #資料夾名稱，圖書館的「繼續閱讀」就能開回這裡。
+const LIB_CFG_KEY = "lib:cfg";
+const ADDLIB_DEFAULT_KEY = "gallery-addlib-default";
+const GALLERY_SITE = "gallery-viewer.local";
+const LIB_SYNC_DELAY = 4000;
+function getLibCfg() {
+  try {
+    const c = JSON.parse(localStorage.getItem(LIB_CFG_KEY) || "null");
+    return c && /^https:\/\/script\.google\.com\/.+\/exec$/.test(c.url || "") && c.token ? c : null;
+  } catch (e) { return null; }
+}
+const addLibDefault = () => localStorage.getItem(ADDLIB_DEFAULT_KEY) !== "0"; // 沒設定過＝加入
+const addLibKey = (folder) => "addlib:" + folder;
+function getAddLib(folder) {
+  const v = localStorage.getItem(addLibKey(folder));
+  return v === null ? null : v === "1";
+}
+// 第一次打開某本書：沿用目前的預設，並記下來（之後改預設不會回頭改這本）
+function ensureAddLib(folder) {
+  let v = getAddLib(folder);
+  if (v === null) { v = addLibDefault(); localStorage.setItem(addLibKey(folder), v ? "1" : "0"); }
+  return v;
+}
+function setAddLib(folder, on) {
+  localStorage.setItem(addLibKey(folder), on ? "1" : "0");
+  localStorage.setItem(ADDLIB_DEFAULT_KEY, on ? "1" : "0"); // 改變即成為預設，持續到下一本書
+}
+function galleryUrl(folder) {
+  return location.origin + location.pathname + "#" + encodeURIComponent(folder);
+}
+const addLibChk = document.getElementById("addLibChk");
+const addLibWrap = document.getElementById("addLibWrap");
+const addLibStatus = document.getElementById("addLibStatus");
+function setLibStatus(text, cls) {
+  addLibStatus.textContent = text || "";
+  addLibStatus.className = cls || "";
+}
+function renderAddLib() {
+  const has = !!currentFolderName;
+  const cfg = getLibCfg();
+  const on = has ? ensureAddLib(currentFolderName) : addLibDefault();
+  addLibChk.checked = on;
+  addLibChk.disabled = !has || !cfg;
+  addLibWrap.classList.toggle("off", !has || !cfg);
+  if (!has) setLibStatus("");
+  else if (!cfg) setLibStatus("尚未連線：先在圖書館填好 Apps Script 網址與密鑰（要用同一個網址開）", "err");
+  else if (!on) setLibStatus("沒有加入圖書館");
+  else if (!addLibStatus.className) setLibStatus("會記到圖書館");
+}
+let libTimer = 0, libPending = null, libLastSent = null, libRetry = 0;
+function queueLibSync(folder, idx, total) {
+  if (!folder || !total || !getAddLib(folder) || !getLibCfg()) return;
+  libPending = { folder, idx, total };
+  if (!libTimer) libTimer = setTimeout(() => { libTimer = 0; flushLibSync(false); }, LIB_SYNC_DELAY); // 捲動中最多每幾秒送一次
+}
+async function flushLibSync(keepalive) {
+  clearTimeout(libTimer); libTimer = 0;
+  const p = libPending, cfg = getLibCfg();
+  if (!p || !cfg || !getAddLib(p.folder)) { libPending = null; return; }
+  if (libLastSent && libLastSent.folder === p.folder && libLastSent.idx === p.idx && libLastSent.total === p.total) { libPending = null; return; } // 沒有變
+  libPending = null;
+  const ev = { site: GALLERY_SITE, comic: p.folder, chapter: "", author: "", url: galleryUrl(p.folder), toc: "", page: p.idx + 1, total: p.total, t: new Date().toISOString() };
+  try {
+    const res = await fetch(cfg.url, { method: "POST", body: JSON.stringify({ token: cfg.token, events: [ev] }), headers: { "Content-Type": "text/plain;charset=utf-8" }, credentials: "omit", redirect: "follow", keepalive: !!keepalive });
+    const j = await res.json();
+    if (!j || !j.ok) throw new Error((j && j.error) || "伺服器拒絕");
+    libLastSent = { folder: p.folder, idx: p.idx, total: p.total };
+    const d = new Date();
+    setLibStatus("已記到圖書館 " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"), "ok");
+  } catch (e) {
+    if (!libPending) libPending = p; // 之後再試
+    setLibStatus("圖書館同步失敗：" + (e && e.message ? e.message : e), "err");
+    clearTimeout(libRetry); libRetry = setTimeout(() => flushLibSync(false), 30000);
+  }
+}
+addLibChk.addEventListener("change", () => {
+  if (!currentFolderName) return;
+  setAddLib(currentFolderName, addLibChk.checked);
+  libLastSent = null; setLibStatus("");
+  renderAddLib();
+  if (addLibChk.checked && pageEls.length) { // 剛打開：馬上記一筆，圖書館才找得到這本
+    const idx = Math.max(0, pageEls.findIndex((el) => el.getBoundingClientRect().bottom > document.querySelector("header").offsetHeight + 4));
+    libPending = { folder: currentFolderName, idx, total: pageEls.length };
+    flushLibSync(false);
+  } else libPending = null;
+});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") renderAddLib(); });
+renderAddLib(); // 一開始還沒選資料夾：先把勾選顯示成灰的
+
 // ---------- progress + reading history (last 5 per folder) ----------
 const MAX_HISTORY = 5;
 function progressKey(folderName) { return "progress:" + folderName; }
@@ -359,6 +462,7 @@ async function loadAndRender(handle) {
   currentHandle = handle;
   currentFolderName = handle.name;
   folderNameEl.textContent = handle.name;
+  libLastSent = null; libPending = null; setLibStatus(""); renderAddLib();
   refreshBtn.style.display = "inline-block";
   mainEl.innerHTML = "";
   footerEl.textContent = "";
@@ -387,6 +491,7 @@ async function loadAndRender(handle) {
 function renderImages() {
   mainEl.innerHTML = "";
   pageEls = [];
+  chapters = []; activeChapterIdx = -1; // 先清掉上一個資料夾留下的章節資料（updateCurrentPage 會在 renderChapters 之前就用到它）
 
   function makeImg(item) {
     const img = document.createElement("img");
@@ -474,7 +579,7 @@ function renderChapters() {
 }
 
 function updateActiveChapter(pageIdx) {
-  if (!chapters.length) return;
+  if (chapters.length <= 1) return; // 沒有子資料夾：沒有章節按鈕可更新（原本這裡會丟錯，讓頁碼與進度在第一次捲動後就停住）
   let idx = 0;
   for (let i = 0; i < chapters.length; i++) {
     if (chapters[i].index <= pageIdx) idx = i; else break;
@@ -540,9 +645,9 @@ document.addEventListener("click", (e) => {
   if (!historyNav.contains(e.target)) historyPanel.classList.remove("open");
 });
 
-window.addEventListener("beforeunload", snapshotCurrentProgress);
+window.addEventListener("beforeunload", () => { snapshotCurrentProgress(); flushLibSync(true); });
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") snapshotCurrentProgress();
+  if (document.visibilityState === "hidden") { snapshotCurrentProgress(); flushLibSync(true); }
 });
 
 // ---------- page counter / progress / back-to-top ----------
@@ -563,7 +668,7 @@ function updateCurrentPage() {
     if (rect.bottom > headerH) break;
   }
   pageIndicator.textContent = `${idx + 1} / ${pageEls.length}`;
-  if (currentFolderName) setProgress(currentFolderName, idx, pageEls.length);
+  if (currentFolderName) { setProgress(currentFolderName, idx, pageEls.length); queueLibSync(currentFolderName, idx, pageEls.length); }
   backToTop.style.display = window.scrollY > 600 ? "flex" : "none";
   updateActiveChapter(idx);
 }
@@ -647,6 +752,30 @@ recentSelect.addEventListener("change", async () => {
   if (found) await ensurePermissionAndLoad(found.handle);
 });
 
+// ---------- 從網址 # 打開指定的資料夾（圖書館的「繼續閱讀」）----------
+function wantedFolderFromHash() {
+  const h = location.hash.replace(/^#/, "");
+  if (!h) return "";
+  try { return decodeURIComponent(h); } catch (e) { return h; }
+}
+function showFolderNotFound(name) {
+  folderNameEl.textContent = name + "（這個瀏覽器還沒開過這個資料夾）";
+  const box = document.getElementById("empty");
+  if (!box) return;
+  const note = document.createElement("div");
+  note.style.cssText = "color:#e9a;margin-bottom:14px;";
+  note.textContent = "找不到「" + name + "」：這個瀏覽器還沒選過這個資料夾（資料夾要在這台電腦上）。請用「選擇資料夾」選一次，之後就會記住。";
+  box.prepend(note);
+}
+window.addEventListener("hashchange", async () => {
+  const want = wantedFolderFromHash();
+  if (!want || want === currentFolderName) return;
+  const recents = await getAllRecents();
+  const found = recents.find((r) => r.handle.name === want);
+  if (found) await ensurePermissionAndLoad(found.handle).catch(() => false);
+  else showFolderNotFound(want);
+});
+
 // ---------- boot ----------
 async function boot() {
   if (!window.showDirectoryPicker) {
@@ -656,9 +785,15 @@ async function boot() {
   }
   await migrateLegacy();
   const recents = await refreshRecentSelect();
-  if (recents.length === 0) return;
+  const want = wantedFolderFromHash(); // 從圖書館「繼續閱讀」來：網址 #後面是資料夾名稱
+  if (recents.length === 0) { if (want) showFolderNotFound(want); return; }
 
-  const latest = recents[0];
+  let latest = recents[0];
+  if (want) {
+    const found = recents.find((r) => r.handle.name === want);
+    if (!found) { showFolderNotFound(want); return; }
+    latest = found;
+  }
   const ok = await ensurePermissionAndLoad(latest.handle).catch(() => false);
   if (!ok) {
     folderNameEl.textContent = latest.handle.name + "（需要重新授權）";
