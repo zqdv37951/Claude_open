@@ -1,0 +1,2049 @@
+<!doctype html>
+<html lang="zh-Hant" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0d0f14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f4f8" media="(prefers-color-scheme: light)">
+<!-- 加到主畫面（PWA）：以獨立視窗開啟、沒有瀏覽器網址列。iOS 看 apple- 開頭的標籤，Android／桌面看 manifest（內嵌的 data: 網址，所以仍然是單一檔案） -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="漫畫圖書館">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAADGElEQVR42u3YMUpcURiGYTcQbCxSWEpwwCKFhBECFtqYgJ1FQLBIZxaQIiBWgoK7MJUbSC0uJDsxHwjDYCMO58/cueeBt7K4B+c8c/57Zu3d+oa0cGs+AgEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQBJAAkgACSABJAEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQAJIAkgACSABJAEkgASQAJIAEkClHf48bdX2wRSgjsp+//r7u21n95cA9VI2uzmg1M851DugCj0pswygLl59igAlgAACCCCAAAIIIIAAAggggAACqBbQEB4FEEAAAQQQQAAB5CUaIIAAWmJfv13f3D216vzicWf3GKBeALXVMwugXgBV6ElxCdD4AWXWFAHKIANo/ICK5tf8FAMIIIAAAggggF4FdPV9v1VHexOAOgKU/X7686NtD7cnAPUCKJvdHFAayDm0SoDyl8XKvX2JgCr0pMwygN4GqPmj/gOgbHMRoAQQQAABBJB3IIDcwgZ6CwMIIIAAAgig0QBa+ANp+CiAAAIIIIAAAgggL9EAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAADRjQzu5xkZ7zi8fnJbYPpkV6zu4vn5c42psU6Xm4PQHolYoA5WybLVEEKGfbbIkiQDnbAFrOFJtfomiKzS9RNMUGskeDBtTcUIZXJuOLJdoayvDKZHyxRFtDGV6ZjABpDAEkgNQtoPebHz5++vL58FQN25pMuwAUPTa7qHwtxw8oXxQ7XRdAAggggEqzzav+Hr38a3z+VRextnRyO/E7kPwOJIAkgASQABJAEkACSAAJIAkgASSABJAAkgASQAJIAEkACSABJIAkgASQABJAEkACSAAJIAEkASSAtGr9AzCSUX/+HyoWAAAAAElFTkSuQmCC">
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E6%BC%AB%E7%95%AB%E5%9C%96%E6%9B%B8%E9%A4%A8%22%2C%22short_name%22%3A%22%E6%BC%AB%E7%95%AB%E5%9C%96%E6%9B%B8%E9%A4%A8%22%2C%22description%22%3A%22%E4%BD%A0%E7%9A%84%E9%96%B1%E8%AE%80%E6%9B%B8%E6%9E%B6%EF%BC%9A%E5%B0%81%E9%9D%A2%E7%89%86%E3%80%81%E9%80%B2%E5%BA%A6%E3%80%81%E6%9B%B8%E7%B1%A4%EF%BC%8C%E4%B8%80%E9%8D%B5%E7%B9%BC%E7%BA%8C%E9%96%B1%E8%AE%80%22%2C%22lang%22%3A%22zh-Hant%22%2C%22start_url%22%3A%22https%3A%2F%2Fzqdv37951.github.io%2FClaude_open%2Fweb-tools%2Fmanga-library.html%22%2C%22scope%22%3A%22https%3A%2F%2Fzqdv37951.github.io%2FClaude_open%2Fweb-tools%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22any%22%2C%22background_color%22%3A%22%230d0f14%22%2C%22theme_color%22%3A%22%230d0f14%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAADGElEQVR42u3YMUpcURiGYTcQbCxSWEpwwCKFhBECFtqYgJ1FQLBIZxaQIiBWgoK7MJUbSC0uJDsxHwjDYCMO58%2FcueeBt7K4B%2Bc8c%2F57Zu3d%2Boa0cGs%2BAgEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQBJAAkgACSABJAEkgASQAJIAEkACSABJAAkgASSAJIAEkAASQAJIAkgACSABJAEkgASQAJIAEkClHf48bdX2wRSgjsp%2B%2F%2Fr7u21n95cA9VI2uzmg1M851DugCj0pswygLl59igAlgAACCCCAAAIIIIAAAggggAACqBbQEB4FEEAAAQQQQAAB5CUaIIAAWmJfv13f3D216vzicWf3GKBeALXVMwugXgBV6ElxCdD4AWXWFAHKIANo%2FICK5tf8FAMIIIAAAggggF4FdPV9v1VHexOAOgKU%2FX7686NtD7cnAPUCKJvdHFAayDm0SoDyl8XKvX2JgCr0pMwygN4GqPmj%2FgOgbHMRoAQQQAABBJB3IIDcwgZ6CwMIIIAAAgig0QBa%2BANp%2BCiAAAIIIIAAAgggL9EAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAADRjQzu5xkZ7zi8fnJbYPpkV6zu4vn5c42psU6Xm4PQHolYoA5WybLVEEKGfbbIkiQDnbAFrOFJtfomiKzS9RNMUGskeDBtTcUIZXJuOLJdoayvDKZHyxRFtDGV6ZjABpDAEkgNQtoPebHz5%2B%2BvL58FQN25pMuwAUPTa7qHwtxw8oXxQ7XRdAAggggEqzzav%2BHr38a3z%2BVRextnRyO%2FE7kPwOJIAkgASQABJAEkACSAAJIAkgASSABJAAkgASQAJIAEkACSABJIAkgASQABJAEkACSAAJIAEkASSAtGr9AzCSUX%2F%2BHyoWAAAAAElFTkSuQmCC%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%2C%7B%22src%22%3A%22data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAAB7GkOtAAAL6ElEQVR42u3dMUpcURSAYTcQ0likSBmCAxYpJIwQmMJpjGBnIQxYTGcWMIUgVgMK7iKp3EBqcSHZiTnhVsPgm0fMvLx3zwffBs417%2Fx6fU523rzdBSChHUcAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIABOAUAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAAABAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAAABAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAEAAnAKAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACACAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgANBoupiFq18%2FBq1M4auJAEAre0fjoe%2F9dTGUrywCAE0uHm7q2%2F5FjObriwBAuu2vAQgA5Lr5cReEAMBmGbZ%2F4WuNAMDKOz95AuC9IAQABAAEAPc%2Faba%2FWyAEAAQABAAEAAQAARAAEAAEQABAABAAAQABQAAEAAQAARAAEAAEQABAABAAAQABQAAEAAFwCgiAACAAIAACgACAAAgAAgACIAAIAAiAACAAIAACgACAAAgAAgACIAAIAAiAACAA0FUATAECgACYAgQAATAFCAACYAoQAATAFAiAU0AATIEAgNVpCgQArE5TIABgdZoCAQCrUwAQAOjj6vRRECAACIAAgAAgAAIAAoAACAAIAAIgAAiAU0AABAABoP9Ozm%2FD3ffnQStTCIAAIAC0sn9wOvS9vy6GEgABQABocnn9VN%2F2L2I0ARAABIB0279lAwQABMDNT7Wa74IEAAQgowzbvxAAAUAAWHnnJ08AGt4LEgAQAAEQAAEAAXD%2Fk%2BkWSABAAARAAAQABEAABEAAQAAEQAAEAARAAARAAEAABEAABAAEQAAEQABAAARAAAQABEAABEAAEAAEQAAEAAFAAARAABAABEAABAABQAAEoJ8BWM4n4fnnt0ErU3jeBQABEIBWATg%2BHA1976%2BLoTz1AoAACECTx%2Fuz%2BrZ%2FEaN58AUAARCAdNtfAwQAARCAXDc%2F7oIEAAEQgM0ByLD9C4%2B%2FAAiAAAjAyjs%2FeQLgvSABEAABEAABQAAE4K9WZx1TCEC2%2Bx%2B3QAKAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAA%2BCsJHQQiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIQFcB6PO%2FagEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEABLQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAAfBeGjIBAAARAAARAABEAABEAABAABEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAAEQAAFwBAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACAACIAACIAACgAAIgAAIgAAgAAIgAAIgAAiAAAiAAAiAAAiAAAgAAiAAAiAAAoAACIAACIAAIAACIAACIAAIgAAIgAAIAAIgAAIgAAKAAAiAAAiAACAAAiAAAiAACIAACIAACIAAOAUBEAABEAABQAAEQAAEQAAQAAEQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABAABEAABEAABQAAEQAAEQAAQAAEQAARAAARAAAQAARAAARAAAUAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAABEAABEAABEAAEAABEAABEAAEQAAEQAAEAAEQAAEQAAFAAARAAARAABAAARAAARAAtuvk%2FDbP9o9hXzqH6WKWZ%2FvHsC%2Bdw3I%2BybP9Y1gbQAAEQAAEQAAQALdAKe9%2Fst0CNZ%2BD%2Bx8EIJH9g9MM2z%2FGbD6HvaNxhu0fYzafw%2FHhKMP2jzE9%2BwLAH5fXT3Vv%2FxiwzTlcPNzUvf1jwDbn8Hh%2FVvf2jwE99QJAiga03P7VN6Dl9q%2B%2BAba%2FAJDlLmjjzU%2BSu6CNNz9J7oLc%2FAgAG94LquDVoDLFa85huphV8GpQmeI157CcTyp4NahM4ekWAAAEAAABAEAAABAAAAQAAAEAQAAAEIDuvXv%2F8cNo%2FGU6A%2F6LeADjMbSLBKDr1f%2Fp81ePH%2FRBPIwyIADdbX%2BPHPSNBgiA7Q8agABsh5sf6PNdkB0lAL79Bz8EIAD%2FlHd%2BoP%2FvBdlUArAVni7oP5tKAAQABAABEAAQAAFAAEAABAC%2FBAa%2FBBYAvAYKXgMVAPwhGPhDMAHADwHg238BQAPA9hcAfBw09PDmx%2FYXAP8hDKR758fqFwAABAAAAQAQAKcAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAADT5DXq2wlxITfdEAAAAAElFTkSuQmCC%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+<meta name="referrer" content="no-referrer">
+<!-- 內容安全政策：這個頁面只需要連 Apps Script（含它轉址去的 googleusercontent），圖片只來自本機（blob／data）。就算哪天有人塞進惡意字串，也無法把資料傳到別的網站 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; manifest-src data:; connect-src https://script.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>漫畫圖書館</title>
+<style>
+:root {
+  --bg: #0d0f14; --surface: #151922; --surface2: #1d2230; --surface3: #262c3d;
+  --text: #e9ecf4; --muted: #8d96ab; --line: rgba(255,255,255,.08);
+  --accent: #8aa4ff; --accent-ink: #0d0f14; --danger: #ff8a8a; --ok: #7be0a5; --red: #ff7a7a;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  --tile: 176px; --gutter: 22px;
+  color-scheme: dark;
+}
+html[data-theme="light"] {
+  --bg: #f3f4f8; --surface: #ffffff; --surface2: #eceef4; --surface3: #e1e4ee;
+  --text: #1a1d27; --muted: #667089; --line: rgba(20,24,40,.1);
+  --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b; --red: #d12f2f;
+  --shadow: 0 1px 2px rgba(20,24,40,.12), 0 10px 26px -14px rgba(20,24,40,.35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  html[data-theme="auto"] {
+    --bg: #f3f4f8; --surface: #ffffff; --surface2: #eceef4; --surface3: #e1e4ee;
+    --text: #1a1d27; --muted: #667089; --line: rgba(20,24,40,.1);
+    --accent: #4660e6; --accent-ink: #fff; --danger: #c93a3a; --ok: #1f9d5b; --red: #d12f2f;
+    --shadow: 0 1px 2px rgba(20,24,40,.12), 0 10px 26px -14px rgba(20,24,40,.35);
+    color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── 頂端列 ── */
+.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid var(--line); padding: 12px var(--gutter) 10px; padding-top: max(12px, env(safe-area-inset-top)); }
+.bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; letter-spacing: .2px; margin-right: 6px; white-space: nowrap; }
+.brand .logo { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), #c4b5fd); color: var(--accent-ink); font-size: 16px; }
+.search { flex: 1 1 280px; min-width: 200px; position: relative; max-width: 640px; }
+.search input { width: 100%; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 0 38px 0 38px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.search .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; pointer-events: none; }
+.search input:not(:placeholder-shown) ~ kbd { display: none; }
+.tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 2px; }
+.seg button { border: 0; background: transparent; height: 30px; min-width: 34px; padding: 0 10px; border-radius: 8px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface3); color: var(--text); }
+.btn { height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; }
+.btn:hover { background: var(--surface2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .55; cursor: default; }
+select.btn { padding-right: 6px; }
+.size { width: 84px; accent-color: var(--accent); }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; height: 30px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; transition: background .15s, color .15s, border-color .15s; }
+.chip:hover { color: var(--text); }
+.chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.chip .n { font-size: 11.5px; opacity: .75; font-variant-numeric: tabular-nums; }
+.chip .ck { font-size: 11px; color: var(--accent); margin-right: -2px; }
+.savebtn { border-style: dashed; color: var(--accent); }
+.savebtn:hover { color: var(--text); border-color: var(--accent); }
+.grpform { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.grpform input { height: 30px; width: 200px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); background: var(--surface); color: var(--text); padding: 0 12px; font: inherit; font-size: 13px; }
+.chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.grperr { font-size: 12.5px; color: var(--danger); white-space: nowrap; }
+.chipx { flex: none; width: 28px; height: 28px; margin-left: -4px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+.chipx:hover, .chipx:focus-visible { background: var(--surface2); }
+.chipx.armed { width: auto; padding: 0 9px; border-radius: 999px; background: var(--danger); color: var(--accent-ink); border-color: var(--danger); }
+.chips .sep { flex: none; width: 1px; background: var(--line); margin: 4px 2px; }
+
+.banner { margin: 12px var(--gutter) 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.banner.info { background: var(--surface); border-color: var(--line); }
+.morewrap { position: relative; }
+#more { position: relative; }
+@media (hover: hover) {
+  #more::after { content: attr(data-tip); position: absolute; right: 0; top: calc(100% + 8px); padding: 4px 10px; border-radius: 6px; background: var(--surface3); color: var(--text); border: 1px solid var(--line); font-size: 12px; font-weight: 500; line-height: 1.4; white-space: nowrap; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 45; }
+  #more:hover::after, #more:focus-visible::after { opacity: 1; }
+  #more[aria-expanded="true"]::after { opacity: 0; }
+}
+.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; width: 280px; max-width: calc(100vw - 2 * var(--gutter)); padding: 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.menu .menuitem { width: 100%; height: 36px; border-radius: 8px; padding: 0 10px; display: flex; align-items: center; text-align: left; font-size: 14px; }
+.menu a.menuitem { color: inherit; text-decoration: none; }
+.menu .menuitem:hover, .menu .menuitem:focus-visible { background: var(--surface2); }
+.menu .menuitem[disabled] { opacity: .5; cursor: default; }
+.pickcard { width: min(580px, 100%); max-height: min(88vh, 760px); display: flex; flex-direction: column; }
+.pickq { width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 0 12px; margin-bottom: 10px; }
+.picklist { overflow-y: auto; display: grid; gap: 6px; margin-bottom: 10px; min-height: 96px; align-content: start; -webkit-overflow-scrolling: touch; }
+.pickrow { text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); display: grid; gap: 2px; width: 100%; }
+.pickrow:hover, .pickrow:focus-visible { border-color: var(--accent); }
+.pickrow .tt { font-weight: 600; word-break: break-word; }
+.pickrow .sub { font-size: 12px; color: var(--muted); }
+.pickrow .sug { color: var(--ok); font-size: 12px; font-weight: 600; }
+.pickconfirm { padding: 10px 12px; border-radius: 10px; background: var(--surface2); margin-bottom: 10px; line-height: 1.6; word-break: break-word; }
+.bmgroup { padding: 10px 12px; border-radius: 12px; background: var(--surface2); }
+.bmgroup .gt { font-weight: 650; word-break: break-word; text-align: left; }
+.bmhead { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.bmhead .gt { flex: 0 1 auto; min-width: 0; }
+.bmhead .bmtog { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--muted); font-size: 12px; transition: transform .15s; }
+.bmhead .bmtog:hover, .bmhead .bmtog:focus-visible { background: var(--surface3); color: var(--text); }
+.bmgroup.open .bmtog { transform: rotate(90deg); }
+.bmhead .bmn { flex: none; margin-left: auto; font-size: 12px; color: var(--muted); }
+.bmitems { margin-top: 4px; }
+.bmitems[hidden] { display: none; }
+.bmrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
+.bmrow .bt { flex: 1 1 140px; font-size: 13.5px; word-break: break-word; }
+.rel { padding: 10px 12px; border-radius: 12px; background: var(--surface2); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rel .rt2 { flex: 1 1 160px; word-break: break-word; }
+.rel .rl { color: var(--accent); font-weight: 650; font-size: 12.5px; }
+.menu .hint { padding: 4px 10px 6px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.banner .grow { flex: 1; min-width: 160px; }
+
+.stat { padding: 14px var(--gutter) 2px; color: var(--muted); font-size: 12.5px; display: flex; gap: 14px; flex-wrap: wrap; }
+
+/* ── 封面牆 ── */
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--tile), 1fr)); gap: 24px 18px; padding: 14px var(--gutter) 90px; }
+.tile { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; border: 0; padding: 0; text-align: left; color: #fff; border-radius: 14px; overflow: hidden; background: var(--surface2); box-shadow: var(--shadow); transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s; content-visibility: auto; contain-intrinsic-size: auto 235px; }
+.tile:hover, .tile:focus-visible { transform: translateY(-5px) scale(1.02); box-shadow: 0 18px 40px -14px rgba(0,0,0,.65); z-index: 2; }
+.tile .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .4s ease, transform .5s ease; }
+.tile .cv.in { opacity: 1; }
+.tile:hover .cv { transform: scale(1.05); }
+.tile .ph { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--tile) * .42); font-weight: 800; color: rgba(255,255,255,.22); letter-spacing: -2px; user-select: none; transition: opacity .3s; }
+.tile .cv.in ~ .ph { opacity: 0; }
+.tile .shade { position: absolute; left: 0; right: 0; bottom: 0; padding: 44px 11px 11px; background: linear-gradient(to top, rgba(6,8,14,.92) 0%, rgba(6,8,14,.55) 55%, rgba(6,8,14,0) 100%); }
+.tile .t { font-weight: 650; font-size: 13.5px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.pg.red { color: var(--red); font-weight: 600; }
+.tile .m .pg.red { color: #ff8f8f; }
+.covtools { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.covtools .covmsg { flex-basis: 100%; margin-top: 0; }
+.covmsg { margin-top: 6px; font-size: 12.5px; color: var(--muted); min-height: 18px; word-break: break-word; }
+.covmsg.ok { color: var(--ok); } .covmsg.err { color: var(--danger); }
+.edit { margin: 14px 0 4px; padding: 12px; border-radius: 12px; background: var(--surface2); display: grid; gap: 8px; }
+.edit .lbl { font-size: 12.5px; color: var(--muted); }
+.edit .stchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.edit .stchips .chip { height: 28px; }
+.edit textarea { width: 100%; min-height: 64px; resize: vertical; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 8px 10px; font: inherit; font-size: 14px; }
+.edit .row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, var(--line)); }
+.btn.danger.armed { background: var(--danger); color: var(--accent-ink); }
+.delzone { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.hero .poster.drop { outline: 2px dashed var(--accent); outline-offset: 3px; }
+.left { font-size: 12.5px; color: var(--muted); }
+.left.red { color: var(--red); }
+.left.stale { opacity: .8; font-style: italic; }
+.tile .au { font-size: 11.5px; color: rgba(255,255,255,.78); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.tile .au.fav, .row .rau.fav, .hero .au .favbtn.on { color: #ff9db5; }
+.row .rau { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .mau { display: none; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero .au { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 8px; align-items: center; }
+.hero .au .chipau { height: 28px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); padding: 0 10px; font-size: 13px; }
+.hero .au .chipau:hover { border-color: var(--accent); }
+.hero .au .favbtn { height: 28px; width: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 14px; display: inline-flex; align-items: center; justify-content: center; margin-left: -4px; }
+.hero .au .favbtn:hover { border-color: #ff9db5; }
+.arow { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.arow .aname { flex: 1 1 auto; text-align: left; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); word-break: break-word; }
+.arow .aname:hover { border-color: var(--accent); }
+.arow .acount { color: var(--muted); font-size: 12.5px; min-width: 3em; text-align: right; }
+.arow .favbtn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 16px; flex: none; }
+.arow .favbtn.on { color: #ff9db5; border-color: #ff9db5; } opacity: 0; max-height: 0; margin-top: 0; transition: opacity .2s, max-height .25s, margin-top .25s; color: rgba(255,255,255,.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile:hover .m, .tile:focus-visible .m { opacity: 1; max-height: 40px; margin-top: 4px; }
+.tile .prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); border-radius: 0 3px 3px 0; }
+.tile .st { position: absolute; top: 8px; left: 8px; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 9px; background: rgba(8,10,16,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: grid; place-items: center; font-size: 13px; }
+.tile .sc { position: absolute; top: 8px; right: 8px; height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(8,10,16,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-size: 11px; display: grid; place-items: center; }
+.tile.skeleton { background: linear-gradient(100deg, var(--surface2) 30%, var(--surface3) 50%, var(--surface2) 70%); background-size: 300% 100%; animation: shimmer 1.4s infinite linear; box-shadow: none; pointer-events: none; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ── 清單 ── */
+.rows { display: flex; flex-direction: column; gap: 6px; padding: 14px var(--gutter) 90px; }
+.row { display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(0, 190px) auto; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 8px 12px 8px 8px; border-radius: 12px; border: 1px solid transparent; background: var(--surface); transition: background .15s, border-color .15s; }
+.row:hover, .row:focus-visible { background: var(--surface2); border-color: var(--line); }
+.row .th { width: 46px; height: 62px; border-radius: 8px; overflow: hidden; position: relative; background: var(--surface3); display: grid; place-items: center; font-weight: 800; color: var(--muted); }
+.row .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.row .tt { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .ss { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .rt { color: var(--muted); font-size: 12px; text-align: right; white-space: nowrap; }
+.row .info { min-width: 0; }
+
+.cont { padding: 10px var(--gutter) 0; }
+.cont h3 { margin: 6px 0 10px; font-size: 15px; }
+.cont-row { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.cc { flex: none; width: 290px; display: grid; grid-template-columns: 1fr 44px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; scroll-snap-align: start; transition: border-color .15s, background .15s; }
+.cc:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.cc-main { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; text-align: left; border: 0; background: transparent; padding: 10px 6px 10px 10px; min-width: 0; }
+.cc .th { width: 52px; height: 70px; border-radius: 8px; overflow: hidden; position: relative; display: grid; place-items: center; font-weight: 800; }
+.cc .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cc .info { min-width: 0; }
+.cc .tt { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc .ss { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc .bar2 { margin: 5px 0; }
+.cc-go { display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 16%, var(--surface)); color: var(--accent); text-decoration: none; font-size: 15px; }
+.cc-go:hover { background: var(--accent); color: var(--accent-ink); }
+.empty { text-align: center; color: var(--muted); padding: 90px 20px; }
+.empty .big { font-size: 42px; margin-bottom: 8px; }
+
+/* ── 詳情側欄 ── */
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(500px, 100vw); background: var(--surface); z-index: 41; transform: translateX(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); box-shadow: -20px 0 50px -20px rgba(0,0,0,.6); display: flex; flex-direction: column; border-left: 1px solid var(--line); }
+.drawer.on { transform: none; }
+.dhead { display: flex; gap: 8px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); padding-top: max(12px, env(safe-area-inset-top)); }
+.dhead .grow { flex: 1; }
+.grab { display: none; }
+.dbody { overflow-y: auto; padding: 18px 20px 40px; -webkit-overflow-scrolling: touch; }
+.hero { display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: start; }
+.hero .poster { aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; position: relative; background: var(--surface3); box-shadow: var(--shadow); display: grid; place-items: center; font-size: 54px; font-weight: 800; color: rgba(255,255,255,.25); }
+.hero .poster { cursor: zoom-in; }
+.covpop { position: fixed; z-index: 70; pointer-events: none; padding: 4px; background: #222; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+.covpop img { display: block; border-radius: 4px; }
+.hero .poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero h2 .ext { display: inline-flex; align-items: center; vertical-align: -2px; margin-left: 6px; padding: 3px; border-radius: 6px; color: var(--muted); font-size: 18px; line-height: 1; text-decoration: none; }
+.hero h2 .ext:hover, .hero h2 .ext:focus-visible { color: var(--text); background: var(--surface3); }
+.hero h2 .ext svg { display: block; width: 1em; height: 1em; }
+.hero h2 { margin: 0 0 4px; font-size: 20px; line-height: 1.3; word-break: break-word; }
+.hero .au { color: var(--muted); margin-bottom: 10px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tag { height: 24px; border-radius: 999px; background: var(--surface3); padding: 0 10px; display: inline-flex; align-items: center; font-size: 12px; }
+.note { margin: 16px 0 4px; padding: 10px 12px; border-radius: 10px; background: var(--surface2); white-space: pre-wrap; word-break: break-word; }
+.sec { margin: 22px 0 8px; font-size: 12.5px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
+.src { padding: 12px; border-radius: 12px; background: var(--surface2); margin-bottom: 10px; }
+.src .h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.src .site { font-weight: 650; color: var(--accent); }
+.src .when { color: var(--muted); font-size: 12px; margin-left: auto; }
+.src .ch { word-break: break-word; }
+.bar2 { height: 5px; border-radius: 3px; background: var(--surface3); margin: 8px 0; overflow: hidden; }
+.bar2 > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+a.btn { text-decoration: none; }
+
+/* ── 連線設定 ── */
+.modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.6); }
+.modal[hidden] { display: none; }
+.card { width: min(460px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); }
+.card h2 { margin: 0 0 6px; font-size: 19px; }
+.card p { color: var(--muted); margin: 0 0 16px; }
+.field { display: block; margin-bottom: 12px; }
+.field > span { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+.field input { width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); padding: 0 12px; }
+.msg { min-height: 20px; margin: 4px 0 12px; font-size: 13px; }
+.msg.err { color: var(--danger); } .msg.ok { color: var(--ok); }
+.card .btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  :root { --gutter: 14px; --tile: 140px; }
+  .wall { gap: 18px 12px; }
+  .brand span.name { display: none; }
+  .bar { gap: 8px; }
+  .search { flex: 1 1 0; min-width: 0; }
+  .search kbd { display: none; }
+  .tools { margin-left: 0; width: 100%; justify-content: space-between; flex-wrap: nowrap; }
+  .tools .btn { padding: 0 10px; }
+  #refreshTxt { display: none; }
+  #sort { max-width: 118px; }
+  .cc { width: 250px; }
+  .tools .size { display: none; }
+  .drawer { top: auto; height: 92vh; width: 100vw; transform: translateY(105%); border-left: 0; border-radius: 18px 18px 0 0; }
+  .drawer.on { transform: none; }
+  .grab { display: block; flex: none; width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 8px auto 0; touch-action: none; }
+  .dhead { touch-action: none; padding-top: 6px; } /* 往下滑關閉：這一條不要被瀏覽器當成捲動 */
+  .hero { grid-template-columns: 110px 1fr; gap: 14px; }
+  .row { grid-template-columns: 46px 1fr; }
+  .row .rt, .row .rau { display: none; }
+  .row .mau { display: block; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="bar">
+      <div class="brand"><div class="logo" aria-hidden="true">📚</div><span class="name">漫畫圖書館</span></div>
+      <div class="search">
+        <span class="ico" aria-hidden="true">🔍</span>
+        <label class="sr" for="q">搜尋</label>
+        <input id="q" type="search" placeholder="搜尋書名、作者…　例：tag:在看 site:紳士 is:fav" autocomplete="off" spellcheck="false">
+        <kbd>/</kbd>
+      </div>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="檢視方式">
+          <button id="v-wall" type="button" aria-pressed="true" title="封面牆">▦</button>
+          <button id="v-list" type="button" aria-pressed="false" title="清單">☰</button>
+        </div>
+        <label class="sr" for="size">封面大小</label>
+        <input id="size" class="size" type="range" min="120" max="280" step="8" title="封面大小">
+        <select id="sort" class="btn" aria-label="排序">
+          <option value="recent">最近閱讀</option>
+          <option value="name">書名</option>
+          <option value="sites">網站數</option>
+          <option value="left">剩最多話沒看</option>
+          <option value="fav">喜歡的作者優先</option>
+        </select>
+        <button id="theme" class="btn" type="button" title="切換主題">🌓</button>
+        <button id="refresh" class="btn" type="button" title="重新整理">⟳ <span id="refreshTxt">重新整理</span></button>
+        <button id="settings" class="btn" type="button" title="連線設定">⚙</button>
+        <div class="morewrap">
+          <button id="more" class="btn" type="button" data-tip="更多功能" aria-label="更多功能" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">⋯</button>
+          <div id="moreMenu" class="menu" role="menu" hidden>
+            <a id="galBtn" class="menuitem" href="https://zqdv37951.github.io/Claude_open/web-tools/gallery-viewer.html" target="_blank" rel="noopener noreferrer" role="menuitem" title="在新分頁開啟圖片瀏覽器（本機資料夾的圖片）">🖼 圖片瀏覽器</a>
+            <button id="bmBtn" class="menuitem" type="button" role="menuitem">🔖 書籤檢視器</button>
+            <button id="auBtn" class="menuitem" type="button" role="menuitem">✍ 作者清單</button>
+            <button id="allBtn" class="menuitem" type="button" role="menuitem">🔄 檢查全部網站更新</button>
+            <button id="nicoBtn" class="menuitem" type="button" role="menuitem">🔄 只更新 NicoManga</button>
+            <div id="nicoHint" class="hint"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="chips" class="chips" role="group" aria-label="篩選"></div>
+  </header>
+  <div id="banner" class="banner" role="status" aria-live="polite" hidden></div>
+  <div id="stat" class="stat"></div>
+  <main id="main"></main>
+</div>
+
+<div id="scrim" class="scrim"></div>
+<aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-label="作品詳情" aria-hidden="true">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="dhead">
+    <button id="dprev" class="btn" type="button" title="上一部（←）">‹</button>
+    <button id="dnext" class="btn" type="button" title="下一部（→）">›</button>
+    <span class="grow"></span>
+    <button id="dclose" class="btn" type="button" title="關閉（Esc）">✕</button>
+  </div>
+  <div id="dbody" class="dbody"></div>
+</aside>
+
+<div id="connect" class="modal" hidden>
+  <form class="card" id="connectForm" autocomplete="off">
+    <h2>連線到你的試算表</h2>
+    <p>填入 Apps Script 的網址（結尾是 <code>/exec</code>）和密鑰。只會存在這個瀏覽器，不會傳給別人。</p>
+    <label class="field"><span>Apps Script 網址</span><input id="cUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" required></label>
+    <label class="field"><span>密鑰（TOKEN）</span><input id="cTok" type="password" placeholder="密鑰" required></label>
+    <div id="cMsg" class="msg" role="status"></div>
+    <div class="btns">
+      <button id="cLogout" class="btn" type="button" hidden title="清掉這個瀏覽器裡的網址、密鑰、資料與封面">登出並清除本機資料</button>
+      <button id="cCancel" class="btn" type="button" hidden>取消</button>
+      <button id="cTest" class="btn" type="button">測試連線</button>
+      <button class="btn primary" type="submit">儲存並載入</button>
+    </div>
+  </form>
+</div>
+
+<div id="pick" class="modal" hidden>
+  <div class="card pickcard" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+    <h2 id="pickTitle"></h2>
+    <p id="pickDesc"></p>
+    <input id="pickQ" class="pickq" type="search" placeholder="搜尋書名、作者…" autocomplete="off" spellcheck="false" aria-label="搜尋作品">
+    <div id="pickList" class="picklist"></div>
+    <div id="pickConfirm" class="pickconfirm" role="status" hidden></div>
+    <div id="pickMsg" class="msg" role="status"></div>
+    <div class="btns"><button id="pickCancel" class="btn" type="button">取消</button><button id="pickOk" class="btn primary" type="button" hidden>確定</button></div>
+  </div>
+</div>
+<div id="au" class="modal" hidden>
+  <div class="card pickcard" role="dialog" aria-modal="true" aria-labelledby="auTitle">
+    <h2 id="auTitle">✍ 作者清單</h2>
+    <p id="auDesc"></p>
+    <input id="auQ" class="pickq" type="search" placeholder="搜尋作者…" autocomplete="off" spellcheck="false" aria-label="搜尋作者">
+    <div id="auList" class="picklist"></div>
+    <div id="auMsg" class="msg" role="status"></div>
+    <div class="btns"><button id="auClose" class="btn" type="button">關閉</button></div>
+  </div>
+</div>
+<div id="bm" class="modal" hidden>
+  <div class="card pickcard" role="dialog" aria-modal="true" aria-labelledby="bmTitle">
+    <h2 id="bmTitle">🔖 書籤檢視器</h2>
+    <p id="bmDesc"></p>
+    <input id="bmQ" class="pickq" type="search" placeholder="搜尋書名、章節…" autocomplete="off" spellcheck="false" aria-label="搜尋書籤">
+    <div id="bmList" class="picklist"></div>
+    <div id="bmMsg" class="msg" role="status"></div>
+    <div class="btns"><button id="bmClose" class="btn" type="button">關閉</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ===== 以下共用程式由 build.py 從 manga-desktop-reader.user.js 自動抽出，不要手改 ===== */
+const SITES = [{ id: 'gallery', match: /^gallery-viewer\.local$/i }, { id: 'twmanga', match: /(^|\.)(twmanga\.com|baozimh\.com|twbzmg\.com|bzmh\.org)$/i }, { id: 'nicomanga', match: /(^|\.)nicomanga\.com$/i }, { id: 'nhentai', match: /(^|\.)nhentai\.net$/i }, { id: 'wnacg', match: /(^|\.)wnacg\.[a-z]+$/i }, { id: 'rouman', match: /(^|\.)rouman[a-z0-9]*\.com$/i }, { id: 'manhuagui', match: /(^|\.)manhuagui\.com$/i }];
+  const SITE_LABEL = { twmanga: '包子漫畫', nicomanga: 'NicoManga', nhentai: 'nhentai', wnacg: '紳士漫畫', rouman: '肉漫屋', manhuagui: '看漫畫', gallery: '本機資料夾' };
+  const famOf = (host) => { const s = SITES.find((x) => x.match.test(host || '')); return s ? s.id : ''; };
+  const S2T_FROM = '皑蔼碍爱肮袄奥坝罢摆败颁办绊帮绑镑谤剥饱宝报鲍辈贝钡狈备惫绷笔毕毙币闭辟边编贬变辩辫标鳖别瘪濒滨宾摈饼并拨钵铂驳补财采参蚕残惭惨灿苍舱仓沧厕侧册测层诧搀掺蝉馋谗缠铲产阐颤场尝长偿肠厂畅钞车彻尘陈衬撑称惩诚骋吃痴迟驰耻齿炽冲虫宠畴踌筹绸丑橱厨锄雏础储触处传疮床闯创锤唇纯绰辞词赐聪葱囱从丛凑蹿窜错达带贷担单郸掸胆惮诞弹当挡党荡档捣岛祷导盗灯邓敌涤递缔颠点垫电淀钓调谍叠钉顶锭订丢东动栋冻斗犊独读赌镀锻断缎兑队对吨顿钝夺堕鹅额讹恶饿儿尔饵贰发罚阀珐矾钒烦范贩饭访纺飞诽废费纷坟奋愤粪丰枫峰锋风疯冯缝讽凤肤辐抚辅赋复负讣妇缚该钙盖干赶秆赣冈刚钢纲岗杠镐搁鸽阁铬个给龚宫巩贡钩沟构购够蛊顾雇剐挂关观馆惯贯广规归龟闺轨诡柜贵刽辊滚锅国过骇韩汉号阂鹤贺横恒轰鸿红后壶护沪户哗华画划话怀坏欢环还缓换唤痪焕涣黄谎挥辉毁贿秽会烩汇讳诲绘荤浑伙获货祸击机积饥迹讥鸡绩缉极辑级挤几蓟剂济计记际继纪夹荚颊贾钾价驾歼监坚笺间艰缄茧检碱硷拣捡简俭减荐槛鉴践贱见键舰剑饯渐溅涧将浆蒋桨奖讲酱胶浇骄娇搅铰矫侥脚饺缴绞轿较阶节杰洁结诫届紧锦仅谨进晋烬尽劲荆茎鲸惊经颈静镜径痉竞净纠厩旧驹举据锯惧剧鹃绢觉决诀绝钧军骏开凯颗壳课垦恳抠库裤夸块侩宽矿旷况亏岿窥馈溃扩阔蜡腊莱来赖蓝栏拦篮阑兰澜谰揽览懒缆烂滥捞劳涝乐镭垒类泪厘篱离里鲤礼栗丽厉励砾历沥隶俩联莲连镰怜涟帘敛脸链恋炼练粮凉两辆谅疗辽镣猎临邻鳞凛赁龄铃灵岭领馏刘龙聋咙笼垄拢陇楼娄搂篓芦卢颅庐炉掳卤虏鲁赂禄录陆驴吕铝侣屡缕虑滤绿峦挛孪滦乱抡轮伦仑沦纶论萝罗逻锣箩骡骆络妈玛码蚂马骂吗买麦卖迈脉瞒馒蛮满谩猫锚铆贸么霉没镁门闷们锰梦谜弥秘觅幂绵缅庙灭悯闽鸣铭谬谋亩呐钠纳难挠脑恼闹馁内拟腻撵酿鸟聂啮镊镍柠狞宁拧泞钮纽脓浓农疟诺欧鸥殴呕沤盘庞抛赔喷鹏骗飘频贫苹凭评泼颇扑铺仆朴谱栖凄脐齐骑岂启气弃讫牵钎铅迁签谦钱钳潜浅谴堑枪呛墙蔷强抢锹桥乔侨翘窍窃钦亲寝轻氢倾顷请庆琼穷趋区躯驱龋颧权劝却鹊确群让饶扰绕热韧认纫荣绒软锐闰润洒萨鳃赛叁伞丧骚扫涩杀刹纱筛晒删闪陕赡缮伤赏烧绍赊摄慑设绅审婶肾渗声绳胜圣师狮湿诗尸虱时蚀实识驶势适释饰视试寿兽枢输书赎属术树竖数帅双谁税顺说硕烁丝饲耸怂颂讼诵擞苏诉肃虽随绥岁孙损笋缩琐锁獭挞台态摊贪瘫滩坛谭谈叹汤烫涛绦讨腾誊锑题体屉条贴铁厅听烃铜统头秃图涂团颓蜕托脱鸵驮驼椭洼袜弯湾顽万网韦违围为潍维苇伟伪纬谓卫温闻纹稳问瓮挝蜗涡窝卧呜钨乌诬无芜吴坞雾务误锡牺袭习铣戏细虾辖峡侠狭厦吓锨鲜纤咸贤衔闲显险现献县馅羡宪线厢镶乡详响项萧嚣销晓啸蝎协挟携胁谐写泻谢锌衅兴凶汹锈绣虚嘘须许叙绪续轩悬选癣绚学勋熏询寻驯训讯逊压鸦鸭哑亚讶阉烟盐严岩颜阎艳厌砚彦谚验鸯杨扬疡阳痒养样瑶摇尧遥窑谣药爷页业叶医铱颐遗仪蚁艺亿忆义诣议谊译异绎荫阴银饮隐樱婴鹰应缨莹萤营荧蝇赢颖哟拥佣痈咏涌优忧邮铀犹游诱于舆余鱼渔娱与屿语郁吁狱誉预驭鸳渊辕园员圆缘远愿约跃钥岳粤悦阅云郧匀陨运蕴酝晕韵杂灾载攒暂赞赃脏凿枣皂灶责择则泽贼赠轧铡闸栅诈斋债毡盏斩辗崭栈占战绽张涨帐账胀赵蛰辙锗这贞针侦诊镇阵挣睁征狰争帧郑证织职执纸挚掷帜质滞钟终种肿众诌轴皱昼骤猪诸诛烛瞩嘱贮铸筑驻专砖转赚桩庄装妆壮状锥赘坠缀谆准浊兹咨资渍踪综总纵邹诅组钻亘芈啬厍厣厮靥赝匦匮赜刭刿剀伛伥伧伫侪侬俦俨俪俣偾偬偻傥傧傩佥籴黉冁凫兖衮亵脔禀讠讦讧讪讴讵讷诂诃诋诏诎诒诓诔诖诘诙诜诟诠诤诨诩诮诰诳诶诹诼诿谀谂谄谇谌谏谑谒谔谕谖谙谛谘谝谟谠谡谥谧谪谫谮谯谲谳谵谶卺陉陧邝邬邺郏郐郓郦刍奂劢巯垩圹坜垅垆垭垲垴埘埚埙芗苈苋苌苁苎茏茑茔茕荛荜荞荟荠荦荥荨荩荬荪荭荮莳莴莅莶莸莺莼萦蒇蒉蒌蓦蓠蓥蓣蔹蔺蕲薮藓蘖奁尴扪抟挢掴掼揿摅撄撷撸撺弑叽呒呓呖呗呙咛咝哒哓哔哕哙哜咤哝唛唠唢啧啭喽喾嗫嗳辔嘤噜囵帏帱帻帼岖岘岚岽峄峤峥崂崃嵘嵝巅徕犷犸狯狲猃猡猕猬饣饧饨饩饪饫饬饴饷饽馀馄馇馊馍馐馑馓馔馕庑赓廪忏怃怄忾怅怆怿恸恹恻恺恽悭惬愠愦懔闩闫闱闳闵闶闼闾阃阄阆阈阊阋阌阍阏阒阕阖阗阙阚沣沩泷泸泺泾浃浈浍浏浒浔涞涠渎渑渖渌溆滟滠滢滗潆潇潋潴濑灏骞迩迳逦屦弪妩妪妫姗娅娆娈姹娲娴婵媪嫒嫔嫱嬷驵驷驸驺驿驽骀骁骅骈骊骐骒骓骖骘骛骜骝骟骠骢骣骥骧纟纡纣纥纨纩纭纰纾绀绁绂绉绋绌绐绔绗绛绠绡绨绫绮绯绱绲缍绶绺绻绾缁缂缃缇缈缋缌缏缑缒缗缙缜缛缟缡缢缣缤缥缦缧缪缫缬缭缯缰缱缲缳缵玑玮珑顼玺珲琏瑷璎瓒韪韫韬杩枥枧枨枞枭栉栊栌栀栎柽桠桡桢桤桦桧栾棂椟椠椤椁榄榇榈榉槟槠樯橥橹橼檩殁殇殒殓殚殡轫轭轱轲轳轵轶轸轷轹轺轼轾辁辂辄辇辋辍辎辏辘辚戋戗戬瓯昙昵晔晖暧贲贳贶贻贽赀赅赆赈赉赇赍赕赙觇觊觋觌觎觏觐觑牦毵氇氩氲牍肴胧胨胪胫脍脶腌腼腽腭膑膻欤飑飒飓飕飙飚毂齑斓炀炜炖炝烨焖焘祢祯禅怼悫懑戆泶矶砀砗砜砺砻硖硗碛碜龛眍眦睐睑罴羁钅钆钇钋钊钌钍钏钐钔钗钕钚钛钜钣钤钫钪钭钬钯钰钲钴钶钷钸钹钺钼钽钿铄铈铉铊铋铌铍铎铐铑铒铕铖铗铙铘铛铞铟铠铢铤铥铧铨铪铩铫铮铯铳铴铵铷铹铼铽铿锃锂锆锇锉锊锍锎锏锒锓锔锕锖锘锛锝锞锟锢锪锫锩锬锱锲锴锶锷锸锼锾锿镂锵镄镅镆镉镌镎镏镒镓镔镖镗镘镙镛镞镟镝镡镢镤镥镦镧镨镩镪镫镬镯镱镲镳锺稆穑鸠鸢鸨鸩鸪鸫鸬鸲鸱鸶鸸鸷鸹鸺鸾鹁鹂鹄鹆鹇鹈鹉鹋鹌鹎鹑鹕鹗鹚鹛鹜鹞鹣鹦鹧鹨鹩鹪鹫鹬鹱鹭鹳疖疠疬疴疱痖痨痫瘅瘗瘘瘿瘾癞癫窦窭裆裢裣裥褛褴皲耢耧聍聩顸颀颃颉颌颍颏颔颚颛颞颟颡颢颥颦虬虮虿蚬蚝蛎蛏蛱蛲蛳蛴蝈蝾蝼螨罂笃笕笾筚筝箦箧箨箪箫篑簖籁舣舻袅羟籼粝粜粽糁糇糍絷麸趱酽酾鹾趸跄跖跞跷跸跹跻踬踯蹑蹒蹰躏躜觞觯靓雳霁霭龀龃龅龆龇龈龉龊龌黾鼋鼍隽雠銮錾鱿鲂鲅鲆鲇鲈稣鲋鲎鲐鲑鲒鲔鲕鲚鲛鲞鲟鲠鲡鲢鲣鲥鲦鲧鲨鲩鲫鲭鲮鲰鲱鲲鲳鲴鲵鲶鲷鲺鲻鲼鲽鳄鳅鳆鳇鳊鳋鳌鳍鳎鳏鳐鳓鳔鳕鳗鳘鳙鳜鳝鳟鳢鞑鞒鞯鞲鹘髅髋髌魇魉飨餍鬓麽黩黪鼹';
+  const S2T_TO = '皚藹礙愛骯襖奧壩罷擺敗頒辦絆幫綁鎊謗剝飽寶報鮑輩貝鋇狽備憊繃筆畢斃幣閉闢邊編貶變辯辮標鱉別癟瀕濱賓擯餅並撥鉢鉑駁補財採參蠶殘慚慘燦蒼艙倉滄廁側冊測層詫攙摻蟬饞讒纏鏟產闡顫場嘗長償腸廠暢鈔車徹塵陳襯撐稱懲誠騁喫癡遲馳恥齒熾衝蟲寵疇躊籌綢醜櫥廚鋤雛礎儲觸處傳瘡牀闖創錘脣純綽辭詞賜聰蔥囪從叢湊躥竄錯達帶貸擔單鄲撣膽憚誕彈當擋黨蕩檔搗島禱導盜燈鄧敵滌遞締顛點墊電澱釣調諜疊釘頂錠訂丟東動棟凍鬥犢獨讀賭鍍鍛斷緞兌隊對噸頓鈍奪墮鵝額訛惡餓兒爾餌貳發罰閥琺礬釩煩範販飯訪紡飛誹廢費紛墳奮憤糞豐楓峯鋒風瘋馮縫諷鳳膚輻撫輔賦復負訃婦縛該鈣蓋幹趕稈贛岡剛鋼綱崗槓鎬擱鴿閣鉻個給龔宮鞏貢鉤溝構購夠蠱顧僱剮掛關觀館慣貫廣規歸龜閨軌詭櫃貴劊輥滾鍋國過駭韓漢號閡鶴賀橫恆轟鴻紅後壺護滬戶譁華畫劃話懷壞歡環還緩換喚瘓煥渙黃謊揮輝毀賄穢會燴匯諱誨繪葷渾夥獲貨禍擊機積飢跡譏雞績緝極輯級擠幾薊劑濟計記際繼紀夾莢頰賈鉀價駕殲監堅箋間艱緘繭檢鹼礆揀撿簡儉減薦檻鑑踐賤見鍵艦劍餞漸濺澗將漿蔣槳獎講醬膠澆驕嬌攪鉸矯僥腳餃繳絞轎較階節傑潔結誡屆緊錦僅謹進晉燼盡勁荊莖鯨驚經頸靜鏡徑痙競淨糾廄舊駒舉據鋸懼劇鵑絹覺決訣絕鈞軍駿開凱顆殼課墾懇摳庫褲誇塊儈寬礦曠況虧巋窺饋潰擴闊蠟臘萊來賴藍欄攔籃闌蘭瀾讕攬覽懶纜爛濫撈勞澇樂鐳壘類淚釐籬離裏鯉禮慄麗厲勵礫歷瀝隸倆聯蓮連鐮憐漣簾斂臉鏈戀煉練糧涼兩輛諒療遼鐐獵臨鄰鱗凜賃齡鈴靈嶺領餾劉龍聾嚨籠壟攏隴樓婁摟簍蘆盧顱廬爐擄滷虜魯賂祿錄陸驢呂鋁侶屢縷慮濾綠巒攣孿灤亂掄輪倫侖淪綸論蘿羅邏鑼籮騾駱絡媽瑪碼螞馬罵嗎買麥賣邁脈瞞饅蠻滿謾貓錨鉚貿麼黴沒鎂門悶們錳夢謎彌祕覓冪綿緬廟滅憫閩鳴銘謬謀畝吶鈉納難撓腦惱鬧餒內擬膩攆釀鳥聶齧鑷鎳檸獰寧擰濘鈕紐膿濃農瘧諾歐鷗毆嘔漚盤龐拋賠噴鵬騙飄頻貧蘋憑評潑頗撲鋪僕樸譜棲悽臍齊騎豈啓氣棄訖牽釺鉛遷籤謙錢鉗潛淺譴塹槍嗆牆薔強搶鍬橋喬僑翹竅竊欽親寢輕氫傾頃請慶瓊窮趨區軀驅齲顴權勸卻鵲確羣讓饒擾繞熱韌認紉榮絨軟銳閏潤灑薩鰓賽叄傘喪騷掃澀殺剎紗篩曬刪閃陝贍繕傷賞燒紹賒攝懾設紳審嬸腎滲聲繩勝聖師獅溼詩屍蝨時蝕實識駛勢適釋飾視試壽獸樞輸書贖屬術樹豎數帥雙誰稅順說碩爍絲飼聳慫頌訟誦擻蘇訴肅雖隨綏歲孫損筍縮瑣鎖獺撻臺態攤貪癱灘壇譚談嘆湯燙濤絛討騰謄銻題體屜條貼鐵廳聽烴銅統頭禿圖塗團頹蛻託脫鴕馱駝橢窪襪彎灣頑萬網韋違圍爲濰維葦偉僞緯謂衛溫聞紋穩問甕撾蝸渦窩臥嗚鎢烏誣無蕪吳塢霧務誤錫犧襲習銑戲細蝦轄峽俠狹廈嚇鍁鮮纖鹹賢銜閒顯險現獻縣餡羨憲線廂鑲鄉詳響項蕭囂銷曉嘯蠍協挾攜脅諧寫瀉謝鋅釁興兇洶鏽繡虛噓須許敘緒續軒懸選癬絢學勳燻詢尋馴訓訊遜壓鴉鴨啞亞訝閹煙鹽嚴巖顏閻豔厭硯彥諺驗鴦楊揚瘍陽癢養樣瑤搖堯遙窯謠藥爺頁業葉醫銥頤遺儀蟻藝億憶義詣議誼譯異繹蔭陰銀飲隱櫻嬰鷹應纓瑩螢營熒蠅贏穎喲擁傭癰詠湧優憂郵鈾猶遊誘於輿餘魚漁娛與嶼語鬱籲獄譽預馭鴛淵轅園員圓緣遠願約躍鑰嶽粵悅閱雲鄖勻隕運蘊醞暈韻雜災載攢暫贊贓髒鑿棗皁竈責擇則澤賊贈軋鍘閘柵詐齋債氈盞斬輾嶄棧佔戰綻張漲帳賬脹趙蟄轍鍺這貞針偵診鎮陣掙睜徵猙爭幀鄭證織職執紙摯擲幟質滯鍾終種腫衆謅軸皺晝驟豬諸誅燭矚囑貯鑄築駐專磚轉賺樁莊裝妝壯狀錐贅墜綴諄準濁茲諮資漬蹤綜總縱鄒詛組鑽亙羋嗇厙厴廝靨贗匭匱賾剄劌剴傴倀傖佇儕儂儔儼儷俁僨傯僂儻儐儺僉糴黌囅鳧兗袞褻臠稟訁訐訌訕謳詎訥詁訶詆詔詘詒誆誄詿詰詼詵詬詮諍諢詡誚誥誑誒諏諑諉諛諗諂誶諶諫謔謁諤諭諼諳諦諮諞謨讜謖諡謐謫譾譖譙譎讞譫讖巹陘隉鄺鄔鄴郟鄶鄆酈芻奐勱巰堊壙壢壠壚埡塏堖塒堝壎薌藶莧萇蓯苧蘢蔦塋煢蕘蓽蕎薈薺犖滎蕁藎蕒蓀葒葤蒔萵蒞薟蕕鶯蓴縈蕆蕢蔞驀蘺鎣蕷蘞藺蘄藪蘚櫱奩尷捫摶撟摑摜撳攄攖擷擼攛弒嘰嘸囈嚦唄咼嚀噝噠嘵嗶噦噲嚌吒噥嘜嘮嗩嘖囀嘍嚳囁噯轡嚶嚕圇幃幬幘幗嶇峴嵐崬嶧嶠崢嶗崍嶸嶁巔徠獷獁獪猻獫玀獼蝟飠餳飩餼飪飫飭飴餉餑餘餛餷餿饃饈饉饊饌饢廡賡廩懺憮慪愾悵愴懌慟懨惻愷惲慳愜慍憒懍閂閆闈閎閔閌闥閭閫鬮閬閾閶鬩閿閽閼闃闋闔闐闕闞灃潙瀧瀘濼涇浹湞澮瀏滸潯淶潿瀆澠瀋淥漵灩灄瀅潷瀠瀟瀲瀦瀨灝騫邇逕邐屨弳嫵嫗嬀姍婭嬈孌奼媧嫺嬋媼嬡嬪嬙嬤駔駟駙騶驛駑駘驍驊駢驪騏騍騅驂騭騖驁騮騸驃驄驏驥驤糹紆紂紇紈纊紜紕紓紺紲紱縐紼絀紿絝絎絳綆綃綈綾綺緋鞝緄綞綬綹綣綰緇緙緗緹緲繢緦緶緱縋緡縉縝縟縞縭縊縑繽縹縵縲繆繅纈繚繒繮繾繰繯纘璣瑋瓏頊璽琿璉璦瓔瓚韙韞韜榪櫪梘棖樅梟櫛櫳櫨梔櫟檉椏橈楨榿樺檜欒欞櫝槧欏槨欖櫬櫚櫸檳櫧檣櫫櫓櫞檁歿殤殞殮殫殯軔軛軲軻轤軹軼軫軤轢軺軾輊輇輅輒輦輞輟輜輳轆轔戔戧戩甌曇暱曄暉曖賁貰貺貽贄貲賅贐賑賚賕齎賧賻覘覬覡覿覦覯覲覷犛毿氌氬氳牘餚朧腖臚脛膾腡醃靦膃齶臏羶歟颮颯颶颼飆飈轂齏斕煬煒燉熗燁燜燾禰禎禪懟愨懣戇澩磯碭硨碸礪礱硤磽磧磣龕瞘眥睞瞼羆羈釒釓釔釙釗釕釷釧釤鍆釵釹鈈鈦鉅鈑鈐鈁鈧鈄鈥鈀鈺鉦鈷鈳鉕鈽鈸鉞鉬鉭鈿鑠鈰鉉鉈鉍鈮鈹鐸銬銠鉺銪鋮鋏鐃鋣鐺銱銦鎧銖鋌銩鏵銓鉿鎩銚錚銫銃鐋銨銣鐒錸鋱鏗鋥鋰鋯鋨銼鋝鋶鐦鐧鋃鋟鋦錒錆鍩錛鍀錁錕錮鍃錇錈錟錙鍥鍇鍶鍔鍤鎪鍰鎄鏤鏘鐨鎇鏌鎘鐫鎿鎦鎰鎵鑌鏢鏜鏝鏍鏞鏃鏇鏑鐔钁鏷鑥鐓鑭鐠鑹鏹鐙鑊鐲鐿鑔鑣鍾穭穡鳩鳶鴇鴆鴣鶇鸕鴝鴟鷥鴯鷙鴰鵂鸞鵓鸝鵠鵒鷳鵜鵡鶓鵪鵯鶉鶘鶚鷀鶥鶩鷂鶼鸚鷓鷚鷯鷦鷲鷸鸌鷺鸛癤癘癧痾皰瘂癆癇癉瘞瘻癭癮癩癲竇窶襠褳襝襉褸襤皸耮耬聹聵頇頎頏頡頜潁頦頷顎顓顳顢顙顥顬顰虯蟣蠆蜆蠔蠣蟶蛺蟯螄蠐蟈蠑螻蟎罌篤筧籩篳箏簀篋籜簞簫簣籪籟艤艫嫋羥秈糲糶糉糝餱餈縶麩趲釅釃鹺躉蹌蹠躒蹺蹕躚躋躓躑躡蹣躕躪躦觴觶靚靂霽靄齔齟齙齠齜齦齬齪齷黽黿鼉雋讎鑾鏨魷魴鮁鮃鮎鱸穌鮒鱟鮐鮭鮚鮪鮞鱭鮫鯗鱘鯁鱺鰱鰹鰣鰷鯀鯊鯇鯽鯖鯪鯫鯡鯤鯧鯝鯢鯰鯛鯴鯔鱝鰈鱷鰍鰒鰉鯿鰠鰲鰭鰨鰥鰩鰳鰾鱈鰻鰵鱅鱖鱔鱒鱧韃鞽韉韝鶻髏髖髕魘魎饗饜鬢麼黷黲鼴';
+  const S2T = (() => { const m = {}; for (let i = 0; i < S2T_FROM.length; i++) m[S2T_FROM[i]] = S2T_TO[i]; return m; })();
+  const TAG_LABEL = { fav: '⭐ 收藏', want: '📌 想看', reading: '📖 在看', wait: '⏳ 等更新', pause: '⏸ 暫停', done: '✔ 讀完', drop: '✖ 棄坑' };
+  const tagIcon = (k) => (TAG_LABEL[k] || '').split(' ')[0]; // 其他裝置用了這台不認得的標記時，不要當機
+  const norm = (s) => String(s || '').normalize('NFKC').toLowerCase()
+    .replace(/\s*-\s*raw\s*$/i, '')
+    .replace(/[^\p{L}\p{N}]/gu, '')
+    .replace(/[一-鿿]/g, (c) => S2T[c] || c);
+  function tocFromUrl(fam, url) {
+    let p, m;
+    if (fam === 'gallery') { m = String(url || '').match(/#(.+)$/); try { return m ? '/' + decodeURIComponent(m[1]) : ''; } catch (e) { return ''; } } // 圖片瀏覽器：…/gallery-viewer.html#<資料夾名稱>
+    try { p = new URL(url).pathname; } catch (e) { return ''; }
+    if (fam === 'twmanga') { m = p.match(/^\/comic\/chapter\/([^/]+)\//) || p.match(/^\/manga\/([^/]+)\/(?:\d+-\d+-\d+|\d+_\d+)/); return m ? '/comic/' + m[1] : ''; }
+    if (fam === 'nicomanga') { m = p.match(/^\/(manga\d+\/[0-9a-f]+)\//i); return m ? '/' + m[1] + '.html' : ''; }
+    if (fam === 'nhentai') { m = p.match(/^\/g\/(\d+)/); return m ? '/g/' + m[1] : ''; }
+    if (fam === 'rouman') { m = p.match(/^\/books\/([^/]+)\//); return m ? '/books/' + m[1] : ''; }
+    if (fam === 'manhuagui') { m = p.match(/^\/comic\/(\d+)\//); return m ? '/comic/' + m[1] : ''; }
+    if (fam === 'wnacg') { m = p.match(/photos-(?:slide|index)-aid-(\d+)/); return m ? '/photos-index-aid-' + m[1] + '.html' : ''; }
+    return '';
+  }
+  function cidOf(fam, toc, url) {
+    let p = '';
+    try { if (toc) p = new URL(toc, location.href).pathname; } catch (e) { /* ignore */ }
+    if (!p) p = tocFromUrl(fam, url);
+    p = p.replace(/\/+$/, '').toLowerCase();
+    if (fam === 'twmanga') p = p.replace(/^\/manga\//, '/comic/'); // bzmh.org 的 /manga/<書> = twmanga 的 /comic/<書>
+    return p ? fam + ':' + p : '';
+  }
+  function rowEntry(r) {
+    const fam = famOf(r.site);
+    if (!fam || !r.url) return null; // 不是本腳本支援的網站
+    const pg = String(r.page || '').match(/^(\d+)\/(\d+)$/);
+    const cid = cidOf(fam, r.toc, r.url);
+    return {
+      key: cid || fam + '|' + (r.comic || ''), fam, host: r.site, comic: r.comic || '', chapter: r.chapter || '', url: r.url,
+      t: Date.parse(r.t) || 0, author: r.author || '', page: pg ? +pg[1] : 0, total: pg ? +pg[2] : 0,
+      fChapter: r.fChapter || r.chapter || '', fUrl: r.fUrl || r.url, fNum: r.fNum == null ? null : Number(r.fNum),
+      toc: r.toc || '', srcRows: [{ site: r.site, comic: r.comic || '', url: r.url }],
+    };
+  }
+  function mergeInto(map, e) {
+    const o = map.get(e.key);
+    if (!o) { map.set(e.key, Object.assign({}, e)); return; }
+    const a = e.t > o.t ? e : o, b = a === e ? o : e; // a 比較新
+    const m = Object.assign({}, a);
+    m.author = a.author || b.author;
+    m.toc = a.toc || b.toc;
+    const far = (e.fNum != null && (o.fNum == null || e.fNum >= o.fNum)) ? e : (o.fNum != null ? o : a);
+    m.fChapter = far.fChapter; m.fUrl = far.fUrl; m.fNum = far.fNum;
+    m.srcRows = (o.srcRows || []).concat(e.srcRows || []);
+    map.set(e.key, m);
+  }
+  function overrides(s) {
+    const out = Object.assign({}, s.sgroups);
+    for (const k in s.lgroups) if (!out[k] || s.lgroups[k].t > out[k].t) out[k] = s.lgroups[k];
+    return out;
+  }
+  function relTime(ms) {
+    if (!ms) return '';
+    const s = (Date.now() - ms) / 1000;
+    if (s < 90) return '剛剛';
+    if (s < 3600) return Math.round(s / 60) + ' 分鐘前';
+    if (s < 86400) return Math.round(s / 3600) + ' 小時前';
+    if (s < 86400 * 60) return Math.round(s / 86400) + ' 天前';
+    return Math.round(s / 86400 / 30) + ' 個月前';
+  }
+  const SR_WORD = '[前中後后上下][編编篇]|[上中下][巻卷]|完[結结][編编篇]|[続續续][編编篇]|[後后前]日[談谈]|番外[編编篇]?|外[傳传]|extra';
+  const SR_ONE = '[上中下前後后]';
+  const SR_NUM = '(\\d{1,3}|[一二三四五六七八九十]{1,3}|viii|vii|vi|iii|ii|iv|ix)';
+  const SR_CNT = '[巻卷話话章回集部期編编篇]';
+  const SR_PFX = '(?:第|その|其|#|(?<![a-z])(?:vol\\.?|volume|part|pt\\.?|ep\\.?|no\\.?))'; // 英文前綴前面不能緊接字母（避免把 deep 2 的 ep 當成標記）
+  const SR_SEP = '[\\s\\-_~·:：,]';
+  // 一組括號（[…]、(…) 可以再套一層，以及 【】《》〈〉「」『』）
+  const SR_BR = '(?:\\[(?:[^\\[\\]]|\\[[^\\[\\]]*\\])*\\]|\\((?:[^()]|\\([^()]*\\))*\\)|\\{[^{}]*\\}|【[^】]*】|《[^》]*》|〈[^〉]*〉|「[^」]*」|『[^』]*』)';
+  const SR_LEAD = new RegExp('^(?:\\s*' + SR_BR + ')+\\s*');
+  const SR_TAIL = new RegExp('\\s*(' + SR_BR + ')\\s*$');
+  const SR_RE = {
+    word: new RegExp('^(.*?\\S)' + SR_SEP + '*(' + SR_WORD + ')\\s*$'),
+    one: new RegExp('^(.*?\\S)' + SR_SEP + '+(' + SR_ONE + ')\\s*$'),
+    pfx: new RegExp('^(.*?\\S)' + SR_SEP + '*' + SR_PFX + '\\s*' + SR_NUM + '\\s*' + SR_CNT + '?\\s*$'),
+    cnt: new RegExp('^(.*?\\S)\\s*(\\d{1,3})' + SR_CNT + '\\s*$'),
+    plain: new RegExp('^(.*?\\S)\\s+(\\d{1,3}|viii|vii|vi|iii|ii|iv|ix)\\s*$'),
+  };
+  const SR_KANJI = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+  const SR_ROMAN = { ii: 2, iii: 3, iv: 4, vi: 6, vii: 7, viii: 8, ix: 9 };
+  function srNum(x) {
+    if (/^\d+$/.test(x)) return Number(x);
+    if (SR_ROMAN[x]) return SR_ROMAN[x];
+    const t = x.indexOf('十');
+    if (t < 0) return SR_KANJI[x] || 0;
+    return (t === 0 ? 1 : SR_KANJI[x[t - 1]] || 1) * 10 + (SR_KANJI[x[t + 1]] || 0);
+  }
+  function srWordRank(t) {
+    if (/^完/.test(t)) return 4;
+    if (/^[続續续]/.test(t)) return 5;
+    if (/番外|外[傳传]|extra|[後后]日/.test(t)) return 6;
+    if (/^前日/.test(t)) return 0.5;
+    if (/^[前上]/.test(t)) return 1;
+    if (/^中/.test(t)) return 2;
+    return 3; // 後、后、下
+  }
+  // 括號裡的字是不是「前編、2、第2巻」這種標記
+  function srBracket(t) {
+    t = t.trim();
+    let m;
+    if (new RegExp('^(?:' + SR_WORD + ')$').test(t)) return { label: t, rank: srWordRank(t) };
+    if (new RegExp('^' + SR_ONE + '$').test(t)) return { label: t, rank: srWordRank(t) };
+    if ((m = new RegExp('^' + SR_PFX + '?\\s*' + SR_NUM + '\\s*' + SR_CNT + '?$').exec(t))) return { label: t, rank: srNum(m[1]) };
+    return null;
+  }
+  // 回傳 { base: 系列名（已正規化）, label: 標記文字, rank: 排序用, marked: 有沒有標記 }
+  function seriesOf(title) {
+    const none = { base: norm(title), label: '', rank: 0, marked: false };
+    let s = String(title || '').normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();
+    if (!s) return none;
+    const lead = s.replace(SR_LEAD, '');
+    if (norm(lead).length >= 2) s = lead;
+    let part = null;
+    for (let i = 0; i < 5; i++) { // 結尾的 [中國翻訳]、(活動名)、[DL版] 一律拿掉；碰到「(前編)」「[2]」這類標記就停下
+      const m = SR_TAIL.exec(s);
+      if (!m) break;
+      const pi = srBracket(m[1].slice(1, -1));
+      s = s.slice(0, m.index);
+      if (pi) { part = pi; break; }
+    }
+    if (!part) {
+      let m;
+      if ((m = SR_RE.word.exec(s))) part = { label: m[2], rank: srWordRank(m[2]) };
+      else if ((m = SR_RE.one.exec(s))) part = { label: m[2], rank: srWordRank(m[2]) };
+      else if ((m = SR_RE.pfx.exec(s))) part = { label: m[2], rank: srNum(m[2]) };
+      else if ((m = SR_RE.cnt.exec(s))) part = { label: m[2], rank: srNum(m[2]) };
+      else if ((m = SR_RE.plain.exec(s))) part = { label: m[2], rank: srNum(m[2]) };
+      if (m) s = m[1];
+    }
+    const base = norm(s);
+    if (base.length < 2) return none;
+    return { base, label: part ? part.label : '', rank: part ? part.rank : 0, marked: !!part };
+  }
+  // 把書架的各組漫畫依系列連起來：g.related = 同系列的其他組（照前編→後編、1→2→3 排）
+  function linkSeries(list, ov) {
+    const byId = new Map();
+    list.forEach((g) => {
+      g.related = [];
+      g.sids = new Set();
+      g.marked = false;
+      g.sr = seriesOf(g.title);
+      g.noSeries = g.entries.some((e) => ov['x:' + e.key] && ov['x:' + e.key].g === '-');
+      if (g.noSeries) return;
+      g.sids.add(g.key);
+      g.entries.forEach((e) => {
+        if (e.comic) {
+          const p = seriesOf(e.comic);
+          if (p.base.length >= 2) g.sids.add('a:' + p.base);
+          if (p.marked) g.marked = true;
+        }
+        const o = ov['x:' + e.key];
+        if (o && o.g && o.g !== '-') g.sids.add(o.g);
+      });
+      g.sids.forEach((id) => { if (!byId.has(id)) byId.set(id, new Set()); byId.get(id).add(g); });
+    });
+    list.forEach((g) => {
+      const rel = new Set();
+      g.sids.forEach((id) => {
+        const set = byId.get(id);
+        if (!set || set.size < 2) return;
+        if (id.startsWith('a:') && ![...set].some((x) => x.marked)) return; // 自動認的系列至少要有一部帶標記
+        set.forEach((x) => { if (x !== g) rel.add(x); });
+      });
+      g.related = [...rel].sort((a, b) => (a.sr.rank - b.sr.rank) || (b.t - a.t));
+    });
+  }
+  const bigrams = (t) => { const o = new Set(); for (let i = 0; i < t.length - 1; i++) o.add(t.slice(i, i + 2)); return o; };
+  function similarity(a, b) {
+    if (a === b) return 1;
+    const [sh, lo] = a.length <= b.length ? [a, b] : [b, a];
+    if (sh.length >= 4 && lo.includes(sh)) return 0.9;
+    const x = bigrams(a), y = bigrams(b);
+    if (!x.size || !y.size) return 0;
+    let n = 0;
+    x.forEach((g) => { if (y.has(g)) n++; });
+    return n / (x.size + y.size - n);
+  }
+  /* 手動分組／系列：下面這幾個函式只「算出要寫哪些設定」，回傳 { 設定鍵: { g, t } }（不碰儲存、不畫畫面）。
+   * 書架和圖書館共用同一份，所以兩邊改出來的結果一模一樣。
+   * prefix 為 'x:' 時是「系列」設定：值是要連到的那組的 key，'-' 代表「不是同系列」，空字串＝取消 */
+  function setPatch(entries, g, prefix, t) {
+    const out = {};
+    entries.forEach((e) => { out[(prefix || '') + e.key] = { g, t }; });
+    return out;
+  }
+  // 合併：把 srcGroups 的紀錄都併進 targetKey，並記下「這些書名 → 這一部」的別名，之後別的網站出現同名的就自動歸過來
+  function joinPatch(srcGroups, targetKey, ov, t) {
+    const out = {}, srcKeys = new Set(srcGroups.map((g) => g.key));
+    srcGroups.forEach((g) => g.entries.forEach((e) => {
+      out[e.key] = { g: targetKey, t };
+      const nk = norm(e.comic);
+      if (!nk) return;
+      if ('n:' + nk !== targetKey) out['al:' + nk] = { g: targetKey, t };
+      else if (ov['al:' + nk] && ov['al:' + nk].g) out['al:' + nk] = { g: '', t }; // 書名本身就是目標：不需要別名，舊的清掉
+    }));
+    Object.keys(ov).forEach((k) => { if (k.startsWith('al:') && ov[k].g && srcKeys.has(ov[k].g)) out[k] = { g: targetKey, t }; }); // 原本指到被併掉那一組的別名，改指到新的
+    return out;
+  }
+  // 拆開：這筆自己一組，並清掉它書名的別名（不然下次又被自動歸回去）
+  function splitPatch(e, ov, t) {
+    const out = setPatch([e], 's:' + e.key, '', t), nk = norm(e.comic);
+    if (nk && ov['al:' + nk] && ov['al:' + nk].g) out['al:' + nk] = { g: '', t };
+    return out;
+  }
+  // 手動設為同系列：src 連到 g；兩邊先前標過「不是同系列」的，一併清掉（不然新的連結不會生效）
+  function linkPatch(src, g, ov, t) {
+    const out = {};
+    g.entries.forEach((e) => { const o = ov['x:' + e.key]; if (o && o.g === '-') out['x:' + e.key] = { g: '', t }; });
+    src.entries.forEach((e) => { out['x:' + e.key] = { g: g.key, t }; });
+    return out;
+  }
+  // 取消兩部漫畫之間的系列連結：手動連的就取消手動設定；自動認的就把對方標成「不是同系列」
+  function unlinkPatch(g, r, ov, t) {
+    const out = {};
+    let manual = false;
+    [[g, r], [r, g]].forEach(([a, b]) => a.entries.forEach((e) => {
+      const o = ov['x:' + e.key];
+      if (o && o.g === b.key) { manual = true; out['x:' + e.key] = { g: '', t }; }
+    }));
+    return manual ? out : setPatch(r.entries, '-', 'x:', t);
+  }
+  /* 作者：一部作品的作者欄可能有好幾位（用「、」「,」「/」「&」分隔）。比對用書名同一套 norm（簡繁、大小寫、符號都不計）。
+   * 手動修正存在分組設定的 author:<作品鍵>（值是作者名，空＝回到自動抓到的）；喜歡的作者存在 favauthor:<作者鍵>（值是顯示用的名字，空＝不喜歡）。 */
+  const AUTHOR_SEP = /[、,，;；/／＆&]+/;
+  function authorsOf(str) {
+    const out = [], seen = new Set();
+    String(str || '').split(AUTHOR_SEP).forEach((x) => { const name = x.trim(), key = norm(name); if (name && key && !seen.has(key)) { seen.add(key); out.push({ name, key }); } });
+    return out;
+  }
+  // 喜歡的作者：{ 作者鍵 → 顯示名 }
+  function favMapOf(ov) {
+    const fav = new Map();
+    Object.keys(ov).forEach((k) => { if (k.startsWith('favauthor:') && ov[k].g) fav.set(k.slice(10), ov[k].g); });
+    return fav;
+  }
+  // 套用到每一部：g.author（手動修正優先）、g.autoAuthor（自動抓到的）、g.authors（拆開的作者）、g.favAuthor（有沒有喜歡的作者）
+  function applyAuthors(list, ov) {
+    const fav = favMapOf(ov);
+    list.forEach((g) => {
+      const o = ov['author:' + g.key];
+      g.autoAuthor = g.author || '';
+      g.authorManual = !!(o && o.g);
+      if (g.authorManual) g.author = o.g;
+      g.authors = authorsOf(g.author);
+      g.favAuthor = g.authors.some((a) => fav.has(a.key));
+    });
+    return fav;
+  }
+  // 全部作者的統計：[{ key, name, count, fav }]（喜歡的排前面，再依作品數、名字）
+  function authorStats(list, fav) {
+    const m = new Map();
+    list.forEach((g) => g.authors.forEach((a) => { const x = m.get(a.key) || { key: a.key, name: a.name, count: 0, fav: fav.has(a.key) }; x.count++; m.set(a.key, x); }));
+    fav.forEach((name, key) => { if (!m.has(key)) m.set(key, { key, name, count: 0, fav: true }); }); // 喜歡的作者目前沒有作品也留著（才能取消）
+    return [...m.values()].sort((a, b) => (b.fav - a.fav) || (b.count - a.count) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  }
+  // 修正作者／喜歡的作者「要寫哪些設定」（和合併、系列一樣：只算不寫，書架和圖書館共用）
+  const authorPatch = (g, name, t) => ({ ['author:' + g.key]: { g: String(name || '').trim().slice(0, 100), t } });
+  const favAuthorPatch = (author, on, t) => ({ ['favauthor:' + author.key]: { g: on ? author.name : '', t } });
+  /* 封面存之前縮小檔案：重新編成 WebP。
+   * 自動抓取的封面：品質 0.9、維持原本的像素大小，要省 15% 以上才換。
+   * 自己上傳的（opts.targetBytes）：1 MB 以下照上面原本的方式縮；超過 1 MB 的用更強的方式——先長邊縮到 1600 像素、品質 0.9，
+   * 還是太大就一步一步降品質、再縮小尺寸，直到小於 1 MB（只縮不放大）。
+   * 回傳 { bytes, mime, w, h, resized } 或 null（不動：GIF／動態 WebP、瀏覽器不支援 WebP、或縮完沒有比較小）。 */
+  const COV_UPLOAD_MAX_SIDE = 1600;            // 自己上傳的封面：長邊先縮到這個像素（封面最大只會放大到螢幕的高度，1600 綽綽有餘）
+  const COV_UPLOAD_MAX = 30 * 1024 * 1024;     // 自己上傳的原檔上限
+  const COV_SHRINK_OVER = 1024 * 1024;         // 超過這個大小才縮小，也是縮小的目標
+  async function imageShrink(u, m, opts) {
+    opts = opts || {};
+    try {
+      if (m === 'image/gif') return null;
+      if (m === 'image/webp' && String.fromCharCode.apply(null, u.subarray(12, 100)).includes('ANIM')) return null; // 動態 WebP
+      const over = !!(opts.targetBytes && u.length > opts.targetBytes); // 超過目標大小：用更強的方式縮
+      const bmp = await createImageBitmap(new Blob([u], { type: m }));
+      const big = Math.max(bmp.width, bmp.height), maxSide = over ? (opts.maxSide || 0) : 0; // 沒超過 1 MB：維持原本的像素大小
+      const encode = async (side, q) => { // 長邊縮到 side（不放大），編成 WebP
+        const k = side && big > side ? side / big : 1;
+        const w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const cx = c.getContext('2d');
+        cx.imageSmoothingQuality = 'high';
+        cx.drawImage(bmp, 0, 0, w, h);
+        const blob = await new Promise((resolve) => c.toBlob(resolve, 'image/webp', q));
+        if (!blob || blob.type !== 'image/webp') return null; // 不支援 WebP 的瀏覽器會回 PNG：不用
+        return { bytes: new Uint8Array(await blob.arrayBuffer()), mime: 'image/webp', w, h, resized: k < 1 };
+      };
+      let best = null;
+      const steps = over ? [[maxSide, 0.9], [maxSide, 0.8], [maxSide, 0.7], [Math.round(maxSide * 0.85), 0.8], [Math.round(maxSide * 0.7), 0.8], [Math.round(maxSide * 0.55), 0.75], [Math.round(maxSide * 0.45), 0.7]] : [[maxSide, 0.9]];
+      for (const [side, q] of steps) {
+        const r = await encode(side, q);
+        if (!r) { best = null; break; }
+        if (!best || r.bytes.length < best.bytes.length) best = r;
+        if (over && r.bytes.length <= opts.targetBytes) break;
+      }
+      if (bmp.close) bmp.close();
+      if (!best) return null;
+      // 超過目標大小的：只要比原檔小就用；其餘：只是重新編碼要省 15% 以上才換
+      return over ? (best.bytes.length < u.length ? best : null) : (best.bytes.length < u.length * 0.85 ? best : null);
+    } catch (e) { return null; }
+  }
+  const fmtBytes = (n) => (n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
+  // 上傳完成後給使用者看的說明：縮了多少
+  const shrinkNote = (info) => (info.shrunk ? '・已縮小 ' + fmtBytes(info.from) + ' → ' + fmtBytes(info.to) + (info.resized ? '（' + info.w + '×' + info.h + '）' : '') : info.from > COV_SHRINK_OVER ? '・沒有縮小（' + fmtBytes(info.from) + '：動圖或這個瀏覽器不支援 WebP）' : '・原檔已經夠小（' + fmtBytes(info.from) + '），沒有再縮');
+  const SQ_OPS = { tag: 'tag', status: 'tag', 狀態: 'tag', 状态: 'tag', 標記: 'tag', 标记: 'tag', site: 'site', 網站: 'site', 网站: 'site', author: 'author', 作者: 'author', note: 'note', 備註: 'note', 备注: 'note', is: 'is' };
+  function parseShelfQuery(raw) {
+    const ops = [], free = [];
+    String(raw || '').trim().split(/\s+/).forEach((tok) => {
+      const m = /^([^:：\s]+)[:：](.+)$/.exec(tok);
+      const op = m && SQ_OPS[m[1].toLowerCase()];
+      if (op) ops.push({ op, val: m[2] }); else if (tok) free.push(tok);
+    });
+    return { ops, free: free.join(' ') };
+  }
+  function filterGroups(groups, raw, gUnread) {
+    const pq = parseShelfQuery(raw), q = norm(pq.free);
+    if (!q && !pq.ops.length) return groups.slice();
+    return groups.filter((g) => {
+      if (q && !norm(g.title + g.author + g.note + g.entries.map((e) => e.chapter + e.comic).join('')).includes(q)) return false;
+      return pq.ops.every(({ op, val }) => {
+        const v = val.toLowerCase();
+        if (op === 'tag') {
+          if (/^(無|无|none|plain|空|沒標記|没标记)$/.test(v)) return !g.tag;
+          return !!g.tag && Object.keys(TAG_LABEL).some((k) => k === g.tag && (k === v || TAG_LABEL[k].split(' ')[1].includes(val)));
+        }
+        if (op === 'site') return g.entries.some((e) => e.fam === v || (SITE_LABEL[e.fam] || '').toLowerCase().includes(v) || String(e.host || '').toLowerCase().includes(v));
+        if (op === 'author') return norm(g.author).includes(norm(val));
+        if (op === 'note') return norm(g.note).includes(norm(val));
+        if (op === 'is') { if (/^(unread|未讀|未读)$/.test(v)) return gUnread(g) > 0; if (/^(fav|favorite|喜歡|喜欢|喜歡作者|喜欢作者)$/.test(v)) return !!g.favAuthor; return false; }
+        return false;
+      });
+    });
+  }
+/* ===== 共用程式結束 ===== */
+
+/* ───────────── 圖書館程式 ───────────── */
+const $ = (id) => document.getElementById(id);
+const LS = {
+  get(k, d) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }, // 空間不足或被禁用時回傳 false
+};
+const CFG_KEY = 'lib:cfg', DATA_KEY = 'lib:data', UI_KEY = 'lib:ui';
+let cfg = LS.get(CFG_KEY, { url: '', token: '' });
+const ui = Object.assign({ view: 'wall', sort: 'recent', size: null, theme: 'auto', statuses: [], sites: [], progress: [], favAuthor: false, author: null }, LS.get(UI_KEY, {})); // size 沒設過就用樣式表的預設（手機小一點）
+// 舊版只存單一狀態／網站（status、site 字串）：轉成新的清單
+if (!Array.isArray(ui.statuses)) ui.statuses = [];
+if (!Array.isArray(ui.sites)) ui.sites = [];
+if (!Array.isArray(ui.progress)) ui.progress = [];
+if (ui.status) { if (!ui.statuses.includes(ui.status)) ui.statuses.push(ui.status); delete ui.status; }
+if (ui.site) { if (!ui.sites.includes(ui.site)) ui.sites.push(ui.site); delete ui.site; }
+const saveUi = () => LS.set(UI_KEY, ui);
+let data = LS.get(DATA_KEY, null);        // { at, rows, groups }
+let groups = [];                          // 歸好的作品
+let query = '', shown = [], openKey = '', drawerOpener = null, drawerPushed = false, editMode = false, editNote = null;
+let views = [];              // 我的群組（存好的篩選組合）
+let bms = [];                // 書籤（試算表分組分頁裡的 bm:<頁數>@<章節網址>）
+let bmByEntry = new Map();   // 紀錄鍵 → 它底下的書籤
+let grpEdit = null, grpErr = '', grpFocus = false;   // 群組名稱編輯器：{ mode: 'new' | 'rename', id, name }
+let lastError = '';
+let loading = false, noCache = false;
+
+/* ── 跟 Apps Script 講話 ── */
+async function api(body) {
+  let res;
+  try { res = await fetch(cfg.url, { method: 'POST', body: JSON.stringify(Object.assign({ token: cfg.token }, body)), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', redirect: 'follow' }); }
+  catch (e) { throw new Error('連不上（沒有網路、網址不對，或瀏覽器擋下了跨網域請求；Apps Script 的部署要設成「任何人」都可以存取）'); }
+  const text = await res.text();
+  let j;
+  try { j = JSON.parse(text); } catch (e) { throw new Error(/<html|<!doctype/i.test(text) ? '回傳的是網頁，不是資料（網址不對，或部署的存取權限不是「任何人」）' : '回傳的資料看不懂'); }
+  if (!j || !j.ok) throw new Error((j && j.error) || '伺服器拒絕');
+  return j;
+}
+const connected = () => /^https:\/\/script\.google\.com\/.+\/exec$/.test(cfg.url || '') && !!cfg.token;
+
+/* ── 資料 → 作品 ── 和書架同一套判斷：手動設定 → 別名字典 → 正規化書名 */
+function buildGroups(d) {
+  const map = new Map();
+  (d.rows || []).forEach((r) => { try { const e = r && rowEntry(r); if (e) mergeInto(map, e); } catch (err) { /* 壞掉的一列：略過 */ } });
+  const ov = overrides({ sgroups: d.groups || {}, lgroups: {} });
+  const gs = new Map();
+  map.forEach((e) => {
+    const nk = norm(e.comic);
+    const al = nk && ov['al:' + nk];
+    const gk = (ov[e.key] && ov[e.key].g) || (al && al.g) || (nk ? 'n:' + nk : 'k:' + e.key);
+    let g = gs.get(gk);
+    if (!g) { g = { key: gk, entries: [], t: 0 }; gs.set(gk, g); }
+    try { const u = JSON.parse((ov['up:' + e.key] || {}).g || 'null'); if (u && (u.n || u.c)) e.upd = { n: Number(u.n) || 0, c: Number(u.c) || 0, t: Number((ov['up:' + e.key] || {}).t) || 0 }; } catch (err) { /* 壞掉的更新資訊：略過 */ }
+    g.entries.push(e);
+    g.t = Math.max(g.t, e.t);
+  });
+  const list = [...gs.values()];
+  list.forEach((g) => {
+    g.entries.sort((a, b) => b.t - a.t);
+    g.title = g.entries[0].comic || g.entries[0].chapter;
+    g.author = (g.entries.find((e) => e.author) || {}).author || '';
+    g.tag = (ov['tag:' + g.key] || {}).g || '';
+    g.note = (ov['note:' + g.key] || {}).g || '';
+    g.fams = [...new Set(g.entries.map((e) => e.fam))];
+    const pg = progressOf(g.entries[0]); // 作品的進度 = 最近讀的那一筆（和封面上顯示的一致）
+    g.pst = pg.text && !pg.unknown ? (pg.red ? 'unread' : 'latest') : ''; g.left = pg.red ? (pg.left || 0) : 0;
+  });
+  applyAuthors(list, ov); // 手動修正的作者優先；拆成每位作者、標出喜歡的作者（書架用同一份程式）
+  linkSeries(list, ov); // 同系列的作品互相連起來（g.related）；和書架同一套判斷
+  return list.sort((a, b) => b.t - a.t);
+}
+
+/* ── 進度顯示 ──
+ * 有章節編號的漫畫：顯示 (讀到第幾話/最新第幾話 話)，不顯示頁數；沒有章節（單行本）才顯示 (第幾頁/共幾頁 頁)。
+ * 還沒看完用紅字，已經看到最新就不用紅字；不知道最新到第幾話時顯示 (讀到/? 話)，不判斷看完沒。單位（話／頁）一定標出來。 */
+const fmtN = (x) => String(Math.round(Number(x) * 100) / 100);
+function progressOf(e) {
+  if (e.fNum != null) { // 有章節編號
+    const latest = e.upd ? (e.upd.n || e.upd.c) : 0;
+    if (!latest) return { text: '(' + fmtN(e.fNum) + '/? 話)', red: false, ratio: 0, unit: '話', unknown: true }; // 最新話數還不知道：先標出單位，不判斷看完沒
+    return { text: '(' + fmtN(e.fNum) + '/' + fmtN(latest) + ' 話)', red: e.fNum < latest, ratio: Math.min(1, e.fNum / latest), unit: '話', left: Math.max(0, Math.round(latest - e.fNum)) };
+  }
+  if (e.total) return { text: '(' + e.page + '/' + e.total + ' 頁)', red: e.page < e.total, ratio: Math.min(1, e.page / e.total), unit: '頁' };
+  return { text: '', red: false, ratio: 0, unit: '' };
+}
+// 「章節名稱 (讀到/共 話)」：有進度文字就接在後面，沒看完是紅字
+function fillProgress(el, e) {
+  el.textContent = e.chapter || '';
+  const p = progressOf(e);
+  if (p.text) { const sp = document.createElement('span'); sp.className = 'pg' + (p.red ? ' red' : ''); sp.textContent = (e.chapter ? '　' : '') + p.text; sp.title = p.unknown ? '最新話數還不知道（用油猴腳本檢查更新後會補上）' : p.unit === '話' ? '話數：讀到第幾話／最新第幾話' : '頁數：第幾頁／共幾頁'; el.append(sp); }
+  return p;
+}
+
+/* ── 封面：存在 IndexedDB（原圖 blob），畫面用 object URL ── */
+const covUrl = new Map();   // 漫畫鍵 → { url, c(自訂), t }
+let idbP = null;
+function idb() {
+  if (idbP) return idbP;
+  idbP = new Promise((resolve) => {
+    try {
+      const rq = indexedDB.open('manga-library', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('covers', { keyPath: 'k' });
+      rq.onsuccess = () => resolve(rq.result);
+      rq.onerror = () => resolve(null);
+    } catch (e) { resolve(null); }
+  });
+  return idbP;
+}
+const idbDo = (mode, fn) => idb().then((db) => (!db ? null : new Promise((resolve) => {
+  try { const tx = db.transaction('covers', mode); const r = fn(tx.objectStore('covers')); tx.oncomplete = () => resolve(r && r.result !== undefined ? r.result : true); tx.onerror = () => resolve(null); tx.onabort = () => resolve(null); } catch (e) { resolve(null); }
+})));
+const bytesFromB64 = (b) => { const t = atob(b), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; };
+async function loadCachedCovers() {
+  const all = await idbDo('readonly', (s) => s.getAll());
+  (all || []).forEach((r) => { if (r && r.blob) covUrl.set(r.k, { url: URL.createObjectURL(r.blob), c: !!r.c, t: r.t || 0 }); });
+}
+// 存一張從雲端拿到的封面（IndexedDB ＋ 畫面）
+async function storeCover(it) {
+  const blob = new Blob([bytesFromB64(it.b)], { type: it.m });
+  await idbDo('readwrite', (s) => s.put({ k: it.k, blob, m: it.m, c: !!it.c, t: it.t }));
+  const old = covUrl.get(it.k);
+  if (old) URL.revokeObjectURL(old.url);
+  covUrl.set(it.k, { url: URL.createObjectURL(blob), c: !!it.c, t: it.t });
+  paintCover(it.k);
+}
+/* ── 檢查最新話數 ──
+ * 圖書館自己連不到各漫畫網站，所以請油猴腳本去查這一部（它底下所有網站的紀錄）：腳本把結果寫進試算表（up:<紀錄鍵>），
+ * 圖書館再重新載入就看得到「已讀／共幾話」與還沒看完。流程和「更新封面」一樣：document 發 'tmr-update-one'（data-tmr-upd＝{keys}），腳本回 'tmr-upd-state'。 */
+let updOneWaitMs = 180000;
+async function checkLatest(g) {
+  if (!connected()) throw new Error('還沒有連線');
+  if (!bridgeOn()) throw new Error('需要油猴腳本 v3.28.0 以上：圖書館自己連不到各漫畫網站，要請腳本去查。請更新腳本，並確認它在這個網頁有啟用（Tampermonkey 的圖示上要看得到這支腳本）');
+  const keys = g.entries.map((e) => e.key);
+  const r = await new Promise((resolve) => {
+    let timer = 0;
+    const on = () => {
+      let st = null;
+      try { st = JSON.parse(document.documentElement.getAttribute('data-tmr-upd-state') || 'null'); } catch (e) { st = null; }
+      if (st && st.s !== 'run') done(st);
+    };
+    const done = (x) => { clearTimeout(timer); document.removeEventListener('tmr-upd-state', on); resolve(x); };
+    timer = setTimeout(() => done({ s: 'error', reason: '等太久，油猴腳本沒有回應' }), updOneWaitMs);
+    document.addEventListener('tmr-upd-state', on);
+    document.documentElement.setAttribute('data-tmr-upd', JSON.stringify({ keys }));
+    document.dispatchEvent(new Event('tmr-update-one'));
+  });
+  if (r.s === 'error') throw new Error(r.reason || '原因不明');
+  if (!r.ok) throw new Error(r.reason || '沒抓到最新話數');
+  const text = '最新第 ' + (r.n != null ? r.n : '?') + ' 話' + (r.total ? '（清單共 ' + r.total + ' 話）' : '') + (r.title ? '：' + r.title : '');
+  if (r.synced === false) return { text: '△ 查到了（' + text + '），但油猴腳本沒有設定同步，圖書館拿不到（請在腳本的設定面板填入同樣的 Apps Script 網址與密鑰）', warn: true };
+  return { text: '✓ ' + text, n: r.n, total: r.total };
+}
+/* ── 更新封面 ──
+ * 有油猴腳本：請它到網站重新抓這部的封面（腳本抓得到跨網域的圖；和書架封面視窗的「用預設抓取」一樣，會蓋掉自訂的），
+ * 存到 Drive 之後圖書館再從雲端取回。沒有腳本：圖書館自己抓不到網站的圖，只能強制重新從雲端載入（可能是別的裝置新抓的）。 */
+let coverWaitMs = 90000;
+async function refreshCover(g, say) {
+  if (!connected()) throw new Error('還沒有連線');
+  const keys = g.entries.map((e) => e.key);
+  if (bridgeOn()) {
+    say('更新中…（請油猴腳本到網站抓這部的封面）');
+    const r = await new Promise((resolve) => {
+      let timer = 0;
+      const on = () => {
+        let st = null;
+        try { st = JSON.parse(document.documentElement.getAttribute('data-tmr-cover-state') || 'null'); } catch (e) { st = null; }
+        if (st && st.s !== 'run') done(st);
+      };
+      const done = (x) => { clearTimeout(timer); document.removeEventListener('tmr-cover-state', on); resolve(x); };
+      timer = setTimeout(() => done({ ok: false, reason: '等太久，油猴腳本沒有回應' }), coverWaitMs);
+      document.addEventListener('tmr-cover-state', on);
+      document.documentElement.setAttribute('data-tmr-cover', JSON.stringify({ keys }));
+      document.dispatchEvent(new Event('tmr-cover-refresh'));
+    });
+    if (!r.ok) throw new Error('抓不到封面：' + (r.reason || '原因不明') + '（可以改用「上傳封面」）');
+    say('已抓到，正在從雲端取回…');
+    await syncCovers();
+    if (r.uploaded === false) return { text: '△ 已抓到，但油猴腳本沒有設定同步，圖書館拿不到這張（請在腳本的設定面板填入同樣的 Apps Script 網址與密鑰）', warn: true };
+    return { text: '✓ 已更新封面（存到 Drive）' };
+  }
+  say('從雲端重新載入…');
+  const idx = ((await api({ type: 'cover_index' })).items || []).filter((it) => keys.includes(it.k));
+  if (!idx.length) throw new Error('雲端還沒有這部的封面。要到網站抓新封面，需要油猴腳本 v3.24.0 以上（它會幫你抓、存到 Drive）');
+  for (const it of (await api({ type: 'cover_get', keys: idx.map((x) => x.k) })).items || []) await storeCover(it);
+  return { text: '✓ 已重新從雲端載入這部的封面。要重新到網站抓新封面，需要油猴腳本 v3.24.0 以上', warn: true };
+}
+let covProg = { done: 0, total: 0, err: '' };
+async function syncCovers() {
+  if (!connected()) return;
+  try {
+    const idx = (await api({ type: 'cover_index' })).items || [];
+    const need = idx.filter((it) => { const h = covUrl.get(it.k); return !h || h.t < it.t; }).map((it) => it.k);
+    covProg = { done: 0, total: need.length, err: '' };
+    renderStat();
+    for (let i = 0; i < need.length; i += 6) {
+      const res = await api({ type: 'cover_get', keys: need.slice(i, i + 6) });
+      for (const it of res.items || []) await storeCover(it);
+      covProg.done = Math.min(need.length, i + 6);
+      renderStat();
+    }
+  } catch (e) { covProg.err = e && e.message ? e.message : String(e); renderStat(); }
+}
+// 這一部的封面：自訂的優先，其次任何一筆有圖的
+function coverOf(g) {
+  let best = null;
+  for (const e of g.entries) { const h = covUrl.get(e.key); if (h && (!best || (h.c && !best.c))) best = h; }
+  return best;
+}
+const stripLead = (t) => String(t || '').replace(/^(?:\s*(?:\[[^\]]*\]|\([^)]*\)|【[^】]*】|（[^）]*）))+\s*/, '') || String(t || '');
+const initial = (t) => Array.from(stripLead(t))[0] || '?';
+/* ── 自己上傳封面（存到你的 Drive；做法和油猴腳本書架裡的「自己上傳圖片」一樣）── */
+function sniffMime(u) {
+  if (u[0] === 0xFF && u[1] === 0xD8) return 'image/jpeg';
+  if (u[0] === 0x89 && u[1] === 0x50 && u[2] === 0x4E && u[3] === 0x47) return 'image/png';
+  if (u[0] === 0x47 && u[1] === 0x49 && u[2] === 0x46) return 'image/gif';
+  if (u[0] === 0x52 && u[1] === 0x49 && u[2] === 0x46 && u[3] === 0x46 && u[8] === 0x57 && u[9] === 0x45 && u[10] === 0x42 && u[11] === 0x50) return 'image/webp';
+  if (u[4] === 0x66 && u[5] === 0x74 && u[6] === 0x79 && u[7] === 0x70 && String.fromCharCode(u[8], u[9], u[10], u[11]) === 'avif') return 'image/avif';
+  return '';
+}
+const COV_MAX = 8 * 1024 * 1024;
+function b64FromBytes(u) { let t = ''; for (let i = 0; i < u.length; i += 0x8000) t += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(t); }
+// 這部的封面要存在哪個鍵：已經有自訂的就換它，其次是任何一筆有圖的，都沒有就用第一筆紀錄
+function coverKeyOf(g) {
+  let any = '';
+  for (const e of g.entries) { const h = covUrl.get(e.key); if (h && h.c) return e.key; if (h && !any) any = e.key; }
+  return any || g.entries[0].key;
+}
+// 自己上傳的封面：超過 1 MB 才縮小（1 MB 以下的原檔不動；縮到小於 1 MB 為止），回傳縮了多少。縮圖的程式是腳本抽出來的（imageShrink），兩邊一樣
+async function uploadCover(g, file) {
+  if (!connected()) throw new Error('還沒有連線');
+  if (file.size > COV_UPLOAD_MAX) throw new Error('圖片太大（原檔上限 30 MB）');
+  const raw = new Uint8Array(await file.arrayBuffer());
+  const m = sniffMime(raw);
+  if (!m) throw new Error('不支援這種圖片（支援 JPG、PNG、GIF、WebP、AVIF）');
+  const sm = await imageShrink(raw, m, { maxSide: COV_UPLOAD_MAX_SIDE, targetBytes: COV_SHRINK_OVER });
+  const bytes = sm ? sm.bytes : raw, mime = sm ? sm.mime : m, key = coverKeyOf(g), t = Date.now();
+  if (bytes.length > COV_MAX) throw new Error('縮小後還是太大（' + fmtBytes(bytes.length) + '，上限 8 MB）：請換一張小一點的圖');
+  await api({ type: 'cover_put', key, mime, b64: b64FromBytes(bytes), t, custom: true }); // 雲端存成功才算數
+  const blob = new Blob([bytes], { type: mime });
+  await idbDo('readwrite', (st) => st.put({ k: key, blob, m: mime, c: true, t }));
+  const old = covUrl.get(key); if (old) URL.revokeObjectURL(old.url);
+  covUrl.set(key, { url: URL.createObjectURL(blob), c: true, t });
+  paintCover(key); renderStat();
+  return { from: raw.length, to: bytes.length, w: sm ? sm.w : 0, h: sm ? sm.h : 0, resized: !!(sm && sm.resized), shrunk: !!sm };
+}
+const hue = (s) => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) % 360; return h; };
+function setPlaceholder(el, g) {
+  const h = hue(g.title);
+  el.style.background = 'linear-gradient(150deg, hsl(' + h + ' 42% 30%), hsl(' + ((h + 48) % 360) + ' 48% 18%))';
+}
+function repaintCovers() {
+  document.querySelectorAll('[data-covkey]').forEach((box) => { const g = groups.find((x) => x.key === box.dataset.gk); if (g) fillCover(box, g); });
+  renderStat();
+}
+function paintCover(k) {
+  document.querySelectorAll('[data-covkey]').forEach((box) => {
+    const g = groups.find((x) => x.key === box.dataset.gk);
+    if (!g || !g.entries.some((e) => e.key === k)) return;
+    fillCover(box, g);
+  });
+}
+function fillCover(box, g) {
+  const c = coverOf(g);
+  let img = box.querySelector('img');
+  if (!c) { if (img) img.remove(); return; }
+  if (!img) { img = document.createElement('img'); img.alt = ''; img.decoding = 'async'; img.className = box.dataset.covclass || 'cv'; box.prepend(img); }
+  if (img.src !== c.url) { img.classList.remove('in'); img.onload = () => img.classList.add('in'); img.src = c.url; if (img.complete) img.classList.add('in'); }
+}
+
+/* ── 畫面 ── */
+const STATUS_ORDER = Object.keys(TAG_LABEL);
+function visibleGroups() {
+  let list = filterGroups(groups, query, () => false);
+  // 同一組（狀態／網站）裡選了好幾個是「或」，兩組之間是「且」
+  if (ui.statuses.length || ui.sites.length || ui.progress.length || ui.favAuthor) list = list.filter((g) => passSel(g, ui.statuses, ui.progress, ui.sites, ui.favAuthor));
+  if (ui.author) list = list.filter((g) => g.authors.some((a) => a.key === ui.author.key));
+  if (ui.sort === 'name') list = list.slice().sort((a, b) => stripLead(a.title).localeCompare(stripLead(b.title), 'zh-Hant'));
+  else if (ui.sort === 'left') list = list.slice().sort((a, b) => (b.left - a.left) || (b.t - a.t));
+  else if (ui.sort === 'fav') list = list.slice().sort((a, b) => (b.favAuthor - a.favAuthor) || (b.t - a.t));
+  else if (ui.sort === 'sites') list = list.slice().sort((a, b) => (b.entries.length - a.entries.length) || (b.t - a.t));
+  return list;
+}
+// 篩選晶片：每個都是開關（再點一次取消）。同一組（狀態／進度／網站）裡選好幾個是「或」，不同組之間是「且」
+const passSel = (g, st, pr, fa, fv) => (!st.length || st.some((k) => (k === '__none' ? !g.tag : g.tag === k))) && (!pr.length || pr.includes(g.pst)) && (!fa.length || g.fams.some((f) => fa.includes(f))) && (!fv || g.favAuthor);
+function pickChip(list, k) {
+  const i = list.indexOf(k);
+  if (i >= 0) list.splice(i, 1); else list.push(k);
+}
+/* ── 我的群組（存好的篩選組合）──
+ * 存在試算表的「書架分組」分頁：view:<編號> = {"n":名稱,"s":[狀態],"p":[進度],"f":[網站]}。所以電腦、手機、不同瀏覽器連到同一份試算表，看到的是同一組群組。 */
+const strArr = (x) => (Array.isArray(x) ? x.filter((v) => typeof v === 'string') : []);
+const sameSet = (a, b) => a.length === b.length && a.every((v) => b.includes(v));
+const PROG_LABEL = { unread: '還沒看完', latest: '已看到最新' };
+function viewsOf(d) {
+  const out = [];
+  Object.keys((d && d.groups) || {}).forEach((k) => {
+    if (!k.startsWith('view:')) return;
+    try { const v = JSON.parse(d.groups[k].g); if (v && typeof v === 'object') out.push({ id: k.slice(5), name: String(v.n || '').slice(0, 30) || '（未命名）', s: strArr(v.s), p: strArr(v.p), f: strArr(v.f), a: !!v.a }); } catch (e) { /* 壞掉的群組：略過 */ }
+  });
+  return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+const hasSel = () => ui.statuses.length > 0 || ui.progress.length > 0 || ui.sites.length > 0 || ui.favAuthor;
+const selMatches = (v) => sameSet(v.s, ui.statuses) && sameSet(v.p, ui.progress) && sameSet(v.f, ui.sites) && !!v.a === !!ui.favAuthor;
+function defaultViewName() { // 目前選的晶片，依畫面上的順序用「＋」串起來，例如「還沒看完＋NicoManga」
+  const st = ui.statuses.map((k) => (k === '__none' ? '沒標記' : String(TAG_LABEL[k] || k).replace(/^\S+\s/, '')));
+  return [...st, ...ui.progress.map((k) => PROG_LABEL[k] || k), ...(ui.favAuthor ? ['喜歡的作者'] : []), ...ui.sites.map((f) => SITE_LABEL[f] || f)].join('＋');
+}
+const newViewId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 4);
+// 寫回試算表：只要求「這之後有變動的列」（幾乎沒有），不用把整份書架再抓一遍；回來的分組設定是最新的整份
+// patch：{ 設定鍵: { g, t } }（值留空＝取消那筆設定）。分組、系列、書籤、我的群組都用這個
+async function pushPatch(patch) {
+  const r = await api({ type: 'shelf', groups: patch, since: Date.now() });
+  data = Object.assign({}, data, { groups: r.groups || {} });
+  noCache = !LS.set(DATA_KEY, data);
+}
+async function saveViews(map) {
+  const t = Date.now(), patch = {};
+  Object.keys(map).forEach((k) => { patch[k] = { g: map[k], t }; });
+  await pushPatch(patch);
+}
+async function commitGroup(rawName) {
+  const name = String(rawName || '').trim().slice(0, 30) || defaultViewName() || '我的群組';
+  let focusId = '';
+  try {
+    if (!connected()) throw new Error('還沒有連線');
+    if (grpEdit.mode === 'rename') {
+      const v = views.find((x) => x.id === grpEdit.id);
+      if (!v) throw new Error('找不到這個群組（可能已在別的裝置刪掉）');
+      await saveViews({ ['view:' + v.id]: JSON.stringify(Object.assign({ n: name, s: v.s, p: v.p, f: v.f }, v.a ? { a: 1 } : {})) });
+      focusId = v.id;
+    } else {
+      const dup = views.find(selMatches);
+      if (dup) throw new Error('已經有一樣的群組：' + dup.name);
+      focusId = newViewId();
+      await saveViews({ ['view:' + focusId]: JSON.stringify(Object.assign({ n: name, s: ui.statuses, p: ui.progress, f: ui.sites }, ui.favAuthor ? { a: 1 } : {})) });
+    }
+    grpEdit = null; grpErr = '';
+    render();
+    const chipEl = $('chips').querySelector('[data-view="' + focusId + '"]'); // 焦點回到那個群組（鍵盤操作才不會迷路）
+    if (chipEl) chipEl.focus({ preventScroll: true });
+  } catch (err) { grpErr = err && err.message ? err.message : String(err); renderChips(); }
+}
+async function removeGroup(v) {
+  try { await saveViews({ ['view:' + v.id]: '' }); render(); }
+  catch (err) { banner('刪除群組失敗：' + (err && err.message ? err.message : err), 'err'); }
+}
+function renderChips() {
+  const box = $('chips');
+  // 重畫整列前先記住焦點在哪（鍵盤操作時，不然每按一次焦點就掉到頁面最上面）
+  const ae = document.activeElement;
+  let refocus = '';
+  if (ae && box.contains(ae)) refocus = ae.id === 'grpSave' ? '#grpSave' : ae.hasAttribute('data-site') ? '[data-site="' + ae.getAttribute('data-site') + '"]' : ae.hasAttribute('data-status') ? '[data-status="' + ae.getAttribute('data-status') + '"]' : ae.hasAttribute('data-progress') ? '[data-progress="' + ae.getAttribute('data-progress') + '"]' : ae.hasAttribute('data-view') ? '[data-view="' + ae.getAttribute('data-view') + '"]' : ae.hasAttribute('data-fav') ? '.chip[data-fav]' : '';
+  box.textContent = '';
+  if (!hasSel() && grpEdit && grpEdit.mode === 'new') grpEdit = null; // 選的晶片都取消了：不用存了
+  // 最左邊：選了晶片才出現「＋存成群組」；按下去變成名稱輸入框（預設名稱可以改）
+  if (grpEdit) {
+    const f = document.createElement('form'); f.className = 'grpform'; f.setAttribute('role', 'group'); f.setAttribute('aria-label', grpEdit.mode === 'rename' ? '重新命名群組' : '存成群組');
+    const inp = document.createElement('input'); inp.type = 'text'; inp.id = 'grpName'; inp.maxLength = 30; inp.value = grpEdit.name; inp.setAttribute('aria-label', '群組名稱'); inp.autocomplete = 'off'; inp.spellcheck = false;
+    inp.addEventListener('input', () => { grpEdit.name = inp.value; });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); grpEdit = null; grpErr = ''; renderChips(); } });
+    const ok = document.createElement('button'); ok.type = 'submit'; ok.className = 'chip on'; ok.id = 'grpOk'; ok.textContent = '儲存';
+    const no = document.createElement('button'); no.type = 'button'; no.className = 'chip'; no.id = 'grpNo'; no.textContent = '取消';
+    no.addEventListener('click', () => { grpEdit = null; grpErr = ''; renderChips(); });
+    f.addEventListener('submit', async (e) => { e.preventDefault(); ok.disabled = true; await commitGroup(inp.value); });
+    f.append(inp, ok, no);
+    if (grpErr) { const er = document.createElement('span'); er.className = 'grperr'; er.setAttribute('role', 'alert'); er.textContent = grpErr; f.append(er); }
+    box.append(f);
+    if (grpFocus) { grpFocus = false; setTimeout(() => { inp.focus(); inp.select(); }, 0); }
+  } else if (hasSel() && !views.some(selMatches)) { // 選的條件已經存成群組了就不用再存
+    const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'chip savebtn'; sv.id = 'grpSave'; sv.textContent = '＋存成群組'; sv.title = '把目前選的篩選存成一個群組，之後一鍵套用（會存到試算表，所有裝置共用）';
+    sv.addEventListener('click', () => { grpEdit = { mode: 'new', id: '', name: defaultViewName() }; grpErr = ''; grpFocus = true; renderChips(); });
+    box.append(sv);
+  }
+  const mk = (label, n, pressed, onClick, attrs, check) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    Object.keys(attrs || {}).forEach((k) => b.setAttribute(k, attrs[k]));
+    if (check && pressed) { const c = document.createElement('span'); c.className = 'ck'; c.textContent = '✓'; b.append(c); }
+    b.append(label);
+    if (n != null) { const s = document.createElement('span'); s.className = 'n'; s.textContent = n; b.append(s); }
+    b.addEventListener('click', onClick);
+    box.append(b);
+    return b;
+  };
+  const cnt = (f) => groups.filter(f).length;
+  mk('全部', groups.length, !hasSel() && !ui.author, () => { ui.statuses = []; ui.sites = []; ui.progress = []; ui.favAuthor = false; ui.author = null; saveUi(); render(); }, { 'data-status': '' });
+  if (ui.author) mk('✍ ' + ui.author.name, cnt((g) => g.authors.some((a) => a.key === ui.author.key)), true, () => { ui.author = null; saveUi(); render(); }, { 'data-author': ui.author.key, title: '只看這位作者；再點一次取消' }, true);
+  // 我的群組：存好的篩選組合，點一下套用（再點一次取消）；套用中的那個旁邊可以改名、刪除
+  if (views.length) {
+    const sep0 = document.createElement('i'); sep0.className = 'sep'; box.append(sep0);
+    views.forEach((v) => {
+      const on = selMatches(v);
+      mk('★ ' + v.name, cnt((g) => passSel(g, v.s, v.p, v.f, v.a)), on, () => {
+        if (on) { ui.statuses = []; ui.progress = []; ui.sites = []; ui.favAuthor = false; } else { ui.statuses = v.s.slice(); ui.progress = v.p.slice(); ui.sites = v.f.slice(); ui.favAuthor = !!v.a; }
+        saveUi(); render();
+      }, { 'data-view': v.id, title: '我的群組：' + defaultNameOf(v) });
+      if (on) {
+        const ed = document.createElement('button'); ed.type = 'button'; ed.className = 'chipx'; ed.setAttribute('data-vedit', v.id); ed.textContent = '✎'; ed.title = '重新命名'; ed.setAttribute('aria-label', '重新命名群組：' + v.name);
+        ed.addEventListener('click', () => { grpEdit = { mode: 'rename', id: v.id, name: v.name }; grpErr = ''; grpFocus = true; renderChips(); });
+        const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'chipx'; rm.setAttribute('data-vdel', v.id); rm.textContent = '🗑'; rm.title = '刪除這個群組（只刪群組，不會刪作品）'; rm.setAttribute('aria-label', '刪除群組：' + v.name);
+        armChip(rm, () => removeGroup(v));
+        box.append(ed, rm);
+      }
+    });
+  }
+  const sep1 = document.createElement('i'); sep1.className = 'sep'; box.append(sep1);
+  STATUS_ORDER.forEach((k) => { const n = cnt((g) => g.tag === k); if (n || ui.statuses.includes(k)) mk(TAG_LABEL[k], n, ui.statuses.includes(k), () => { pickChip(ui.statuses, k); saveUi(); render(); }, { 'data-status': k }, true); });
+  const none = cnt((g) => !g.tag);
+  if (none && none !== groups.length) mk('沒標記', none, ui.statuses.includes('__none'), () => { pickChip(ui.statuses, '__none'); saveUi(); render(); }, { 'data-status': '__none' }, true);
+  const nUn = cnt((g) => g.pst === 'unread'), nLa = cnt((g) => g.pst === 'latest');
+  if (nUn || nLa || ui.progress.length) {
+    const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
+    mk('📖 還沒看完', nUn, ui.progress.includes('unread'), () => { pickChip(ui.progress, 'unread'); saveUi(); render(); }, { 'data-progress': 'unread' }, true);
+    mk('✅ 已看到最新', nLa, ui.progress.includes('latest'), () => { pickChip(ui.progress, 'latest'); saveUi(); render(); }, { 'data-progress': 'latest' }, true);
+  }
+  const nFav = cnt((g) => g.favAuthor);
+  if (nFav || ui.favAuthor) {
+    const sepF = document.createElement('i'); sepF.className = 'sep'; box.append(sepF);
+    mk('♥ 喜歡的作者', nFav, ui.favAuthor, () => { ui.favAuthor = !ui.favAuthor; saveUi(); render(); }, { 'data-fav': '1', title: '作者是你喜歡的作者的作品' }, true);
+  }
+  const fams = Object.keys(SITE_LABEL).filter((f) => groups.some((g) => g.fams.includes(f)));
+  if (fams.length > 1) {
+    const sep = document.createElement('i'); sep.className = 'sep'; box.append(sep);
+    fams.forEach((f) => mk(SITE_LABEL[f], cnt((g) => g.fams.includes(f)), ui.sites.includes(f), () => { pickChip(ui.sites, f); saveUi(); render(); }, { 'data-site': f }, true));
+  }
+  if (refocus) { const el = box.querySelector(refocus); if (el) el.focus({ preventScroll: true }); }
+}
+// 群組的完整說明（給滑鼠停在上面時看）：用到哪些篩選
+function defaultNameOf(v) {
+  const st = v.s.map((k) => (k === '__none' ? '沒標記' : String(TAG_LABEL[k] || k).replace(/^\S+\s/, '')));
+  return [...st, ...v.p.map((k) => PROG_LABEL[k] || k), ...(v.a ? ['喜歡的作者'] : []), ...v.f.map((f) => SITE_LABEL[f] || f)].join('＋') || '（沒有條件）';
+}
+// 小按鈕要按兩次才執行（第一次變成「確定？」，4 秒內再按一次）
+function armChip(btn, run) {
+  let armed = false, timer = 0;
+  const label = btn.textContent;
+  btn.addEventListener('click', async () => {
+    if (!armed) { armed = true; btn.textContent = '確定？'; btn.classList.add('armed'); timer = setTimeout(() => { armed = false; btn.textContent = label; btn.classList.remove('armed'); }, 4000); return; }
+    clearTimeout(timer); armed = false; btn.disabled = true; await run();
+  });
+}
+function renderStat() {
+  const el = $('stat');
+  if (!data) { el.textContent = ''; return; }
+  const ent = groups.reduce((n, g) => n + g.entries.length, 0);
+  const have = groups.filter((g) => coverOf(g)).length;
+  const parts = ['共 ' + groups.length + ' 部（' + ent + ' 筆網站紀錄）'];
+  if (shown.length !== groups.length) parts.push('符合 ' + shown.length + ' 部');
+  parts.push('封面 ' + have + '/' + groups.length);
+  if (covProg.total && covProg.done < covProg.total) parts.push('下載封面 ' + covProg.done + '/' + covProg.total + '…');
+  if (covProg.err) parts.push('封面同步失敗：' + covProg.err);
+  if (data.at) parts.push('資料更新於 ' + relTime(data.at));
+  if (noCache) parts.push('（瀏覽器空間不足，這次的資料沒有存成快取）');
+  el.textContent = '';
+  parts.forEach((t) => { const s = document.createElement('span'); s.textContent = t; el.append(s); });
+}
+function tile(g) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'tile'; b.dataset.key = g.key; b.dataset.gk = g.key; b.dataset.covkey = '1'; b.dataset.covclass = 'cv';
+  b.setAttribute('aria-label', g.title);
+  setPlaceholder(b, g); // 色塊畫在磚塊本身，封面圖載入後蓋過去，占位的大字再淡出
+  const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = initial(g.title); b.append(ph);
+  const e = g.entries[0];
+  const shade = document.createElement('div'); shade.className = 'shade';
+  const t = document.createElement('div'); t.className = 't'; t.textContent = g.title;
+  const m = document.createElement('div'); m.className = 'm'; const pr = fillProgress(m, e); if (e.t) m.append(' · ' + relTime(e.t));
+  if (g.author) { const au = document.createElement('div'); au.className = 'au' + (g.favAuthor ? ' fav' : ''); au.textContent = (g.favAuthor ? '♥ ' : '') + g.author; shade.append(t, au, m); } else shade.append(t, m);
+  b.append(shade);
+  if (g.tag && TAG_LABEL[g.tag]) { const s = document.createElement('div'); s.className = 'st'; s.textContent = tagIcon(g.tag); s.title = TAG_LABEL[g.tag].replace(/^\S+\s/, ''); b.append(s); }
+  if (g.fams.length > 1) { const s = document.createElement('div'); s.className = 'sc'; s.textContent = g.fams.length + ' 個網站'; b.append(s); }
+  if (pr.ratio) { const bar = document.createElement('div'); bar.className = 'prog'; bar.style.width = Math.round(pr.ratio * 100) + '%'; b.append(bar); }
+  fillCover(b, g);
+  b.addEventListener('click', () => openDrawer(g.key));
+  return b;
+}
+function row(g) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'row'; b.dataset.key = g.key; b.dataset.gk = g.key;
+  const th = document.createElement('div'); th.className = 'th'; th.dataset.covkey = '1'; th.dataset.gk = g.key; th.dataset.covclass = ''; th.textContent = initial(g.title);
+  setPlaceholder(th, g); th.style.color = 'rgba(255,255,255,.45)';
+  fillCover(th, g);
+  const info = document.createElement('div'); info.className = 'info';
+  const tt = document.createElement('div'); tt.className = 'tt'; tt.textContent = (g.tag && TAG_LABEL[g.tag] ? tagIcon(g.tag) + ' ' : '') + g.title;
+  const e = g.entries[0];
+  const ss = document.createElement('div'); ss.className = 'ss'; ss.textContent = g.fams.map((f) => SITE_LABEL[f]).join('、') + '　'; const ssp = document.createElement('span'); fillProgress(ssp, e); ss.append(ssp);
+  info.append(tt, ss);
+  if (g.author) { const mau = document.createElement('div'); mau.className = 'mau'; mau.textContent = (g.favAuthor ? '♥ ' : '✍ ') + g.author; info.append(mau); }
+  const rau = document.createElement('div'); rau.className = 'rau' + (g.favAuthor ? ' fav' : ''); rau.textContent = g.author ? (g.favAuthor ? '♥ ' : '') + g.author : '';
+  const rt = document.createElement('div'); rt.className = 'rt'; rt.textContent = relTime(e.t);
+  b.append(th, info, rau, rt);
+  b.addEventListener('click', () => openDrawer(g.key));
+  return b;
+}
+const CHUNK = 160;
+let moreIO = null;
+let groupsFor = null;
+function render() {
+  if (groupsFor !== data) { groups = data ? buildGroups(data) : []; groupsFor = data; } // 作品只在資料變了才重建（搜尋、篩選、切換檢視不用重算）
+  views = viewsOf(data);
+  bms = bookmarksFrom(data); bmByEntry = new Map(); bms.forEach((b) => { if (!bmByEntry.has(b.ek)) bmByEntry.set(b.ek, []); bmByEntry.get(b.ek).push(b); });
+  shown = visibleGroups();
+  renderChips();
+  renderStat();
+  $('v-wall').setAttribute('aria-pressed', ui.view === 'wall' ? 'true' : 'false');
+  $('v-list').setAttribute('aria-pressed', ui.view === 'list' ? 'true' : 'false');
+  const main = $('main');
+  if (moreIO) { moreIO.disconnect(); moreIO = null; }
+  main.textContent = '';
+  if (!data) { // 還沒有任何資料
+    if (loading) { const w = document.createElement('div'); w.className = 'wall'; for (let i = 0; i < 18; i++) { const s = document.createElement('div'); s.className = 'tile skeleton'; w.append(s); } main.append(w); }
+    else main.append(emptyBox('📚', connected() ? '還沒有資料' : '還沒有連線', connected() ? '按「重新整理」載入你的書架。' : '按右上角的 ⚙ 填入 Apps Script 網址與密鑰。'));
+    return;
+  }
+  if (!shown.length) { main.append(emptyBox(groups.length ? '🔎' : '📚', groups.length ? '找不到符合的作品' : '書架還是空的', groups.length ? '換個關鍵字，或清掉篩選。' : '用油猴腳本讀幾話漫畫，這裡就會出現。')); return; }
+  if (ui.view === 'wall' && !query.trim() && !ui.statuses.length && !ui.sites.length && !ui.progress.length && !ui.favAuthor && !ui.author && ui.sort === 'recent' && shown.length > 8) main.append(continueRow());
+  const wrap = document.createElement('div'); wrap.className = ui.view === 'list' ? 'rows' : 'wall'; wrap.id = 'items';
+  main.append(wrap);
+  let n = 0;
+  const more = () => {
+    const frag = document.createDocumentFragment();
+    shown.slice(n, n + CHUNK).forEach((g) => frag.append(ui.view === 'list' ? row(g) : tile(g)));
+    n += CHUNK; wrap.append(frag);
+    if (n < shown.length) { const s = document.createElement('div'); s.className = 'sentinel'; s.style.cssText = 'grid-column:1/-1;height:1px'; wrap.append(s); moreIO = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { moreIO.disconnect(); s.remove(); more(); } }, { rootMargin: '600px' }); moreIO.observe(s); }
+  };
+  more();
+}
+// 「接著看」：最近讀的 8 部，一鍵回到上次的章節
+function continueRow() {
+  const sec = document.createElement('section'); sec.className = 'cont'; sec.id = 'cont';
+  const h = document.createElement('h3'); h.textContent = '接著看'; sec.append(h);
+  const rowEl = document.createElement('div'); rowEl.className = 'cont-row';
+  shown.slice(0, 8).forEach((g) => {
+    const e = g.entries[0];
+    const card = document.createElement('div'); card.className = 'cc';
+    const main = document.createElement('button'); main.type = 'button'; main.className = 'cc-main'; main.dataset.key = g.key;
+    const th = document.createElement('div'); th.className = 'th'; th.dataset.covkey = '1'; th.dataset.gk = g.key; th.dataset.covclass = ''; th.textContent = initial(g.title); setPlaceholder(th, g); th.style.color = 'rgba(255,255,255,.45)'; fillCover(th, g);
+    const info = document.createElement('div'); info.className = 'info';
+    const tt = document.createElement('div'); tt.className = 'tt'; tt.textContent = g.title;
+    const ss = document.createElement('div'); ss.className = 'ss'; const cp = fillProgress(ss, e);
+    info.append(tt, ss);
+    if (cp.ratio) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * cp.ratio) + '%'; bar.append(i); info.append(bar); }
+    const when = document.createElement('div'); when.className = 'ss'; when.textContent = relTime(e.t); info.append(when);
+    main.append(th, info); main.addEventListener('click', () => openDrawer(g.key));
+    const go = document.createElement('a'); go.className = 'cc-go'; go.href = resumeUrl(e); go.target = '_blank'; go.rel = 'noopener noreferrer'; go.textContent = '▶'; go.title = '繼續閱讀'; go.setAttribute('aria-label', '繼續閱讀：' + g.title);
+    card.append(main, go); rowEl.append(card);
+  });
+  sec.append(rowEl); return sec;
+}
+function emptyBox(big, title, sub) {
+  const d = document.createElement('div'); d.className = 'empty';
+  const a = document.createElement('div'); a.className = 'big'; a.textContent = big;
+  const b = document.createElement('div'); b.style.cssText = 'font-size:16px;color:var(--text);margin-bottom:4px'; b.textContent = title;
+  const c = document.createElement('div'); c.textContent = sub;
+  d.append(a, b, c); return d;
+}
+
+/* ── 編輯：狀態、備註、刪除（寫回試算表，和油猴腳本的書架共用同一份資料）── */
+// patch：{ 設定鍵: 值 }，值是空字串＝取消那筆設定。用「分組設定」送出（和書架同一套：每筆以較新的時間為準），回來的是最新的整份資料
+async function saveGroups(patch) {
+  const t = Date.now(), gs = {};
+  Object.keys(patch).forEach((k) => { gs[k] = { g: patch[k], t }; });
+  const r = await api({ type: 'shelf', groups: gs });
+  data = { at: Date.now(), rows: r.rows || [], groups: r.groups || {} };
+  noCache = !LS.set(DATA_KEY, data);
+}
+// 刪除這些網站紀錄：先從試算表刪掉那幾列，再把它們的分組設定（手動合併、系列、最新話數）一起清掉
+async function deleteEntries(g, entries, whole) {
+  const items = entries.flatMap((e) => e.srcRows || []);
+  if (!items.length) throw new Error('找不到這部的原始紀錄');
+  const covKeys = whole ? entries.map((e) => e.key) : []; // 整部刪除才連 Drive 的封面圖一起刪（只刪某個網站的紀錄時，那張封面可能還是這部在用，不動）
+  const hadCov = covKeys.some((k) => covUrl.has(k));
+  const r = await api({ type: 'delete', items, coverKeys: covKeys });
+  if (typeof r.deleted !== 'number') throw new Error('試算表的 Apps Script 是舊版，不支援刪除：請貼上新版 reading-log.gs 並重新部署');
+  if (covKeys.length) await dropCovers(covKeys);
+  const patch = {};
+  const have = (k) => data && data.groups && data.groups[k];
+  entries.forEach((e) => ['', 'x:', 'up:'].forEach((pf) => { if (have(pf + e.key)) patch[pf + e.key] = ''; }));
+  if (whole) ['tag:', 'note:'].forEach((pf) => { if (have(pf + g.key)) patch[pf + g.key] = ''; });
+  await saveGroups(patch); // 沒有要清的也照送：順便拿回最新的整份資料
+  return hadCov && typeof r.coversDeleted !== 'number' ? '（Apps Script 還不是最新版，Drive 裡的封面圖沒有一併刪除：請貼上新版 reading-log.gs 並重新部署）' : '';
+}
+// 本機（這個瀏覽器）的封面快取也清掉：畫面上的圖、IndexedDB
+async function dropCovers(keys) {
+  for (const k of keys) {
+    const old = covUrl.get(k);
+    if (old) { URL.revokeObjectURL(old.url); covUrl.delete(k); }
+    await idbDo('readwrite', (st) => st.delete(k));
+  }
+}
+// 要按兩次才執行（第一次變成「確定？」，4 秒內再按一次）
+function armButton(btn, label, run, armedText) {
+  let armed = false, timer = 0;
+  btn.addEventListener('click', async () => {
+    if (!armed) { armed = true; btn.classList.add('armed'); btn.textContent = armedText || '確定刪除？'; timer = setTimeout(() => { armed = false; btn.classList.remove('armed'); btn.textContent = label; }, 4000); return; }
+    clearTimeout(timer); armed = false; btn.disabled = true; await run(); btn.disabled = false; btn.classList.remove('armed'); btn.textContent = label;
+  });
+}
+
+/* ── 書籤 ──
+ * 油猴腳本在閱讀器裡加的書籤：每一頁一列，鍵 bm:<頁數>@<章節網址>，值是漫畫資訊的 JSON。和書架共用同一份（試算表的書架分組分頁）。 */
+const safeHref = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
+function bookmarksFrom(d) {
+  const out = [], gs = (d && d.groups) || {};
+  Object.keys(gs).forEach((k) => {
+    const m = /^bm:(\d+)@(.+)$/.exec(k), v = gs[k];
+    if (!m || !v || !v.g) return;
+    try {
+      const meta = JSON.parse(v.g), fam = famOf(meta.site || '') || '';
+      const cid = fam ? cidOf(fam, meta.toc || '', m[2]) : '';
+      out.push({ k, page: Number(m[1]), url: m[2], comic: String(meta.comic || ''), chapter: String(meta.chapter || ''), fam, ek: cid || (fam + '|' + (meta.comic || '')), t: Number(v.t) || 0 });
+    } catch (e) { /* 壞掉的書籤：略過 */ }
+  });
+  return out;
+}
+// 「前往」：有油猴腳本時，先請它記下「下一次開那一頁要跳到第幾頁」（和書架的「前往」一樣）；沒有腳本就只開到那一話
+function bmLink(b) {
+  const a = document.createElement('a');
+  a.className = 'btn'; a.href = safeHref(b.url); a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = '前往第 ' + b.page + ' 頁'; a.setAttribute('data-bm-go', b.k);
+  a.addEventListener('click', () => { if (bridgeOn() && b.page > 1) { document.documentElement.setAttribute('data-tmr-jump', JSON.stringify({ url: b.url, page: b.page })); document.dispatchEvent(new Event('tmr-jump')); } });
+  return a;
+}
+// 一列書籤。onRemove：給了就多一個「移除」（要按兩次）
+function bmRowEl(b, onRemove) {
+  const r = document.createElement('div'); r.className = 'bmrow';
+  const t = document.createElement('span'); t.className = 'bt'; t.textContent = '🔖 第 ' + b.page + ' 頁' + (b.chapter ? ' · ' + b.chapter : ''); r.append(t, bmLink(b));
+  if (onRemove) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.setAttribute('data-bm-del', b.k); const lab = '移除'; d.textContent = lab; armButton(d, lab, () => onRemove(b)); r.append(d); }
+  return r;
+}
+
+/* ── 彈窗（挑選作品、書籤檢視器共用）── */
+let modalOpener = null;
+function showModal(id, focusId, returnTo) {
+  // 關掉後焦點要回去的地方（從選單開的，選單已經收起，就回到「⋯」）
+  modalOpener = returnTo || document.activeElement;
+  $(id).hidden = false; document.body.style.overflow = 'hidden';
+  setTimeout(() => { const f = $(focusId); if (f) f.focus(); }, 0);
+}
+function hideModal(id) {
+  $(id).hidden = true;
+  if (!openKey && $('pick').hidden && $('bm').hidden && $('au').hidden) document.body.style.overflow = '';
+  if (modalOpener && modalOpener.isConnected && modalOpener.focus) modalOpener.focus({ preventScroll: true });
+  modalOpener = null;
+}
+['pick', 'bm', 'au'].forEach((id) => {
+  $(id).addEventListener('mousedown', (e) => { if (e.target === $(id)) { if (id === 'pick') closePick(); else hideModal(id); } });
+  $(id).addEventListener('keydown', (e) => { // Tab 不要跑到後面的頁面
+    if (e.key !== 'Tab') return;
+    const f = [...$(id).querySelectorAll('input, button, a[href]')].filter((x) => !x.disabled && !x.hidden && x.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+});
+
+/* ── 合併／拆開／同系列 ──
+ * 「要寫哪些設定」是書架的程式直接抽出來的（joinPatch／splitPatch／linkPatch／unlinkPatch），所以兩邊改出來的結果一模一樣。 */
+const ovOf = () => overrides({ sgroups: (data && data.groups) || {}, lgroups: {} });
+let pickSt = null; // { mode: 'merge' | 'series', src, sel }
+function openPick(mode, src) {
+  pickSt = { mode, src, sel: null };
+  $('pickTitle').textContent = mode === 'merge' ? '併入另一部' : '設為同系列';
+  $('pickDesc').textContent = mode === 'merge' ? '把「' + src.title + '」併入下面選的那一部：兩邊的閱讀紀錄合成一部，之後別的網站出現同名的紀錄也會自動歸過去。' : '把「' + src.title + '」和下面選的作品連成同系列：進度各自獨立，只是互相連起來，可以隨時取消連結。';
+  $('pickQ').value = ''; $('pickMsg').textContent = ''; $('pickMsg').className = 'msg';
+  renderPick(); showModal('pick', 'pickQ');
+}
+function closePick() { pickSt = null; hideModal('pick'); }
+// 候選：最像的排前面（兩個書名越像越前面；有關鍵字就先照關鍵字篩）
+function pickCandidates(q) {
+  const st = pickSt;
+  let list = groups.filter((h) => h !== st.src && (st.mode !== 'series' || !st.src.related.includes(h)));
+  if (q.trim()) list = filterGroups(list, q.trim(), () => 0);
+  const base = norm(st.src.title);
+  return list.map((h) => ({ h, sc: similarity(base, norm(h.title)) })).sort((a, b) => (b.sc - a.sc) || (b.h.t - a.h.t)).slice(0, 40);
+}
+function renderPick() {
+  const st = pickSt;
+  if (!st) return;
+  const list = $('pickList'), conf = $('pickConfirm');
+  list.textContent = '';
+  if (st.sel) { // 確認畫面
+    list.hidden = true; $('pickQ').hidden = true; conf.hidden = false; $('pickOk').hidden = false; $('pickCancel').textContent = '返回';
+    conf.textContent = st.mode === 'merge' ? '把「' + st.src.title + '」（' + st.src.entries.length + ' 個網站）併入「' + st.sel.title + '」？併入後沿用「' + st.sel.title + '」的狀態標記與備註；之後可以用「拆開」分回來。' : '把「' + st.src.title + '」和「' + st.sel.title + '」連成同系列？';
+    return;
+  }
+  list.hidden = false; $('pickQ').hidden = false; conf.hidden = true; $('pickOk').hidden = true; $('pickCancel').textContent = '取消';
+  const cands = pickCandidates($('pickQ').value);
+  if (!cands.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '找不到符合的作品'; list.append(e); return; }
+  cands.forEach(({ h, sc }) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pickrow'; b.setAttribute('data-pick', h.key);
+    const tt = document.createElement('span'); tt.className = 'tt'; tt.textContent = h.title;
+    const sub = document.createElement('span'); sub.className = 'sub'; sub.textContent = h.fams.map((f) => SITE_LABEL[f] || f).join('、') + '　' + (progressOf(h.entries[0]).text || h.entries[0].chapter || '');
+    b.append(tt, sub);
+    if (st.mode === 'merge' && sc >= 0.6) { const g = document.createElement('span'); g.className = 'sug'; g.textContent = '可能是同一部'; b.append(g); }
+    b.addEventListener('click', () => { st.sel = h; renderPick(); $('pickOk').focus(); });
+    list.append(b);
+  });
+}
+$('pickQ').addEventListener('input', () => { if (pickSt && !pickSt.sel) renderPick(); });
+$('pickCancel').addEventListener('click', () => { if (pickSt && pickSt.sel) { pickSt.sel = null; renderPick(); $('pickQ').focus(); } else closePick(); });
+$('pickOk').addEventListener('click', async () => {
+  const st = pickSt;
+  if (!st || !st.sel) return;
+  const src = st.src, tgt = st.sel, mode = st.mode;
+  $('pickOk').disabled = true; $('pickMsg').className = 'msg'; $('pickMsg').textContent = '儲存中…';
+  try {
+    const t = Date.now(), ov = ovOf();
+    await pushPatch(mode === 'merge' ? joinPatch([src], tgt.key, ov, t) : linkPatch(src, tgt, ov, t));
+    closePick();
+    editNote = { cls: 'ok', text: mode === 'merge' ? '✓ 已併入「' + tgt.title + '」' : '✓ 已設為同系列：「' + tgt.title + '」' };
+    render();
+    openDrawer(mode === 'merge' ? tgt.key : src.key, '#editBtn', true);
+  } catch (err) { $('pickMsg').className = 'msg err'; $('pickMsg').textContent = '✗ ' + (err && err.message ? err.message : err); }
+  finally { $('pickOk').disabled = false; }
+});
+
+/* ── 作者 ──
+ * 手動修正存在 author:<作品鍵>，喜歡的作者存在 favauthor:<作者鍵>（試算表的書架分組分頁，書架和圖書館共用）；
+ * 作者怎麼拆開、怎麼比對、要寫哪些設定，都是書架的程式抽出來的（authorsOf／applyAuthors／authorPatch／favAuthorPatch）。 */
+function filterAuthor(a) { ui.author = { key: a.key, name: a.name }; saveUi(); render(); window.scrollTo({ top: 0 }); }
+async function toggleFav(a, on, i) { // 喜歡／取消喜歡：存到試算表成功才算數；詳情維持原狀（含編輯模式）
+  try { await pushPatch(favAuthorPatch(a, on, Date.now())); const k = openKey; render(); if (k) openDrawer(k, '.favbtn[data-favi="' + i + '"]', true); }
+  catch (err) { banner('操作失敗：' + (err && err.message ? err.message : err), 'err'); }
+}
+const favCount = () => favMapOf(ovOf()).size;
+function openAu() { $('auQ').value = ''; $('auMsg').textContent = ''; renderAu(); showModal('au', 'auQ', $('more')); }
+function renderAu(focusKey) {
+  const q = norm($('auQ').value), list = $('auList');
+  list.textContent = '';
+  const favs = favMapOf(ovOf()), all = authorStats(groups, favs), items = q ? all.filter((a) => norm(a.name).includes(q)) : all;
+  $('auDesc').textContent = all.length ? '共 ' + all.length + ' 位作者（♥ ' + favs.size + ' 位喜歡）。喜歡的排在前面；點 ♥ 切換，點名字只看他的作品。' : '還沒有作者資料。作者會在讀漫畫時自動抓取；抓不到或抓錯的，可以在作品詳情的編輯模式裡自己填。';
+  if (all.length && !items.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '找不到符合的作者'; list.append(e); return; }
+  items.slice(0, 300).forEach((a) => {
+    const r = document.createElement('div'); r.className = 'arow'; r.setAttribute('data-arow', a.key);
+    const fb = document.createElement('button'); fb.type = 'button'; fb.className = 'favbtn' + (a.fav ? ' on' : ''); fb.setAttribute('data-afav', a.key); fb.setAttribute('aria-pressed', a.fav ? 'true' : 'false'); fb.textContent = a.fav ? '♥' : '♡'; fb.setAttribute('aria-label', (a.fav ? '取消喜歡作者：' : '喜歡作者：') + a.name);
+    fb.addEventListener('click', async () => {
+      try { await pushPatch(favAuthorPatch(a, !a.fav, Date.now())); render(); renderAu(a.key); }
+      catch (err) { $('auMsg').className = 'msg err'; $('auMsg').textContent = '✗ ' + (err && err.message ? err.message : err); }
+    });
+    const nb = document.createElement('button'); nb.type = 'button'; nb.className = 'aname'; nb.setAttribute('data-aname', a.key); nb.textContent = a.name; nb.title = '只看這位作者的作品';
+    nb.addEventListener('click', () => { hideModal('au'); filterAuthor(a); });
+    const ct = document.createElement('span'); ct.className = 'acount'; ct.textContent = a.count + ' 部';
+    r.append(fb, nb, ct); list.append(r);
+  });
+  if (items.length > 300) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '只顯示前 300 位，請用上面的搜尋縮小範圍'; list.append(e); }
+  if (focusKey) { const f = list.querySelector('[data-afav="' + (window.CSS && CSS.escape ? CSS.escape(focusKey) : focusKey) + '"]'); if (f) f.focus({ preventScroll: true }); }
+}
+$('auQ').addEventListener('input', () => renderAu());
+$('auClose').addEventListener('click', () => hideModal('au'));
+
+/* ── 書籤檢視器 ── */
+let bmOpen = new Set(); // 展開的那幾部（每次打開書籤檢視器都從全部收起來開始）
+function openBm() { $('bmQ').value = ''; $('bmMsg').textContent = ''; bmOpen = new Set(); renderBm(); showModal('bm', 'bmQ', $('more')); }
+function renderBm() {
+  const q = norm($('bmQ').value), list = $('bmList');
+  list.textContent = '';
+  const gOf = new Map(); groups.forEach((g) => g.entries.forEach((e) => gOf.set(e.key, g)));
+  const by = new Map();
+  bms.forEach((b) => {
+    const g = gOf.get(b.ek) || null, key = g ? g.key : 'c:' + norm(b.comic);
+    if (!by.has(key)) by.set(key, { g, title: g ? g.title : (b.comic || '（找不到這部漫畫的紀錄）'), t: g ? g.t : 0, items: [] });
+    by.get(key).items.push(b);
+  });
+  let items = [...by.values()];
+  if (q) items = items.filter((x) => norm(x.title + ' ' + x.items.map((b) => b.chapter).join(' ')).includes(q));
+  items.sort((a, b) => (b.t - a.t) || (a.title < b.title ? -1 : 1));
+  $('bmDesc').textContent = bms.length ? '共 ' + bms.length + ' 個書籤（' + by.size + ' 部）。' + (bridgeOn() ? '' : '沒有油猴腳本時，「前往」只會開到那一話，不會自動跳到該頁。') : '還沒有書籤。在閱讀器裡加書籤後，這裡就會出現（和書架共用）。';
+  if (bms.length && !items.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '8px'; e.textContent = '找不到符合的書籤'; list.append(e); return; }
+  items.forEach((x, gi) => {
+    const gk = x.g ? x.g.key : 'c:' + norm(x.title);
+    const open = !!q || bmOpen.has(gk); // 有搜尋時全部展開（不然看不到是哪一話符合）
+    const box = document.createElement('div'); box.className = 'bmgroup' + (open ? ' open' : ''); box.setAttribute('data-bm-group', gk);
+    const head = document.createElement('div'); head.className = 'bmhead';
+    const tog = document.createElement('button'); tog.type = 'button'; tog.className = 'bmtog'; tog.textContent = '▸'; tog.setAttribute('aria-expanded', open ? 'true' : 'false'); tog.setAttribute('aria-controls', 'bmItems' + gi); tog.setAttribute('aria-label', (open ? '收起' : '展開') + '「' + x.title + '」的書籤');
+    head.append(tog);
+    if (x.g) { const t = document.createElement('button'); t.type = 'button'; t.className = 'gt'; t.setAttribute('data-bm-open', x.g.key); t.textContent = x.title; t.title = '開啟這部的詳情'; t.addEventListener('click', () => { hideModal('bm'); openDrawer(x.g.key); }); head.append(t); }
+    else { const t = document.createElement('div'); t.className = 'gt'; t.textContent = x.title; head.append(t); }
+    const n = document.createElement('span'); n.className = 'bmn'; n.textContent = x.items.length + ' 個'; head.append(n);
+    const body = document.createElement('div'); body.className = 'bmitems'; body.id = 'bmItems' + gi; body.hidden = !open;
+    // 點標題旁邊的空白、箭頭、數量：展開／收起；點書名本身仍然是開啟這部的詳情
+    const toggle = () => { const on = body.hidden; body.hidden = !on; box.classList.toggle('open', on); tog.setAttribute('aria-expanded', on ? 'true' : 'false'); tog.setAttribute('aria-label', (on ? '收起' : '展開') + '「' + x.title + '」的書籤'); if (on) bmOpen.add(gk); else bmOpen.delete(gk); };
+    head.addEventListener('click', (e) => { if (e.target.closest('[data-bm-open]')) return; toggle(); });
+    x.items.sort((a, b) => (a.chapter < b.chapter ? -1 : a.chapter > b.chapter ? 1 : 0) || (a.page - b.page)).forEach((b) => body.append(bmRowEl(b, async (bk) => {
+      try { await pushPatch({ [bk.k]: { g: '', t: Date.now() } }); render(); renderBm(); }
+      catch (err) { $('bmMsg').className = 'msg err'; $('bmMsg').textContent = '✗ 移除失敗：' + (err && err.message ? err.message : err); renderBm(); }
+    })));
+    box.append(head, body);
+    list.append(box);
+  });
+}
+$('bmQ').addEventListener('input', renderBm);
+$('bmClose').addEventListener('click', () => hideModal('bm'));
+
+/* ── 詳情 ── */
+/* ── 作品介紹頁 ──
+ * 詳情欄標題旁的「↗」：在新分頁開這部作品在各網站的介紹頁（漫畫首頁），不用進到閱讀。每個網站一個（同一部在不同網站的介紹頁不同）。 */
+const EXT_SVG = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H5.5A1.5 1.5 0 0 0 4 6.5v12A1.5 1.5 0 0 0 5.5 20h12a1.5 1.5 0 0 0 1.5-1.5V14"/><path d="M13 4h7v7"/><path d="M20 4l-9 9"/></svg>';
+function introUrl(e) {
+  if (e.fam === 'gallery') return ''; // 本機資料夾：沒有網站上的介紹頁
+  let u = '';
+  if (/^https?:\/\//i.test(e.toc || '')) u = e.toc;
+  else { const p = tocFromUrl(e.fam, e.url); try { u = p ? new URL(e.url).origin + p : ''; } catch (err) { u = ''; } }
+  return /^https?:\/\//i.test(u) ? u : '';
+}
+function introLinks(g) {
+  const seen = new Set(), out = [];
+  g.entries.forEach((e) => {
+    const u = introUrl(e);
+    if (!u || seen.has(u) || out.length >= 4) return;
+    seen.add(u);
+    const a = document.createElement('a'); a.className = 'ext'; a.href = u; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.setAttribute('data-intro', e.fam || ''); a.title = '在新分頁開「' + (SITE_LABEL[e.fam] || e.host) + '」的作品介紹頁（不用進到閱讀）'; a.setAttribute('aria-label', '開啟作品介紹頁：' + (SITE_LABEL[e.fam] || e.host));
+    a.innerHTML = EXT_SVG;
+    out.push(a);
+  });
+  return out;
+}
+function resumeUrl(e) {
+  let u = e.url;
+  if (e.fam === 'nhentai' && e.page > 1) u = u.replace(/(\/g\/\d+\/)\d+(\/?)(?=[?#]|$)/, (m0, a, b) => a + e.page + b);
+  return u;
+}
+/* ── 封面放大（和油猴書架一樣）──
+ * 滑鼠移到詳情欄的海報上，就放大成視窗放得下的最大尺寸（直的圖撐滿高、橫的圖撐滿寬），移開就恢復。觸控裝置沒有 hover，不做。 */
+let covPop = null;
+function hideCovPop() { if (covPop) { covPop.remove(); covPop = null; } }
+function coverHover(box) {
+  if (!window.matchMedia || !matchMedia('(hover: hover)').matches) return;
+  box.addEventListener('mouseenter', () => {
+    hideCovPop();
+    const im = box.querySelector('img');
+    if (!im || !im.src) return; // 還沒有封面（只有字母）
+    const big = document.createElement('img'); big.alt = ''; big.src = im.currentSrc || im.src;
+    const pop = covPop = document.createElement('div'); pop.className = 'covpop'; pop.style.visibility = 'hidden'; pop.append(big);
+    const place = () => {
+      if (covPop !== pop || !big.naturalWidth) return;
+      const sc = Math.min((innerWidth - 56) / big.naturalWidth, (innerHeight - 56) / big.naturalHeight);
+      big.style.width = Math.round(big.naturalWidth * sc) + 'px'; big.style.height = Math.round(big.naturalHeight * sc) + 'px';
+      pop.style.left = Math.max(0, Math.round((innerWidth - pop.offsetWidth) / 2)) + 'px';
+      pop.style.top = Math.max(0, Math.round((innerHeight - pop.offsetHeight) / 2)) + 'px';
+      pop.style.visibility = '';
+    };
+    big.addEventListener('load', place);
+    document.body.append(pop);
+    if (big.complete) place();
+  });
+  box.addEventListener('mouseleave', hideCovPop);
+}
+function openDrawer(key, focusSel, keepEdit) {
+  const g = groups.find((x) => x.key === key);
+  if (!g) return;
+  hideCovPop();
+  if (!openKey) { drawerOpener = document.activeElement; document.body.style.overflow = 'hidden'; try { history.pushState({ lib: 'drawer' }, ''); drawerPushed = true; } catch (e) { drawerPushed = false; } } // 手機的「返回」鍵會先關詳情，不會直接離開圖書館
+  if (key !== openKey && !keepEdit) { editMode = false; editNote = null; }
+  openKey = key;
+  const body = $('dbody');
+  body.textContent = '';
+  const hero = document.createElement('div'); hero.className = 'hero';
+  const poster = document.createElement('div'); poster.className = 'poster'; poster.dataset.covkey = '1'; poster.dataset.gk = g.key; poster.dataset.covclass = '';
+  poster.textContent = initial(g.title); setPlaceholder(poster, g); fillCover(poster, g); coverHover(poster);
+  const info = document.createElement('div');
+  const h2 = document.createElement('h2'); h2.textContent = g.title; introLinks(g).forEach((a) => h2.append(a)); info.append(h2);
+  if (g.authors.length) { // 作者：點名字只看他的作品；♡／♥ 切換喜歡的作者
+    const aw = document.createElement('div'); aw.className = 'au';
+    const favs = favMapOf(ovOf());
+    g.authors.forEach((a, i) => {
+      const on = favs.has(a.key);
+      const nb = document.createElement('button'); nb.type = 'button'; nb.className = 'chipau'; nb.setAttribute('data-aname', a.key); nb.textContent = '✍ ' + a.name; nb.title = '只看這位作者的作品' + (g.authorManual ? '（手動修正過；自動抓到的是：' + (g.autoAuthor || '沒有') + '）' : '');
+      nb.addEventListener('click', () => { closeDrawer(); filterAuthor(a); });
+      const fb = document.createElement('button'); fb.type = 'button'; fb.className = 'favbtn' + (on ? ' on' : ''); fb.setAttribute('data-favi', String(i)); fb.setAttribute('aria-pressed', on ? 'true' : 'false'); fb.textContent = on ? '♥' : '♡'; fb.title = on ? '取消喜歡這位作者' : '喜歡這位作者'; fb.setAttribute('aria-label', (on ? '取消喜歡作者：' : '喜歡作者：') + a.name);
+      fb.addEventListener('click', () => toggleFav(a, !on, i));
+      aw.append(nb, fb);
+    });
+    info.append(aw);
+  }
+  const tags = document.createElement('div'); tags.className = 'tags';
+  if (g.tag && TAG_LABEL[g.tag]) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAG_LABEL[g.tag]; tags.append(t); }
+  g.fams.forEach((f) => { const t = document.createElement('span'); t.className = 'tag'; t.textContent = SITE_LABEL[f] || f; tags.append(t); });
+  info.append(tags);
+  const first = g.entries[0];
+  const go = document.createElement('a'); go.className = 'btn primary'; go.href = resumeUrl(first); go.target = '_blank'; go.rel = 'noopener noreferrer'; go.textContent = '▶ 繼續閱讀'; go.id = 'goResume';
+  info.append(go);
+  const ct = document.createElement('div'); ct.className = 'covtools';
+  const cbtn = document.createElement('button'); cbtn.type = 'button'; cbtn.className = 'btn'; cbtn.id = 'covBtn'; cbtn.textContent = '🖼 上傳封面…'; cbtn.title = '選一張圖當這部的封面（存到你的 Drive，所有裝置共用）';
+  const cfile = document.createElement('input'); cfile.type = 'file'; cfile.accept = 'image/*'; cfile.id = 'covFile'; cfile.hidden = true;
+  const cmsg = document.createElement('div'); cmsg.className = 'covmsg'; cmsg.id = 'covMsg'; cmsg.setAttribute('role', 'status');
+  const doUpload = async (file) => {
+    if (!file) return;
+    cbtn.disabled = true; cmsg.className = 'covmsg'; cmsg.textContent = '上傳中…';
+    try { const r = await uploadCover(g, file); cmsg.className = 'covmsg ok'; cmsg.textContent = '✓ 已更換封面（存到 Drive）' + shrinkNote(r); }
+    catch (err) { cmsg.className = 'covmsg err'; cmsg.textContent = '✗ ' + (err && err.message ? err.message : err); }
+    finally { cbtn.disabled = false; }
+  };
+  const rbtn = document.createElement('button'); rbtn.type = 'button'; rbtn.className = 'btn'; rbtn.id = 'covRefresh'; rbtn.textContent = '🔄 更新封面'; rbtn.title = '重新到網站抓這部的封面（需要油猴腳本）；沒有腳本時改成從雲端重新載入';
+  const doRefresh = async () => {
+    rbtn.disabled = true; cbtn.disabled = true; cmsg.className = 'covmsg'; cmsg.textContent = '更新中…';
+    try { const r = await refreshCover(g, (t) => { cmsg.textContent = t; }); cmsg.className = 'covmsg' + (r.warn ? '' : ' ok'); cmsg.textContent = r.text; }
+    catch (err) { cmsg.className = 'covmsg err'; cmsg.textContent = '✗ ' + (err && err.message ? err.message : err); }
+    finally { rbtn.disabled = false; cbtn.disabled = false; }
+  };
+  const curCov = coverOf(g);
+  if (curCov && curCov.c) armButton(rbtn, '🔄 更新封面', doRefresh, '會蓋掉你上傳的封面，確定？'); // 目前是自己上傳的：要按兩次
+  else rbtn.addEventListener('click', doRefresh);
+  cbtn.addEventListener('click', () => cfile.click());
+  cfile.addEventListener('change', () => { const f = cfile.files[0]; cfile.value = ''; doUpload(f); });
+  poster.addEventListener('dragover', (e) => { e.preventDefault(); poster.classList.add('drop'); });
+  poster.addEventListener('dragleave', () => poster.classList.remove('drop'));
+  poster.addEventListener('drop', (e) => { e.preventDefault(); poster.classList.remove('drop'); doUpload(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
+  const ubtn = document.createElement('button'); ubtn.type = 'button'; ubtn.className = 'btn'; ubtn.id = 'updOne'; ubtn.textContent = '🔄 檢查最新話數'; ubtn.title = '請油猴腳本到網站查這部最新到第幾話（需要油猴腳本 v3.28.0 以上），結果會同步到這裡';
+  ubtn.addEventListener('click', async () => {
+    ubtn.disabled = true; rbtn.disabled = true; cbtn.disabled = true; cmsg.className = 'covmsg'; cmsg.textContent = '檢查中…（請油猴腳本到網站查這部的最新話數）';
+    let note = null;
+    try {
+      const r = await checkLatest(g);
+      await refresh(); // 腳本已把最新話數寫進試算表：重新載入，詳情與清單上的「共幾話」「還沒看完」就更新了
+      note = { cls: r.warn ? '' : 'ok', text: r.text };
+    } catch (err) { note = { cls: 'err', text: '✗ ' + (err && err.message ? err.message : err) }; }
+    if (groups.some((x) => x.key === g.key) && openKey === g.key) { // 重畫詳情（「已讀／共幾話」才會更新），再把訊息放回封面按鈕下面那一列
+      openDrawer(g.key, '#updOne');
+      const m = $('covMsg'); if (m) { m.className = 'covmsg' + (note.cls ? ' ' + note.cls : ''); m.textContent = note.text; }
+    } else { ubtn.disabled = false; rbtn.disabled = false; cbtn.disabled = false; cmsg.className = 'covmsg' + (note.cls ? ' ' + note.cls : ''); cmsg.textContent = note.text; }
+  });
+  ct.append(cbtn, rbtn, ubtn, cfile, cmsg); info.append(ct);
+  const ebtn = document.createElement('button'); ebtn.type = 'button'; ebtn.className = 'btn'; ebtn.id = 'editBtn'; ebtn.setAttribute('aria-pressed', editMode ? 'true' : 'false'); ebtn.textContent = editMode ? '✓ 完成編輯' : '✎ 編輯狀態／備註／刪除'; ebtn.style.marginTop = '8px';
+  ebtn.addEventListener('click', () => { editMode = !editMode; editNote = null; openDrawer(g.key, '#editBtn'); });
+  info.append(ebtn);
+  hero.append(poster, info); body.append(hero);
+  if (g.note) { const n = document.createElement('div'); n.className = 'note'; n.textContent = g.note; body.append(n); }
+  const msg = document.createElement('div'); msg.className = 'covmsg' + (editNote ? ' ' + editNote.cls : ''); msg.id = 'editMsg'; msg.setAttribute('role', 'status'); msg.textContent = editNote ? editNote.text : ''; editNote = null;
+  // 做一個編輯動作：成功就重畫（資料已更新），失敗在訊息列顯示原因
+  const doEdit = async (work, okText, focus) => {
+    msg.className = 'covmsg'; msg.textContent = '儲存中…';
+    try { await work(); editNote = { cls: 'ok', text: '✓ ' + okText }; render(); if (groups.some((x) => x.key === g.key)) openDrawer(g.key, focus); else closeDrawer(); }
+    catch (err) { msg.className = 'covmsg err'; msg.textContent = '✗ ' + (err && err.message ? err.message : err); }
+  };
+  if (editMode) {
+    const ed = document.createElement('div'); ed.className = 'edit';
+    const l1 = document.createElement('div'); l1.className = 'lbl'; l1.textContent = '狀態（再按一次取消）'; ed.append(l1);
+    const sc = document.createElement('div'); sc.className = 'stchips'; sc.setAttribute('role', 'group'); sc.setAttribute('aria-label', '狀態');
+    STATUS_ORDER.forEach((k) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('data-tag', k); b.setAttribute('aria-pressed', g.tag === k ? 'true' : 'false'); b.textContent = TAG_LABEL[k];
+      b.addEventListener('click', () => doEdit(() => saveGroups({ ['tag:' + g.key]: g.tag === k ? '' : k }), g.tag === k ? '已取消狀態' : '狀態已改成「' + TAG_LABEL[k].replace(/^\S+\s/, '') + '」', '[data-tag="' + k + '"]'));
+      sc.append(b);
+    });
+    ed.append(sc);
+    const l2 = document.createElement('div'); l2.className = 'lbl'; l2.textContent = '備註'; ed.append(l2);
+    const ta = document.createElement('textarea'); ta.id = 'noteTa'; ta.maxLength = 500; ta.value = g.note || ''; ta.setAttribute('aria-label', '備註'); ed.append(ta);
+    const r2 = document.createElement('div'); r2.className = 'row2';
+    const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'btn primary'; sv.id = 'noteSave'; sv.textContent = '儲存備註';
+    sv.addEventListener('click', () => { const v = ta.value.trim(); doEdit(() => saveGroups({ ['note:' + g.key]: v }), v ? '備註已儲存' : '備註已清除', '#noteSave'); });
+    r2.append(sv); ed.append(r2);
+    const l3 = document.createElement('div'); l3.className = 'lbl'; l3.textContent = '作者'; ed.append(l3);
+    const ai = document.createElement('input'); ai.type = 'text'; ai.id = 'authorIn'; ai.className = 'pickq'; ai.style.marginBottom = '0'; ai.maxLength = 100; ai.value = g.author || ''; ai.setAttribute('aria-label', '作者'); ai.placeholder = g.autoAuthor ? '自動抓到的：' + g.autoAuthor : '沒有自動抓到作者，可以自己填'; ed.append(ai);
+    const r3 = document.createElement('div'); r3.className = 'row2';
+    const sa = document.createElement('button'); sa.type = 'button'; sa.className = 'btn primary'; sa.id = 'authorSave'; sa.textContent = '儲存作者';
+    sa.addEventListener('click', () => { const v = ai.value.trim(); doEdit(() => pushPatch(authorPatch(g, v, Date.now())), v ? '作者已儲存' : '已回到自動抓到的作者', '#authorSave'); });
+    ai.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sa.click(); } });
+    r3.append(sa);
+    if (g.authorManual) { const ra = document.createElement('button'); ra.type = 'button'; ra.className = 'btn'; ra.id = 'authorReset'; ra.textContent = '回到自動抓到的'; ra.title = '自動抓到的是：' + (g.autoAuthor || '（沒有）'); ra.addEventListener('click', () => doEdit(() => pushPatch(authorPatch(g, '', Date.now())), '已回到自動抓到的作者', '#authorSave')); r3.append(ra); }
+    ed.append(r3); body.append(ed); body.append(msg);
+  } else if (editNote) body.append(msg);
+  const sec = document.createElement('div'); sec.className = 'sec'; sec.textContent = '各網站的進度'; body.append(sec);
+  g.entries.forEach((e) => {
+    const s = document.createElement('div'); s.className = 'src';
+    const h = document.createElement('div'); h.className = 'h';
+    const site = document.createElement('span'); site.className = 'site'; site.textContent = SITE_LABEL[e.fam] || e.host;
+    const when = document.createElement('span'); when.className = 'when'; when.textContent = relTime(e.t);
+    h.append(site, when);
+    const ch = document.createElement('div'); ch.className = 'ch'; const dp = fillProgress(ch, e);
+    s.append(h, ch);
+    if (dp.ratio) { const bar = document.createElement('div'); bar.className = 'bar2'; const i = document.createElement('i'); i.style.width = Math.round(100 * dp.ratio) + '%'; bar.append(i); s.append(bar); }
+    if (dp.unit === '話' && e.upd) { const note = document.createElement('div'); note.className = 'left' + (dp.red ? ' red' : ''); note.textContent = dp.red ? '還有約 ' + dp.left + ' 話沒看' : '✓ 已經看到最新'; s.append(note);
+      if (e.upd.t) { const age = document.createElement('div'); const stale = Date.now() - e.upd.t > 14 * 24 * 3600 * 1000; age.className = 'left' + (stale ? ' stale' : ''); age.id = 'updAge'; age.textContent = '最新話數資料：' + relTime(e.upd.t) + '更新' + (stale ? '（可能已過時，用油猴腳本打開這部的詳情頁會更新）' : ''); s.append(age); } }
+    const acts = document.createElement('div'); acts.className = 'acts';
+    const a1 = document.createElement('a'); a1.className = 'btn'; a1.href = resumeUrl(e); a1.target = '_blank'; a1.rel = 'noopener noreferrer'; a1.textContent = '繼續閱讀'; acts.append(a1);
+    if (e.fUrl && e.fUrl !== e.url && e.fChapter && e.fChapter !== e.chapter) {
+      const a2 = document.createElement('a'); a2.className = 'btn'; a2.href = e.fUrl; a2.target = '_blank'; a2.rel = 'noopener noreferrer'; a2.textContent = '最遠：' + e.fChapter; acts.append(a2);
+    }
+    s.append(acts);
+    const bl = (bmByEntry.get(e.key) || []).slice().sort((a, b2) => (a.chapter < b2.chapter ? -1 : a.chapter > b2.chapter ? 1 : 0) || (a.page - b2.page));
+    bl.forEach((b2) => s.append(bmRowEl(b2, editMode ? (bk) => doEdit(() => pushPatch({ [bk.k]: { g: '', t: Date.now() } }), '已移除書籤', '#editBtn') : null)));
+    if (editMode && g.entries.length > 1) {
+      const sp = document.createElement('button'); sp.type = 'button'; sp.className = 'btn'; sp.setAttribute('data-split', e.key); sp.textContent = '✂ 拆開（獨立成一部）'; sp.title = '把這個網站的紀錄從這部分出去，自己變成一部';
+      sp.addEventListener('click', () => doEdit(() => pushPatch(splitPatch(e, ovOf(), Date.now())), '已把「' + (SITE_LABEL[e.fam] || e.host) + '」拆成獨立的一部', '#editBtn'));
+      acts.append(sp);
+    }
+    if (editMode && g.entries.length > 1) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.setAttribute('data-del', e.key); const lab = '刪除這個網站的紀錄'; d.textContent = lab; armButton(d, lab, () => doEdit(() => deleteEntries(g, [e], false), '已刪除「' + (SITE_LABEL[e.fam] || e.host) + '」的紀錄', '#editBtn')); acts.append(d); }
+    body.append(s);
+  });
+  if (g.authors.length) { // 同作者的其他作品
+    const mine = new Set(g.authors.map((a) => a.key));
+    const others = groups.filter((h) => h !== g && h.authors.some((a) => mine.has(a.key))).sort((a, b) => b.t - a.t);
+    if (others.length) {
+      const secA = document.createElement('div'); secA.className = 'sec'; secA.textContent = '同作者的其他作品（' + others.length + '）'; body.append(secA);
+      others.slice(0, 6).forEach((r) => {
+        const d = document.createElement('div'); d.className = 'rel'; d.setAttribute('data-sameauthor', r.key);
+        const tt = document.createElement('span'); tt.className = 'rt2'; tt.textContent = r.title + (progressOf(r.entries[0]).text ? '　' + progressOf(r.entries[0]).text : '');
+        const op = document.createElement('button'); op.type = 'button'; op.className = 'btn'; op.textContent = '看這部'; op.addEventListener('click', () => openDrawer(r.key));
+        d.append(tt, op); body.append(d);
+      });
+      if (others.length > 6) { const more = document.createElement('button'); more.type = 'button'; more.className = 'btn'; more.id = 'sameAuthorAll'; more.textContent = '看這位作者的全部 ' + (others.length + 1) + ' 部'; more.addEventListener('click', () => { closeDrawer(); filterAuthor(g.authors[0]); }); body.append(more); }
+    }
+  }
+  if (g.related.length) { // 同系列：互相連起來的其他作品（進度各自獨立）
+    const sec2 = document.createElement('div'); sec2.className = 'sec'; sec2.textContent = '同系列'; body.append(sec2);
+    g.related.forEach((r) => {
+      const d = document.createElement('div'); d.className = 'rel'; d.setAttribute('data-rel', r.key);
+      const lb = document.createElement('span'); lb.className = 'rl'; lb.textContent = '📎 ' + (r.sr.label || '同系列');
+      const tt = document.createElement('span'); tt.className = 'rt2'; tt.textContent = r.title + (progressOf(r.entries[0]).text ? '　' + progressOf(r.entries[0]).text : '');
+      const op = document.createElement('button'); op.type = 'button'; op.className = 'btn'; op.textContent = '看這部'; op.addEventListener('click', () => openDrawer(r.key));
+      d.append(lb, tt, op);
+      if (editMode) { const un = document.createElement('button'); un.type = 'button'; un.className = 'btn'; un.setAttribute('data-unlink', r.key); un.textContent = '取消連結'; un.addEventListener('click', () => doEdit(() => pushPatch(unlinkPatch(g, r, ovOf(), Date.now())), '已取消連結', '#editBtn')); d.append(un); }
+      body.append(d);
+    });
+  }
+  if (editMode) {
+    const org = document.createElement('div'); org.className = 'edit'; org.style.marginTop = '14px';
+    const ol = document.createElement('div'); ol.className = 'lbl'; ol.textContent = '整理'; org.append(ol);
+    const or2 = document.createElement('div'); or2.className = 'row2';
+    const mk2 = (id, label, title, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.id = id; b.textContent = label; b.title = title; b.addEventListener('click', fn); or2.append(b); };
+    mk2('mergeBtn', '🔀 併入另一部…', '這部和另一部其實是同一部漫畫：把兩邊的紀錄合起來', () => openPick('merge', g));
+    mk2('seriesBtn', '📎 設為同系列…', '前編／後編、第 1 集／第 2 集這類：進度各自獨立，只是互相連起來', () => openPick('series', g));
+    if (g.related.length) mk2('noSeriesBtn', '不是同系列', '這些連起來的作品其實不是同系列', () => doEdit(() => pushPatch(setPatch(g.entries, '-', 'x:', Date.now())), '已標成「不是同系列」', '#editBtn'));
+    else if (g.noSeries) mk2('reSeriesBtn', '恢復系列連結', '取消「不是同系列」的標記', () => doEdit(() => pushPatch(setPatch(g.entries, '', 'x:', Date.now())), '已恢復系列連結', '#editBtn'));
+    org.append(or2); body.append(org);
+  }
+  if (editMode) {
+    const z = document.createElement('div'); z.className = 'delzone';
+    const hint = document.createElement('div'); hint.className = 'lbl'; hint.textContent = '從試算表刪掉這部的所有閱讀紀錄（' + g.entries.length + ' 個網站），沒辦法還原。書架那邊下次更新後也會消失。';
+    const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.id = 'delAll'; const lab = '🗑 刪除這部'; d.textContent = lab;
+    armButton(d, lab, async () => { try { const note = await deleteEntries(g, g.entries, true); render(); closeDrawer(); banner('已刪除「' + g.title + '」' + note, note ? 'err' : 'info'); setTimeout(() => { if (!lastError) banner(''); }, note ? 15000 : 4000); } catch (err) { msg.className = 'covmsg err'; msg.textContent = '✗ ' + (err && err.message ? err.message : err); } });
+    z.append(hint, d); body.append(z);
+  }
+  $('drawer').classList.add('on'); $('drawer').setAttribute('aria-hidden', 'false'); $('scrim').classList.add('on');
+  if (!focusSel) body.scrollTop = 0;
+  const fe = focusSel && body.querySelector(focusSel);
+  (fe || $('dclose')).focus({ preventScroll: true });
+}
+function hideDrawer() {
+  const was = openKey;
+  openKey = ''; editMode = false; editNote = null;
+  $('drawer').classList.remove('on'); $('drawer').setAttribute('aria-hidden', 'true'); $('scrim').classList.remove('on');
+  document.body.style.overflow = '';
+  if (was) { // 焦點回到打開它的那張封面（鍵盤操作才不會迷路）
+    const back = drawerOpener && drawerOpener.isConnected ? drawerOpener : document.querySelector('[data-key="' + (window.CSS && CSS.escape ? CSS.escape(was) : was) + '"]');
+    if (back && back.focus) back.focus({ preventScroll: true });
+  }
+  drawerOpener = null;
+}
+function closeDrawer() {
+  hideCovPop();
+  if (drawerPushed) { drawerPushed = false; try { history.back(); return; } catch (e) { /* 退回直接關 */ } }
+  hideDrawer();
+}
+addEventListener('popstate', () => { drawerPushed = false; if (openKey) hideDrawer(); });
+// 方向鍵在封面牆／清單裡移動焦點：← → 前後一部、↑ ↓ 上下一排（清單就是上下一列）
+function gridMove(cur, key) {
+  if (!cur || !cur.closest || !cur.closest('#items')) return false;
+  const items = [...$('items').querySelectorAll('.tile, .row')];
+  const i = items.indexOf(cur);
+  if (i < 0) return false;
+  const wall = ui.view !== 'list', down = key === 'ArrowDown', up = key === 'ArrowUp';
+  let to = null;
+  if (key === 'ArrowRight' && wall) to = items[i + 1];
+  else if (key === 'ArrowLeft' && wall) to = items[i - 1];
+  else if (down || up) {
+    if (!wall) to = items[i + (down ? 1 : -1)];
+    else {
+      const r = cur.getBoundingClientRect(), dir = down ? 1 : -1;
+      let bestDy = Infinity, bestDx = Infinity;
+      items.forEach((o) => {
+        if (o === cur) return;
+        const q = o.getBoundingClientRect(), dy = (q.top - r.top) * dir, dx = Math.abs(q.left - r.left);
+        if (dy < 4) return; // 同一排或在反方向
+        if (dy < bestDy - 4 || (Math.abs(dy - bestDy) <= 4 && dx < bestDx)) { bestDy = Math.min(dy, bestDy); bestDx = dx; to = o; }
+      });
+    }
+  } else return false;
+  if (to) to.focus();
+  return true; // 到頭了也算處理過（不要讓頁面跟著捲）
+}
+/* ── 手機：詳情（從底部升起的卡片）往下滑關閉 ──
+ * 從最上面那條（小把手＋標題列）往下拖：卡片跟著手指走；拖過一段距離、或快速往下甩就關閉，否則彈回去。
+ * 輕點按鈕（上一部／下一部／✕）照常運作：只有真的拖動才算滑動。 */
+(function swipeDown() {
+  const dr = $('drawer');
+  const mobile = () => matchMedia('(max-width: 640px)').matches;
+  let st = null, justDragged = false;
+  const reset = () => { dr.style.transition = ''; dr.style.transform = ''; };
+  [dr.querySelector('.grab'), dr.querySelector('.dhead')].forEach((el) => {
+    el.addEventListener('pointerdown', (e) => { if (!mobile() || !openKey || (e.pointerType === 'mouse' && e.button !== 0)) return; st = { y0: e.clientY, t0: e.timeStamp, dy: 0, id: e.pointerId, moved: false }; });
+    el.addEventListener('pointermove', (e) => {
+      if (!st || e.pointerId !== st.id) return;
+      const dy = e.clientY - st.y0;
+      if (!st.moved) { if (Math.abs(dy) < 8) return; st.moved = true; try { el.setPointerCapture(e.pointerId); } catch (err) { /* 不支援就算了 */ } dr.style.transition = 'none'; }
+      st.dy = Math.max(0, dy); // 只能往下拖
+      dr.style.transform = 'translateY(' + st.dy + 'px)';
+    });
+    const end = (e, cancelled) => {
+      if (!st || e.pointerId !== st.id) return;
+      const s = st; st = null;
+      if (!s.moved) return;
+      justDragged = true; setTimeout(() => { justDragged = false; }, 60);
+      const v = s.dy / Math.max(1, e.timeStamp - s.t0), h = dr.getBoundingClientRect().height;
+      if (!cancelled && (s.dy > Math.min(120, h * 0.25) || (v > 0.6 && s.dy > 30))) {
+        // 直接關（不等瀏覽器的返回）：同一個動作裡清掉拖動的位移並移掉 .on，卡片就從目前位置滑出去
+        reset(); hideDrawer();
+        if (drawerPushed) { drawerPushed = false; try { history.back(); } catch (err) { /* 回不去就算了 */ } } // 把開詳情時多的那一格紀錄退掉
+      } else reset();
+    };
+    el.addEventListener('pointerup', (e) => end(e, false));
+    el.addEventListener('pointercancel', (e) => end(e, true));
+  });
+  dr.addEventListener('click', (e) => { if (justDragged) { e.stopPropagation(); e.preventDefault(); } }, true); // 拖完放開不要誤觸按鈕
+})();
+function stepDrawer(d) {
+  if (!openKey) return;
+  const i = shown.findIndex((g) => g.key === openKey);
+  const n = shown[i + d];
+  if (n) openDrawer(n.key);
+}
+
+/* ── 載入資料 ── */
+function banner(msg, kind, retry) {
+  const b = $('banner');
+  b.textContent = '';
+  if (!msg) { b.hidden = true; return; }
+  b.hidden = false; b.className = 'banner' + (kind === 'info' ? ' info' : '');
+  const t = document.createElement('span'); t.className = 'grow'; t.textContent = msg; b.append(t);
+  if (retry) { const r = document.createElement('button'); r.className = 'btn'; r.type = 'button'; r.textContent = '重試'; r.addEventListener('click', refresh); b.append(r); }
+}
+async function refresh() {
+  if (!connected()) { openConnect(true); return; }
+  if (loading) return;
+  loading = true;
+  $('refresh').disabled = true; $('refreshTxt').textContent = '載入中…';
+  if (!data) render();
+  try {
+    const r = await api({ type: 'shelf' });
+    data = { at: Date.now(), rows: r.rows || [], groups: r.groups || {} };
+    noCache = !LS.set(DATA_KEY, data);
+    lastError = '';
+    banner('');
+    loading = false;
+    render();
+    syncCovers();
+  } catch (e) {
+    lastError = e && e.message ? e.message : String(e);
+    loading = false;
+    banner('連線失敗：' + lastError + (/密鑰/.test(lastError) ? '（請按右上角 ⚙ 檢查密鑰）' : '') + (data ? '。目前顯示的是' + relTime(data.at) + '的資料。' : ''), 'err', true);
+    render();
+  } finally {
+    loading = false;
+    $('refresh').disabled = false; $('refreshTxt').textContent = '重新整理';
+  }
+}
+
+/* ── 更多功能：書籤檢視器、更新檢查 ──
+ * 檢查更新要讀各個漫畫網站，圖書館（網頁）自己做不到（跨網域限制；NicoManga 還要開分頁讓網頁自己渲染），所以請油猴腳本 v3.22.0 以上幫忙：
+ * 腳本在這個網頁上標 data-tmr-bridge="1"；按鈕對 document 發 'tmr-update-all'（全部網站）或 'tmr-nico-toggle'（只有 NicoManga），再按一次是停止；
+ * 腳本把狀態（JSON 文字）寫在 data-tmr-nico 並發 'tmr-nico-state'；書籤「前往」用 data-tmr-jump＋'tmr-jump' 請腳本記下要跳到第幾頁。 */
+const bridgeOn = () => document.documentElement.getAttribute('data-tmr-bridge') === '1';
+let updRunning = false, updMode = '';
+function setMenu(open) { $('moreMenu').hidden = !open; $('more').setAttribute('aria-expanded', open ? 'true' : 'false'); }
+function updateUpdItems() {
+  $('bmBtn').textContent = '🔖 書籤檢視器' + (bms.length ? '（' + bms.length + '）' : '');
+  $('auBtn').textContent = '✍ 作者清單' + (favCount() ? '（♥ ' + favCount() + '）' : '');
+  $('allBtn').textContent = updRunning && updMode === 'all' ? '⏹ 停止更新' : '🔄 檢查全部網站更新';
+  $('nicoBtn').textContent = updRunning && updMode === 'nico' ? '⏹ 停止更新 NicoManga' : '🔄 只更新 NicoManga';
+  $('allBtn').disabled = updRunning && updMode !== 'all'; $('nicoBtn').disabled = updRunning && updMode !== 'nico';
+  $('nicoHint').textContent = bridgeOn() ? '用油猴腳本在背景更新章節（NicoManga 會一部一部開分頁），完成後這裡會自動重新整理。更新中再按一次會停止。' : '更新檢查需要油猴腳本 v3.22.0 以上，並讓它在這個網頁啟用。';
+}
+$('more').addEventListener('click', () => { const open = $('moreMenu').hidden; setMenu(open); if (open) { updateUpdItems(); $('galBtn').focus(); } });
+document.addEventListener('mousedown', (e) => { if (!$('moreMenu').hidden && !(e.target.closest && e.target.closest('.morewrap'))) setMenu(false); });
+$('galBtn').addEventListener('click', () => setMenu(false)); // 連結在新分頁開，選單收起來
+$('bmBtn').addEventListener('click', () => { setMenu(false); openBm(); });
+$('auBtn').addEventListener('click', () => { setMenu(false); openAu(); });
+function runUpd(mode) {
+  setMenu(false);
+  if (!bridgeOn()) { banner('找不到油猴腳本：請把腳本更新到 v3.22.0 以上，並確認它在這個網頁有啟用（Tampermonkey 的圖示上要看得到這支腳本）。', 'err'); return; }
+  updMode = mode;
+  document.dispatchEvent(new Event(mode === 'all' ? 'tmr-update-all' : 'tmr-nico-toggle'));
+}
+$('allBtn').addEventListener('click', () => runUpd('all'));
+$('nicoBtn').addEventListener('click', () => runUpd('nico'));
+document.addEventListener('tmr-bridge-ready', updateUpdItems);
+document.addEventListener('tmr-nico-state', () => {
+  let r = null;
+  try { r = JSON.parse(document.documentElement.getAttribute('data-tmr-nico') || 'null'); } catch (e) { r = null; }
+  if (!r) return;
+  updRunning = r.s === 'run' || r.s === 'stopping';
+  if (r.all) updMode = 'all';
+  updateUpdItems();
+  if (updRunning) { banner(String(r.text || ''), 'info'); return; }
+  if (r.s === 'error') { banner(String(r.text || '更新失敗'), 'err'); return; }
+  // 做完（或停止）：腳本已經把最新話數送到試算表，重新載入資料就看得到
+  refresh().then(() => { banner(String(r.text || ''), 'info'); setTimeout(() => { if (!lastError && !updRunning) banner(''); }, 12000); });
+});
+
+/* ── 連線設定視窗 ── */
+function openConnect(force) {
+  $('cUrl').value = cfg.url || ''; $('cTok').value = cfg.token || '';
+  $('cMsg').textContent = ''; $('cMsg').className = 'msg';
+  $('cCancel').hidden = !!force && !connected();
+  $('cLogout').hidden = !connected();
+  $('cLogout').textContent = '登出並清除本機資料';
+  $('connect').hidden = false;
+  setTimeout(() => $('cUrl').focus(), 0);
+}
+function closeConnect() { $('connect').hidden = true; }
+$('connect').addEventListener('mousedown', (e) => { if (e.target === $('connect') && connected()) closeConnect(); });
+async function testConnect() {
+  const url = $('cUrl').value.trim(), token = $('cTok').value;
+  const m = $('cMsg');
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) { m.className = 'msg err'; m.textContent = '網址要是 https://script.google.com/…/exec'; return false; }
+  m.className = 'msg'; m.textContent = '測試中…';
+  const keep = cfg; cfg = { url, token };
+  try { await api({ type: 'ping' }); m.className = 'msg ok'; m.textContent = '✓ 連線成功'; return true; }
+  catch (e) { m.className = 'msg err'; m.textContent = '✗ ' + (e && e.message ? e.message : e); return false; }
+  finally { cfg = keep; }
+}
+
+/* ── 事件 ── */
+function applyTheme() { document.documentElement.setAttribute('data-theme', ui.theme); }
+function applySize() {
+  if (ui.size) document.documentElement.style.setProperty('--tile', ui.size + 'px');
+  $('size').value = ui.size || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile'), 10) || 176;
+}
+let qT = 0;
+$('q').addEventListener('input', (e) => { clearTimeout(qT); qT = setTimeout(() => { query = e.target.value; shown = visibleGroups(); render(); }, 120); });
+$('v-wall').addEventListener('click', () => { ui.view = 'wall'; saveUi(); render(); });
+$('v-list').addEventListener('click', () => { ui.view = 'list'; saveUi(); render(); });
+$('sort').addEventListener('change', (e) => { ui.sort = e.target.value; saveUi(); render(); });
+$('size').addEventListener('input', (e) => { ui.size = +e.target.value; saveUi(); applySize(); });
+$('theme').addEventListener('click', () => { ui.theme = ui.theme === 'auto' ? 'dark' : ui.theme === 'dark' ? 'light' : 'auto'; saveUi(); applyTheme(); $('theme').title = '主題：' + ({ auto: '跟隨系統', dark: '深色', light: '淺色' })[ui.theme]; });
+$('refresh').addEventListener('click', refresh);
+$('settings').addEventListener('click', () => openConnect(false));
+$('dclose').addEventListener('click', closeDrawer);
+$('scrim').addEventListener('click', closeDrawer);
+$('dprev').addEventListener('click', () => stepDrawer(-1));
+$('dnext').addEventListener('click', () => stepDrawer(1));
+$('cCancel').addEventListener('click', closeConnect);
+$('cTest').addEventListener('click', testConnect);
+// 登出：公用電腦用完時清掉網址、密鑰、快取的資料與封面（按兩次確認）
+let logoutArmed = false;
+$('cLogout').addEventListener('click', async () => {
+  if (!logoutArmed) { logoutArmed = true; $('cLogout').textContent = '確定登出？'; setTimeout(() => { logoutArmed = false; $('cLogout').textContent = '登出並清除本機資料'; }, 4000); return; }
+  [CFG_KEY, DATA_KEY, UI_KEY].forEach((k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }); // 先同步清掉網址、密鑰、資料（不要等 IndexedDB）
+  covUrl.forEach((h) => URL.revokeObjectURL(h.url));
+  try { const db = await idb(); if (db) db.close(); } catch (e) { /* ignore */ }
+  try { indexedDB.deleteDatabase('manga-library'); } catch (e) { /* ignore */ }
+  location.reload();
+});
+$('connectForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!(await testConnect())) return;
+  cfg = { url: $('cUrl').value.trim(), token: $('cTok').value };
+  LS.set(CFG_KEY, cfg);
+  closeConnect();
+  data = null; try { localStorage.removeItem(DATA_KEY); } catch (x) { /* ignore */ }
+  refresh();
+});
+document.addEventListener('keydown', (e) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '');
+  if (e.key === 'Escape') {
+    if (!$('pick').hidden) { if (pickSt && pickSt.sel) { pickSt.sel = null; renderPick(); $('pickQ').focus(); } else closePick(); return; }
+    if (!$('bm').hidden) { hideModal('bm'); return; }
+    if (!$('au').hidden) { hideModal('au'); return; }
+    if (!$('moreMenu').hidden) { setMenu(false); $('more').focus(); return; }
+    if (!$('connect').hidden && connected()) { closeConnect(); return; }
+    if (openKey) { closeDrawer(); return; }
+    if (document.activeElement === $('q') && $('q').value) { $('q').value = ''; query = ''; render(); return; }
+  }
+  if (typing || !$('pick').hidden || !$('bm').hidden || !$('au').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === '/') { e.preventDefault(); $('q').focus(); }
+  else if (openKey && e.key === 'ArrowLeft') stepDrawer(-1);
+  else if (openKey && e.key === 'ArrowRight') stepDrawer(1);
+  else if (!openKey && $('connect').hidden && $('pick').hidden && $('bm').hidden && $('au').hidden && e.key.startsWith('Arrow') && gridMove(document.activeElement, e.key)) e.preventDefault();
+});
+// 抽屜打開時，Tab 不要跑到後面的頁面（簡單的焦點圈住）
+$('drawer').addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return;
+  const f = [...$('drawer').querySelectorAll('button, a[href]')].filter((x) => !x.disabled);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+addEventListener('online', () => { if (lastError) refresh(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && connected() && data && !loading && Date.now() - data.at > 10 * 60 * 1000) refresh(); }); // 放在背景很久再切回來：自動更新一次
+
+/* ── 啟動 ── */
+(async function start() {
+  applyTheme(); applySize(); $('sort').value = ui.sort;
+  $('theme').title = '主題：' + ({ auto: '跟隨系統', dark: '深色', light: '淺色' })[ui.theme];
+  render(); // 先用快取的資料畫出來（不等封面），封面從 IndexedDB 讀好後再補上
+  if (!connected()) { openConnect(true); return; }
+  if (data) banner('顯示的是上次的資料，正在更新…', 'info');
+  await loadCachedCovers();
+  repaintCovers();
+  refresh();
+})();
+</script>
+</body>
+</html>

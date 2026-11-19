@@ -58,6 +58,13 @@
   }
   #backToTop:hover { background: #383838; }
 
+  /* 有多本書時，每本書最底下：左＝上一本、右＝下一本 */
+  #bookNav { display: none; justify-content: space-between; gap: 12px; max-width: var(--img-width); margin: 24px auto 0; padding: 0 14px; }
+  #bookNav button { flex: 1 1 0; min-width: 0; padding: 12px 14px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #bookNav button.prev { text-align: left; }
+  #bookNav button.next { text-align: right; }
+  #bookNav .gap { flex: 1 1 0; }
+
   #chapterNav { display: none; position: relative; flex-shrink: 0; }
   #chapterBtn {
     display: flex; align-items: center; gap: 5px;
@@ -82,6 +89,8 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .chapter-item:hover { background: #333; }
+  .shelf-group { color: #777; font-size: 11px; padding: 8px 10px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chapter-item.dup { color: #e9a; }
   .chapter-item.active { background: #3a4d63; color: #fff; }
 
   #historyNav { display: none; position: relative; flex-shrink: 0; }
@@ -106,8 +115,8 @@
   <div class="row">
     <span class="name" id="folderName">尚未選擇資料夾</span>
     <div id="chapterNav">
-      <button id="chapterBtn" title="章節">
-        <span class="chapter-icon">📑</span><span class="chapter-label" id="chapterLabel"></span>
+      <button id="chapterBtn" title="書櫃：這個資料夾裡的書">
+        <span class="chapter-icon">📚</span><span class="chapter-label" id="chapterLabel"></span>
       </button>
       <div id="chapterPanel"></div>
     </div>
@@ -143,6 +152,7 @@
     <div><button id="pickBtn2">選擇資料夾</button></div>
   </div>
 </main>
+<div id="bookNav"></div>
 <footer id="pageFooter"></footer>
 <div id="backToTop" title="回到頂部">↑</div>
 
@@ -153,21 +163,14 @@ const STORE = "handles";
 const LEGACY_KEY = "lastFolder";
 const MAX_RECENTS = 8;
 
-// ---------- natural sort ----------
+// ---------- 排序：和 Finder 一樣（數字依數值、英文不分大小寫、中日文依日文的順序）----------
+// 書（資料夾）和圖片檔名都用這個。固定用日文語系：Finder 用的是系統語言（日文），瀏覽器若是中文語系，
+// 漢字的順序會不一樣（例如「谷」會排在「空」前面、日文漢字「漢」會排在簡體「汉」後面）。完全相同時退回比字元編碼，確保結果固定。
+const NAME_COLLATOR = new Intl.Collator("ja", { numeric: true, sensitivity: "base" });
 function naturalCompare(a, b) {
-  const re = /(\d+)|(\D+)/g;
-  const ax = a.match(re) || [];
-  const bx = b.match(re) || [];
-  const len = Math.max(ax.length, bx.length);
-  for (let i = 0; i < len; i++) {
-    const av = ax[i] ?? "";
-    const bv = bx[i] ?? "";
-    if (av === bv) continue;
-    const an = /^\d+$/.test(av), bn = /^\d+$/.test(bv);
-    if (an && bn) return parseInt(av, 10) - parseInt(bv, 10);
-    return av < bv ? -1 : 1;
-  }
-  return 0;
+  const r = NAME_COLLATOR.compare(a, b);
+  if (r) return r;
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 
 // ---------- IndexedDB: recent folder handles ----------
@@ -261,6 +264,10 @@ const historyLabel = document.getElementById("historyLabel");
 
 let currentHandle = null;
 let currentFolderName = "";
+let currentRootName = "";   // 大資料夾名稱
+let books = [];            // 這個大資料夾裡的書 [{name, path, files, dup}]
+let currentBook = null;
+let openSeq = 0;           // 連續切書時，丟掉過期的載入
 let currentImages = []; // [{name, url}]
 let pageEls = [];       // <img> elements in reading order, for page counter/progress
 let spreadMode = localStorage.getItem("gallery-spread") === "1";
@@ -284,23 +291,63 @@ spreadBtn.addEventListener("click", () => {
 });
 
 refreshBtn.addEventListener("click", () => {
-  if (currentHandle) loadAndRender(currentHandle);
+  if (currentHandle) loadAndRender(currentHandle, currentBook ? currentBook.path : undefined);
 });
 
-// ---------- recursive folder scan ----------
-async function collectImageEntries(dirHandle, prefix) {
-  const entries = [];
+// ---------- 書：每個「直接放著圖片」的資料夾是一本書 ----------
+// 選一個大資料夾，裡面任何一層、只要資料夾自己直接放著圖片，就是一本書（不分層數）：
+//   - 書名只用資料夾自己的名稱（不含上層路徑）；大資料夾根目錄直接放的散圖，也算一本，書名用大資料夾的名字
+//   - 子資料夾的圖片屬於子資料夾那一本，不會混進上層那一本
+//   - 同名的書（同一個大資料夾裡，或別的最近開過的大資料夾裡）會標「⚠ 同名」：圖書館用書名認作品，同名會被當成同一部
+const BOOKS_INDEX_PREFIX = "gallery-books:";   // localStorage：gallery-books:<大資料夾名稱> = [{name,path,count}]（讓圖書館的「繼續閱讀」只靠書名找得到這本書在哪個大資料夾）
+const LASTBOOK_PREFIX = "gallery-lastbook:";   // localStorage：每個大資料夾最後打開的那一本（path）
+let scanDirs = 0;   // 掃描進度：已經看過幾個資料夾（顯示在右上角，大資料夾掃很久時才不會像卡住）
+async function scanBooks(dirHandle, path, out) {
+  const files = [], subdirs = [];
+  scanDirs++;
+  if (scanDirs % 5 === 1 || path === "") pageIndicator.textContent = `掃描中… ${scanDirs} 個資料夾、${out.length} 本書`;
+  if (scanDirs % 20 === 0) await new Promise((r) => setTimeout(r, 0)); // 讓畫面有機會更新
   for await (const [name, entry] of dirHandle.entries()) {
     if (entry.kind === "file") {
       const ext = name.split(".").pop().toLowerCase();
-      if (IMAGE_EXT.has(ext)) entries.push({ name: prefix + name, entry });
-    } else if (entry.kind === "directory") {
-      const sub = await collectImageEntries(entry, prefix + name + "/");
-      entries.push(...sub);
-    }
+      if (IMAGE_EXT.has(ext)) files.push({ name, entry });
+    } else if (entry.kind === "directory") subdirs.push({ name, entry });
   }
-  return entries;
+  if (files.length) {
+    files.sort((a, b) => naturalCompare(a.name, b.name));
+    out.push({ name: path === "" ? dirHandle.name : path.split("/").pop(), path, files, dup: false });
+  }
+  subdirs.sort((a, b) => naturalCompare(a.name, b.name));
+  for (const d of subdirs) await scanBooks(d.entry, path ? path + "/" + d.name : d.name, out);
 }
+function readBooksIndex(root) {
+  try { const v = JSON.parse(localStorage.getItem(BOOKS_INDEX_PREFIX + root) || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+}
+function saveBooksIndex() {
+  try { localStorage.setItem(BOOKS_INDEX_PREFIX + currentRootName, JSON.stringify(books.map((b) => ({ name: b.name, path: b.path, count: b.files.length })))); } catch (e) { /* 存不下就算了 */ }
+}
+function markDuplicates() {
+  const count = new Map();
+  books.forEach((b) => count.set(b.name, (count.get(b.name) || 0) + 1));
+  const others = new Set();
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(BOOKS_INDEX_PREFIX) && k !== BOOKS_INDEX_PREFIX + currentRootName) readBooksIndex(k.slice(BOOKS_INDEX_PREFIX.length)).forEach((x) => others.add(x.name));
+    }
+  } catch (e) { /* 讀不到就只看這個大資料夾 */ }
+  books.forEach((b) => { b.dup = count.get(b.name) > 1 || others.has(b.name); });
+}
+// 最近的大資料夾顯示用：它最後讀的那一本的名字（沒有就用大資料夾的名字）
+function lastBookName(root) {
+  const idx = readBooksIndex(root);
+  const lp = localStorage.getItem(LASTBOOK_PREFIX + root);
+  const b = idx.find((x) => x.path === lp) || idx[0];
+  return b ? b.name : root;
+}
+
+// ---------- 加入圖書館 ----------
+// 這個網頁本身不碰圖書館：沒有勾選、不上傳、不同步。要把看過的書記進圖書館（含封面），要裝油猴閱讀器（manga-desktop-reader），由它的 📚 負責。
 
 // ---------- progress + reading history (last 5 per folder) ----------
 const MAX_HISTORY = 5;
@@ -354,33 +401,69 @@ function timeAgo(ts) {
 }
 
 // ---------- loading + rendering ----------
-async function loadAndRender(handle) {
+async function loadAndRender(handle, want) {   // want：要打開的書（路徑或書名）；沒有就打開這個大資料夾最後讀的那一本
   snapshotCurrentProgress();
+  openSeq++;
   currentHandle = handle;
-  currentFolderName = handle.name;
+  currentRootName = handle.name;
+  currentBook = null;
   folderNameEl.textContent = handle.name;
   refreshBtn.style.display = "inline-block";
   mainEl.innerHTML = "";
   footerEl.textContent = "";
+  pageEls = []; currentImages = [];
+  pageIndicator.textContent = "掃描中…";
+  if (typeof bookNavEl !== "undefined") bookNavEl.style.display = "none";
 
-  const entries = await collectImageEntries(handle, "");
-  entries.sort((a, b) => naturalCompare(a.name, b.name));
+  const found = [];
+  scanDirs = 0;
+  await scanBooks(handle, "", found);
+  books = found;
+  markDuplicates();
+  saveBooksIndex();
 
-  if (entries.length === 0) {
+  if (books.length === 0) {
     mainEl.innerHTML = '<div id="empty">這個資料夾裡沒有找到圖片檔案。</div>';
     pageIndicator.textContent = "";
     chapterNav.style.display = "none";
     historyNav.style.display = "none";
+    publishBooks();
     return;
   }
-
-  currentImages = [];
-  for (let i = 0; i < entries.length; i++) {
-    pageIndicator.textContent = `載入中 ${i + 1}/${entries.length}`;
-    const file = await entries[i].entry.getFile();
-    currentImages.push({ name: entries[i].name, url: URL.createObjectURL(file) });
+  let pick = null;
+  if (want !== undefined && want !== null) pick = books.find((b) => b.path === want) || books.find((b) => b.name === want);
+  if (!pick) {
+    const lp = localStorage.getItem(LASTBOOK_PREFIX + handle.name);
+    pick = books.find((b) => b.path === lp) || books[0];
   }
+  await openBook(pick);
+}
 
+// 打開一本書：只載入這一本的圖片（切書時釋放上一本的記憶體）
+async function openBook(book) {
+  const seq = ++openSeq;
+  if (currentBook && currentBook !== book) snapshotCurrentProgress();
+  currentImages.forEach((it) => URL.revokeObjectURL(it.url));
+  currentImages = [];
+  currentBook = book;
+  currentFolderName = book.name;
+  try { localStorage.setItem(LASTBOOK_PREFIX + currentRootName, book.path); } catch (e) { /* 沒有就算了 */ }
+  folderNameEl.textContent = books.length > 1 ? currentRootName + (book.path ? " › " + book.path.replace(/\//g, " › ") : "") : book.name;
+  mainEl.innerHTML = "";
+  footerEl.textContent = "";
+  pageEls = [];
+  if (typeof bookNavEl !== "undefined") bookNavEl.style.display = "none";
+
+  const items = [];
+  for (let i = 0; i < book.files.length; i++) {
+    pageIndicator.textContent = `載入中 ${i + 1}/${book.files.length}`;
+    let file;
+    try { file = await book.files[i].entry.getFile(); }
+    catch (e) { if (seq === openSeq) showError(`讀不到「${book.files[i].name}」（第 ${i + 1}/${book.files.length} 張）`, e); items.forEach((it) => URL.revokeObjectURL(it.url)); return; }
+    if (seq !== openSeq) { items.forEach((it) => URL.revokeObjectURL(it.url)); return; } // 已經切到別本了
+    items.push({ name: book.files[i].name, url: URL.createObjectURL(file) });
+  }
+  currentImages = items;
   renderImages();
 }
 
@@ -394,7 +477,7 @@ function renderImages() {
     img.alt = item.name;
     img.title = item.name;
     img.loading = "lazy";
-    img.onerror = () => img.classList.add("broken");
+    img.onerror = () => { img.classList.add("broken"); const n = mainEl.querySelectorAll("img.broken").length; footerEl.textContent = `已顯示全部 ${currentImages.length} 張圖片（依檔名排序）　⚠ 其中 ${n} 張無法顯示（檔案壞掉或瀏覽器不支援這種格式）`; };
     pageEls.push(img);
     return img;
   }
@@ -419,71 +502,117 @@ function renderImages() {
   footerEl.textContent = `已顯示全部 ${currentImages.length} 張圖片（依檔名排序）`;
   renderHistoryNav();
   restoreProgress();
-  updateCurrentPage();
-  renderChapters();
+  // 剛排好版時圖片還沒載入、算不出真正的位置：不要在這裡把「第幾張」寫成進度（原本會把剛打開的新書記成第 2 張）；
+  // 實際位置由捲動事件更新。這裡只顯示目前記著的位置（沒有就是第 1 張）。
+  { const pr = getProgress(currentFolderName); const at = pr && pageEls[pr.idx] ? pr.idx : 0;
+    pageIndicator.textContent = `${at + 1} / ${pageEls.length}`; }
+  renderBookshelf();
+  renderBookNav();
+  announceProvider();
 }
 
-// ---------- chapters (subfolders) ----------
-let chapters = []; // [{folder, index, btn}]
-let activeChapterIdx = -1;
-
-function buildChapters() {
-  const result = [];
-  let lastFolder = null;
-  currentImages.forEach((item, idx) => {
-    const slash = item.name.lastIndexOf("/");
-    const folder = slash === -1 ? "" : item.name.slice(0, slash);
-    if (folder !== lastFolder) {
-      result.push({ folder, index: idx });
-      lastFolder = folder;
-    }
-  });
-  return result;
+// 每本書最底下的「上一本／下一本」（順序就是書櫃裡的順序）；只有一本書或沒有上／下一本的那一邊不顯示
+const bookNavEl = document.getElementById("bookNav");
+function renderBookNav() {
+  bookNavEl.textContent = "";
+  const i = books.indexOf(currentBook);
+  if (takenOver() || books.length <= 1 || i < 0) { bookNavEl.style.display = "none"; return; }
+  const mk = (cls, b, label) => {
+    if (!b) { const g = document.createElement("span"); g.className = "gap"; return g; }
+    const btn = document.createElement("button");
+    btn.className = cls; btn.textContent = label; btn.title = b.name;
+    btn.addEventListener("click", async () => { window.scrollTo(0, 0); await openBook(b); });
+    return btn;
+  };
+  const cut = (t) => (t.length > 26 ? t.slice(0, 26) + "…" : t);
+  bookNavEl.append(mk("prev", books[i - 1], books[i - 1] ? "‹ 上一本：" + cut(books[i - 1].name) : ""), mk("next", books[i + 1], books[i + 1] ? "下一本：" + cut(books[i + 1].name) + " ›" : ""));
+  bookNavEl.style.display = "flex";
 }
 
-function chapterShortLabel(folder) {
-  if (!folder) return "根目錄";
-  const parts = folder.split("/");
-  return parts[parts.length - 1];
+// ---------- 圖片提供者（給油猴閱讀器用）----------
+// 這個網頁本身是「選資料夾 → 把圖片依順序放在 #main」。如果你裝了油猴閱讀器（manga-desktop-reader），它會把這個頁面當成又一個閱讀網站、
+// 接管整個版面（寬度、雙頁、書籤、快捷鍵、進度、加入圖書館…），這裡只提供圖片；沒裝油猴時就用這個頁面自己的介面（原樣）。
+// 約定（只用 DOM 屬性和事件，字串傳遞）：
+//   #main[data-gv-folder]、#main[data-gv-total]；#main 底下的 <img> 依閱讀順序，帶 data-gv-idx、data-gv-name，src 是 blob 網址
+//   <html data-gv-folder>（現在這本書的名稱）、<html data-gv-recents>（JSON：最近的大資料夾 [{key,name,idx,total}]）、
+//   <html data-gv-books>（JSON：{root, current, books:[{key,name,count,idx,total,dup}]}，這個大資料夾裡的書；key 是書的路徑，大資料夾根目錄的散圖是 ""）
+//   事件：載好一本書時發 'gv-loaded'；閱讀器發 'tmr-gv-pick'（選資料夾）、'tmr-gv-recent'（<html data-tmr-gv-want>＝最近資料夾的 key）、
+//        'tmr-gv-book'（<html data-tmr-gv-book>＝JSON {"k": 書的 key}，切到這個大資料夾裡的另一本書）
+//   閱讀器接管時會在 <html> 標 data-tmr-gallery="1"，這裡自己的「加入圖書館」同步就不再送（閱讀器會送）
+function announceProvider() {
+  const total = currentImages.length;
+  mainEl.setAttribute("data-gv-folder", currentFolderName);
+  mainEl.setAttribute("data-gv-total", String(total));
+  document.documentElement.setAttribute("data-gv-folder", currentFolderName);
+  pageEls.forEach((img, i) => { img.setAttribute("data-gv-idx", String(i)); });
+  const imgs = [...mainEl.querySelectorAll("img")];
+  imgs.forEach((img, i) => { img.setAttribute("data-gv-idx", String(i)); if (currentImages[i]) img.setAttribute("data-gv-name", currentImages[i].name); });
+  document.dispatchEvent(new Event("gv-loaded"));
 }
+const takenOver = () => document.documentElement.hasAttribute("data-tmr-gallery");
+document.addEventListener("tmr-gv-pick", () => { pickFolder(); });
+document.addEventListener("tmr-gv-book", async () => {
+  let k = null;
+  try { k = JSON.parse(document.documentElement.getAttribute("data-tmr-gv-book") || "null").k; } catch (e) { k = null; }
+  if (typeof k !== "string") return;
+  const b = books.find((x) => x.path === k);
+  if (b && b !== currentBook) await openBook(b);
+});
+document.addEventListener("tmr-gv-recent", async () => {
+  const key = document.documentElement.getAttribute("data-tmr-gv-want");
+  if (!key) return;
+  const recents = await getAllRecents();
+  const found = recents.find((r) => r.key === key);
+  if (found) await ensurePermissionAndLoad(found.handle).catch(() => false);
+});
 
-function renderChapters() {
-  chapters = buildChapters();
+// ---------- 書櫃（這個大資料夾裡的書）----------
+function bookProgressText(b) {
+  const pr = getProgress(b.name);
+  return pr && pr.total ? `（${pr.idx + 1}/${pr.total}）` : "";
+}
+function renderBookshelf() {
   chapterPanel.innerHTML = "";
   chapterPanel.classList.remove("open");
-  activeChapterIdx = -1;
-  if (chapters.length <= 1) {
+  if (books.length <= 1) {
     chapterNav.style.display = "none";
+    publishBooks();
     return;
   }
   chapterNav.style.display = "flex";
-  for (const ch of chapters) {
+  chapterLabel.textContent = currentBook ? currentBook.name : "";
+  chapterBtn.title = "書櫃：這個資料夾裡的 " + books.length + " 本書";
+  const parentOf = (b) => (b.path.includes("/") ? b.path.slice(0, b.path.lastIndexOf("/")) : "");
+  const groups = new Set(books.map(parentOf)).size > 1; // 全部都在同一層時不用分組標題
+  let lastParent = null;
+  for (const b of books) {
+    const parent = parentOf(b);
+    if (groups && parent !== lastParent) {
+      const g = document.createElement("div");
+      g.className = "shelf-group";
+      g.textContent = parent || "（大資料夾本身）";
+      chapterPanel.appendChild(g);
+    }
+    lastParent = parent;
     const btn = document.createElement("button");
-    btn.className = "chapter-item";
-    const label = ch.folder || "（根目錄）";
-    btn.textContent = label;
-    btn.title = label;
+    btn.className = "chapter-item" + (b === currentBook ? " active" : "") + (b.dup ? " dup" : "");
+    btn.textContent = (b.dup ? "⚠ " : "") + b.name + bookProgressText(b);
+    btn.title = (b.path || currentRootName) + (b.dup ? "\n⚠ 有同名的書：圖書館用書名認作品，同名的會被當成同一部" : "");
     btn.addEventListener("click", () => {
-      pageEls[ch.index].scrollIntoView({ block: "start", behavior: "smooth" });
       chapterPanel.classList.remove("open");
+      if (b !== currentBook) openBook(b);
     });
-    ch.btn = btn;
     chapterPanel.appendChild(btn);
   }
-  updateActiveChapter(0);
+  publishBooks();
 }
-
-function updateActiveChapter(pageIdx) {
-  if (!chapters.length) return;
-  let idx = 0;
-  for (let i = 0; i < chapters.length; i++) {
-    if (chapters[i].index <= pageIdx) idx = i; else break;
-  }
-  if (idx === activeChapterIdx) return;
-  activeChapterIdx = idx;
-  chapters.forEach((ch, i) => ch.btn.classList.toggle("active", i === idx));
-  chapterLabel.textContent = chapterShortLabel(chapters[idx].folder);
-  chapterBtn.title = chapters[idx].folder || "根目錄";
+// 書清單給油猴閱讀器用（<html data-gv-books>）
+function publishBooks() {
+  document.documentElement.setAttribute("data-gv-books", JSON.stringify({
+    root: currentRootName,
+    current: currentBook ? currentBook.path : null,
+    books: books.map((b) => { const pr = getProgress(b.name); return { key: b.path, name: b.name, count: b.files.length, idx: pr ? pr.idx : 0, total: pr && pr.total ? pr.total : 0, dup: !!b.dup }; }),
+  }));
 }
 
 chapterBtn.addEventListener("click", (e) => {
@@ -540,7 +669,7 @@ document.addEventListener("click", (e) => {
   if (!historyNav.contains(e.target)) historyPanel.classList.remove("open");
 });
 
-window.addEventListener("beforeunload", snapshotCurrentProgress);
+window.addEventListener("beforeunload", () => { snapshotCurrentProgress(); });
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") snapshotCurrentProgress();
 });
@@ -554,7 +683,7 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 function updateCurrentPage() {
-  if (!pageEls.length) return;
+  if (takenOver() || !pageEls.length) return; // 閱讀器接管後，版面和進度顯示由它負責（這裡的 header 等元素已經被移除）
   const headerH = document.querySelector("header").offsetHeight + 4;
   let idx = 0;
   for (let i = 0; i < pageEls.length; i++) {
@@ -565,7 +694,6 @@ function updateCurrentPage() {
   pageIndicator.textContent = `${idx + 1} / ${pageEls.length}`;
   if (currentFolderName) setProgress(currentFolderName, idx, pageEls.length);
   backToTop.style.display = window.scrollY > 600 ? "flex" : "none";
-  updateActiveChapter(idx);
 }
 
 backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
@@ -598,28 +726,59 @@ window.addEventListener("keydown", (e) => {
 });
 
 // ---------- folder picking ----------
+// 失敗時要看得到原因（以前只寫進 console，畫面上看起來就是「沒反應」）
+function showError(prefix, e) {
+  console.error(prefix, e);
+  pageIndicator.textContent = "";
+  let box = document.getElementById("gvError");
+  if (!box) { box = document.createElement("div"); box.id = "gvError"; box.style.cssText = "width:100%;max-width:720px;margin:20px auto;padding:14px 16px;border:1px solid #633;background:#2a1414;color:#f99;border-radius:8px;font-size:14px;line-height:1.7;white-space:pre-wrap;"; }
+  box.textContent = "⚠ " + prefix + "\n" + (e && e.name ? e.name + "：" : "") + (e && e.message ? e.message : String(e));
+  mainEl.prepend(box);
+}
+// 讀取權限：剛用選擇器選的資料夾本來就有讀取權限，先用 queryPermission 看；不夠才 requestPermission。
+// Opera 等 Chromium 衍生瀏覽器的 requestPermission 可能不跳詢問、甚至一直不回應，所以最多等幾秒，
+// 之後照樣試著讀——真的沒權限，讀取時會丟出錯誤，由 showError 顯示。
+// 選擇器回 AbortError：可能是你按了取消，也可能是瀏覽器在你選完之後沒把資料夾交給網頁（Opera 不會跳出「允許網站查看檔案」的詢問，等於被拒絕）。
+// 兩種情況在網頁看起來一樣，所以不用紅色，只給一行說明，不要讓人以為「沒反應」是壞掉了。
+function showAbortHint() {
+  pageIndicator.textContent = "";
+  let box = document.getElementById("gvHint");
+  if (!box) { box = document.createElement("div"); box.id = "gvHint"; box.style.cssText = "width:100%;max-width:720px;margin:20px auto;padding:12px 16px;border:1px solid #444;background:#1c1c1c;color:#aaa;border-radius:8px;font-size:13px;line-height:1.7;"; }
+  box.textContent = "沒有選到資料夾。如果你有按「選擇」卻沒有反應：可能是瀏覽器在你選完之後，沒有把資料夾交給網頁（Opera 常見：它不會跳出「允許網站查看檔案」的詢問，等於被拒絕）。可以試試網址列左邊鎖頭 → 網站設定，把「檔案編輯」改成允許再選一次；還是不行的話，請改用 Chrome 或 Edge。";
+  mainEl.prepend(box);
+}
+async function grantRead(handle, waitMs) {
+  const opts = { mode: "read" };
+  const within = (p) => Promise.race([p, new Promise((r) => setTimeout(() => r("timeout"), waitMs))]);
+  let perm = "prompt";
+  try { if (handle.queryPermission) perm = await within(handle.queryPermission(opts)); } catch (e) { perm = "prompt"; }
+  if (perm === "granted") return "granted";
+  try { if (handle.requestPermission) perm = await within(handle.requestPermission(opts)); } catch (e) { /* 當作沒回應 */ }
+  return perm;
+}
 async function pickFolder() {
   try {
+    if (!window.showDirectoryPicker) throw new Error("這個瀏覽器沒有提供「選擇資料夾」的功能（要用電腦版 Chrome 或 Edge，並且用 https 網址開啟）");
     const handle = await window.showDirectoryPicker();
-    const perm = await handle.requestPermission({ mode: "read" });
-    if (perm !== "granted") return;
-    await saveRecentHandle(handle);
-    await refreshRecentSelect();
+    const perm = await grantRead(handle, 4000);
+    if (perm === "denied") { showError("沒有取得讀取這個資料夾的權限", new Error("請再選一次，並在瀏覽器詢問時按「允許」")); return; }
+    try { await saveRecentHandle(handle); await refreshRecentSelect(); }
+    catch (e) { console.warn("記不住最近的資料夾（不影響閱讀）", e); } // 存不進「最近的資料夾」時照樣讀，只是下次要重選
     await loadAndRender(handle);
     pickBtn.textContent = "選擇其他資料夾";
   } catch (e) {
-    if (e.name !== "AbortError") console.error(e);
+    if (e.name === "AbortError") showAbortHint();
+    else showError("選擇／讀取資料夾失敗", e);
   }
 }
 pickBtn.addEventListener("click", pickFolder);
 pickBtn2.addEventListener("click", pickFolder);
 
-async function ensurePermissionAndLoad(handle) {
-  let perm = await handle.queryPermission({ mode: "read" });
-  if (perm !== "granted") perm = await handle.requestPermission({ mode: "read" });
+async function ensurePermissionAndLoad(handle, want) {
+  const perm = await grantRead(handle, 15000); // 重新打開網頁後要使用者按允許，多等一下
   if (perm !== "granted") return false;
   await saveRecentHandle(handle);
-  await loadAndRender(handle);
+  await loadAndRender(handle, want);
   pickBtn.textContent = "選擇其他資料夾";
   return true;
 }
@@ -627,12 +786,16 @@ async function ensurePermissionAndLoad(handle) {
 async function refreshRecentSelect() {
   const recents = await getAllRecents();
   recentSelect.innerHTML = '<option value="">最近的資料夾…</option>';
+  document.documentElement.setAttribute("data-gv-recents", JSON.stringify(recents.map((r) => {
+    const bn = lastBookName(r.handle.name), pr = getProgress(bn);
+    return { key: r.key, name: r.handle.name, book: bn, idx: pr ? pr.idx : 0, total: pr && pr.total ? pr.total : 0 };
+  })));
   for (const item of recents) {
     const opt = document.createElement("option");
     opt.value = item.key;
-    const prog = getProgress(item.handle.name);
+    const bn = lastBookName(item.handle.name), prog = getProgress(bn);
     opt.textContent = prog && prog.total
-      ? `${item.handle.name}（${prog.idx + 1}/${prog.total}）`
+      ? `${item.handle.name}${bn !== item.handle.name ? " › " + bn : ""}（${prog.idx + 1}/${prog.total}）`
       : item.handle.name;
     recentSelect.appendChild(opt);
   }
@@ -647,6 +810,39 @@ recentSelect.addEventListener("change", async () => {
   if (found) await ensurePermissionAndLoad(found.handle);
 });
 
+// ---------- 從網址 # 打開指定的資料夾（圖書館的「繼續閱讀」）----------
+function wantedFolderFromHash() {
+  const h = location.hash.replace(/^#/, "");
+  if (!h) return "";
+  try { return decodeURIComponent(h); } catch (e) { return h; }
+}
+// 網址 #<名稱>：先找「書」（看每個最近的大資料夾記下的書清單），找不到再當成大資料夾的名稱（舊格式的連結）
+function resolveWanted(want, recents) {
+  for (const r of recents) {
+    const b = readBooksIndex(r.handle.name).find((x) => x.name === want);
+    if (b) return { recent: r, book: b.path };
+  }
+  const r = recents.find((x) => x.handle.name === want);
+  return r ? { recent: r, book: undefined } : null;
+}
+function showFolderNotFound(name) {
+  folderNameEl.textContent = name + "（這個瀏覽器還沒開過這個資料夾）";
+  const box = document.getElementById("empty");
+  if (!box) return;
+  const note = document.createElement("div");
+  note.style.cssText = "color:#e9a;margin-bottom:14px;";
+  note.textContent = "找不到「" + name + "」：這個瀏覽器還沒開過這本書所在的資料夾（資料夾要在這台電腦上）。請用「選擇資料夾」選一次它所在的大資料夾，之後就會記住。";
+  box.prepend(note);
+}
+window.addEventListener("hashchange", async () => {
+  const want = wantedFolderFromHash();
+  if (!want || want === currentFolderName) return;
+  const recents = await getAllRecents();
+  const hit = resolveWanted(want, recents);
+  if (hit) await ensurePermissionAndLoad(hit.recent.handle, hit.book).catch(() => false);
+  else showFolderNotFound(want);
+});
+
 // ---------- boot ----------
 async function boot() {
   if (!window.showDirectoryPicker) {
@@ -656,15 +852,21 @@ async function boot() {
   }
   await migrateLegacy();
   const recents = await refreshRecentSelect();
-  if (recents.length === 0) return;
+  const want = wantedFolderFromHash(); // 從圖書館「繼續閱讀」來：網址 #後面是資料夾名稱
+  if (recents.length === 0) { if (want) showFolderNotFound(want); return; }
 
-  const latest = recents[0];
-  const ok = await ensurePermissionAndLoad(latest.handle).catch(() => false);
+  let latest = recents[0], wantBook;
+  if (want) {
+    const hit = resolveWanted(want, recents);
+    if (!hit) { showFolderNotFound(want); return; }
+    latest = hit.recent; wantBook = hit.book;
+  }
+  const ok = await ensurePermissionAndLoad(latest.handle, wantBook).catch(() => false);
   if (!ok) {
     folderNameEl.textContent = latest.handle.name + "（需要重新授權）";
     pickBtn.textContent = "重新授權「" + latest.handle.name + "」";
     pickBtn.onclick = async () => {
-      const success = await ensurePermissionAndLoad(latest.handle);
+      const success = await ensurePermissionAndLoad(latest.handle, wantBook);
       if (success) pickBtn.onclick = null; // fall back to the default listener added via addEventListener
     };
   }
