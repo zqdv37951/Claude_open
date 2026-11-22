@@ -2,39 +2,59 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>圖片瀏覽器</title>
 <style>
-  :root { --img-width: 900px; }
+  :root {
+    --img-width: 900px;
+    --bg: #111; --text: #eee; --header-bg: rgba(17,17,17,0.95); --line: #333; --line2: #262626;
+    --btn-bg: #2a2a2a; --btn-border: #444; --btn-hover: #383838; --muted: #888; --muted2: #aaa; --footer: #666;
+    --panel-bg: #1c1c1c; --img-bg: #1a1a1a; --item-text: #ddd; --active-bg: #3a4d63; --active-text: #fff; --dup: #e9a;
+    --err-text: #f88; --err-bg: #2a1414; --err-border: #633; --shadow: rgba(0,0,0,0.5); --focus: #4da3ff;
+  }
+  html:not([data-tmr-gallery]) { color-scheme: dark; }
+  /* 跟隨系統的淺色。油猴閱讀器接管時（html[data-tmr-gallery]）版面由它負責，一律維持原本的深色，不受影響 */
+  @media (prefers-color-scheme: light) {
+    html:not([data-tmr-gallery]) {
+      color-scheme: light;
+      --bg: #f3f4f8; --text: #1a1d27; --header-bg: rgba(243,244,248,0.95); --line: #d5d8e2; --line2: #e1e4ee;
+      --btn-bg: #e6e9f1; --btn-border: #c3c8d6; --btn-hover: #d9dde8; --muted: #667089; --muted2: #50586d; --footer: #7a8399;
+      --panel-bg: #ffffff; --img-bg: #e4e6ee; --item-text: #2a2f3d; --active-bg: #d4e0ff; --active-text: #1a1d27; --dup: #b3365e;
+      --err-text: #b32020; --err-bg: #fde8e8; --err-border: #e2a0a0; --shadow: rgba(20,24,40,0.2); --focus: #2f5bd8;
+    }
+  }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #111; font-family: -apple-system, "PingFang TC", sans-serif; }
+  body { background: var(--bg); font-family: -apple-system, "PingFang TC", sans-serif; }
 
   header {
     position: sticky; top: 0; z-index: 10;
-    background: rgba(17,17,17,0.95);
-    color: #eee; border-bottom: 1px solid #333;
+    background: var(--header-bg);
+    color: var(--text); border-bottom: 1px solid var(--line);
   }
   .row {
     display: flex; align-items: center; gap: 10px;
     padding: 8px 14px; font-size: 13px;
   }
-  .row + .row { border-top: 1px solid #262626; }
+  .row + .row { border-top: 1px solid var(--line2); }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; }
-  .right { display: flex; align-items: center; gap: 8px; color: #888; flex-shrink: 0; }
-  #pageIndicator { color: #aaa; min-width: 60px; text-align: right; }
+  .right { display: flex; align-items: center; gap: 8px; color: var(--muted); flex-shrink: 0; }
+  #pageIndicator { color: var(--muted2); min-width: 60px; text-align: right; }
 
   select, button {
-    background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 6px;
+    background: var(--btn-bg); color: var(--text); border: 1px solid var(--btn-border); border-radius: 6px;
     padding: 6px 10px; font-size: 12px; cursor: pointer;
   }
   select { max-width: 180px; }
-  button:hover { background: #383838; }
+  button:hover { background: var(--btn-hover); }
 
-  .slider-group { display: flex; align-items: center; gap: 6px; color: #888; }
+  .slider-group { display: flex; align-items: center; gap: 6px; color: var(--muted); }
   input[type="range"] { width: 110px; }
 
   main { display: flex; flex-direction: column; align-items: center; gap: 6px; }
   main.spread { }
-  main img { display: block; width: 100%; max-width: var(--img-width); height: auto; background: #1a1a1a; }
+  main img { display: block; width: 100%; max-width: var(--img-width); height: auto; background: var(--img-bg); }
   main .row-pair {
     display: flex; flex-direction: row-reverse; width: 100%;
     max-width: calc(var(--img-width) * 2 + 4px);
@@ -42,21 +62,21 @@
   }
   main .row-pair img { width: calc(50% - 2px); max-width: none; }
   main img.broken {
-    min-height: 160px; background: #2a1414; border: 1px dashed #633;
-    color: #f88; display: flex; align-items: center; justify-content: center;
+    min-height: 160px; background: var(--err-bg); border: 1px dashed var(--err-border);
+    color: var(--err-text); display: flex; align-items: center; justify-content: center;
   }
 
-  #empty { color: #888; text-align: center; padding: 80px 20px; font-size: 15px; line-height: 1.8; }
+  #empty { color: var(--muted); text-align: center; padding: 80px 20px; font-size: 15px; line-height: 1.8; }
   #empty button { margin-top: 16px; font-size: 14px; padding: 10px 20px; }
 
-  footer { color: #666; text-align: center; padding: 24px; font-size: 13px; }
+  footer { color: var(--footer); text-align: center; padding: 24px; font-size: 13px; }
 
   #backToTop {
     display: none; position: fixed; right: 20px; bottom: 24px; z-index: 20;
     width: 44px; height: 44px; border-radius: 50%; align-items: center; justify-content: center;
-    background: #2a2a2a; color: #eee; border: 1px solid #444; font-size: 18px; cursor: pointer;
+    background: var(--btn-bg); color: var(--text); border: 1px solid var(--btn-border); font-size: 18px; cursor: pointer;
   }
-  #backToTop:hover { background: #383838; }
+  #backToTop:hover { background: var(--btn-hover); }
 
   /* 有多本書時，每本書最底下：左＝上一本、右＝下一本 */
   #bookNav { display: none; justify-content: space-between; gap: 12px; max-width: var(--img-width); margin: 24px auto 0; padding: 0 14px; }
@@ -68,44 +88,44 @@
   #chapterNav { display: none; position: relative; flex-shrink: 0; }
   #chapterBtn {
     display: flex; align-items: center; gap: 5px;
-    background: #2a2a2a; color: #aaa; border: 1px solid #444; border-radius: 6px;
+    background: var(--btn-bg); color: var(--muted2); border: 1px solid var(--btn-border); border-radius: 6px;
     padding: 4px 8px; font-size: 12px; cursor: pointer;
   }
-  #chapterBtn:hover { background: #383838; }
+  #chapterBtn:hover { background: var(--btn-hover); }
   #chapterBtn .chapter-icon { font-size: 14px; }
   #chapterBtn .chapter-label {
     max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   #chapterPanel {
     display: none; position: absolute; left: 0; top: 100%; margin-top: 6px;
-    background: #1c1c1c; border: 1px solid #444; border-radius: 8px;
+    background: var(--panel-bg); border: 1px solid var(--btn-border); border-radius: 8px;
     max-height: 60vh; overflow-y: auto; min-width: 200px; max-width: 320px;
-    padding: 6px; box-shadow: 0 4px 18px rgba(0,0,0,0.5); z-index: 30;
+    padding: 6px; box-shadow: 0 4px 18px var(--shadow); z-index: 30;
   }
   #chapterPanel.open { display: block; }
   .chapter-item {
     display: block; width: 100%; text-align: left; background: none; border: none;
-    color: #ddd; padding: 8px 10px; font-size: 13px; border-radius: 6px; cursor: pointer;
+    color: var(--item-text); padding: 8px 10px; font-size: 13px; border-radius: 6px; cursor: pointer;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .chapter-item:hover { background: #333; }
-  .shelf-group { color: #777; font-size: 11px; padding: 8px 10px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chapter-item.dup { color: #e9a; }
-  .chapter-item.active { background: #3a4d63; color: #fff; }
+  .chapter-item:hover { background: var(--line); }
+  .shelf-group { color: var(--muted); font-size: 11px; padding: 8px 10px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chapter-item.dup { color: var(--dup); }
+  .chapter-item.active { background: var(--active-bg); color: var(--active-text); }
 
   #historyNav { display: none; position: relative; flex-shrink: 0; }
   #historyBtn {
     display: flex; align-items: center; gap: 5px;
-    background: #2a2a2a; color: #aaa; border: 1px solid #444; border-radius: 6px;
+    background: var(--btn-bg); color: var(--muted2); border: 1px solid var(--btn-border); border-radius: 6px;
     padding: 4px 8px; font-size: 12px; cursor: pointer;
   }
-  #historyBtn:hover { background: #383838; }
+  #historyBtn:hover { background: var(--btn-hover); }
   #historyBtn .chapter-icon { font-size: 14px; }
   #historyPanel {
     display: none; position: absolute; right: 0; top: 100%; margin-top: 6px;
-    background: #1c1c1c; border: 1px solid #444; border-radius: 8px;
+    background: var(--panel-bg); border: 1px solid var(--btn-border); border-radius: 8px;
     max-height: 60vh; overflow-y: auto; min-width: 180px; max-width: 280px;
-    padding: 6px; box-shadow: 0 4px 18px rgba(0,0,0,0.5); z-index: 30;
+    padding: 6px; box-shadow: 0 4px 18px var(--shadow); z-index: 30;
   }
   #historyPanel.open { display: block; }
 </style>
@@ -115,25 +135,25 @@
   <div class="row">
     <span class="name" id="folderName">尚未選擇資料夾</span>
     <div id="chapterNav">
-      <button id="chapterBtn" title="書櫃：這個資料夾裡的書">
+      <button id="chapterBtn" title="書櫃：這個資料夾裡的書" aria-haspopup="true" aria-expanded="false" aria-controls="chapterPanel">
         <span class="chapter-icon">📚</span><span class="chapter-label" id="chapterLabel"></span>
       </button>
       <div id="chapterPanel"></div>
     </div>
     <span class="right">
       <span id="pageIndicator"></span>
-      <select id="recentSelect"><option value="">最近的資料夾…</option></select>
+      <select id="recentSelect" aria-label="最近的資料夾"><option value="">最近的資料夾…</option></select>
       <button id="pickBtn">選擇資料夾</button>
     </span>
   </div>
   <div class="row">
     <div class="slider-group">
       <span>寬度</span>
-      <input type="range" id="widthSlider" min="300" max="1600" step="20">
+      <input type="range" id="widthSlider" min="300" max="1600" step="20" aria-label="圖片寬度">
     </div>
     <span class="right" style="margin-left:auto;">
       <div id="historyNav">
-        <button id="historyBtn" title="閱讀紀錄">
+        <button id="historyBtn" title="閱讀紀錄" aria-haspopup="true" aria-expanded="false" aria-controls="historyPanel">
           <span class="chapter-icon">🕘</span><span class="chapter-label" id="historyLabel"></span>
         </button>
         <div id="historyPanel"></div>
@@ -154,7 +174,7 @@
 </main>
 <div id="bookNav"></div>
 <footer id="pageFooter"></footer>
-<div id="backToTop" title="回到頂部">↑</div>
+<button type="button" id="backToTop" title="回到頂部" aria-label="回到頂部">↑</button>
 
 <script>
 const IMAGE_EXT = new Set(["jpg","jpeg","png","gif","webp","bmp","avif","tif","tiff"]);
@@ -271,6 +291,10 @@ let openSeq = 0;           // 連續切書時，丟掉過期的載入
 let currentImages = []; // [{name, url}]
 let pageEls = [];       // <img> elements in reading order, for page counter/progress
 let spreadMode = localStorage.getItem("gallery-spread") === "1";
+
+// 系統設定「減少動態效果」時，捲動不要有動畫
+const reduceMotion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+const smoothBehavior = () => (reduceMotion && reduceMotion.matches ? "auto" : "smooth");
 
 // ---------- settings init ----------
 const savedWidth = localStorage.getItem("gallery-width") || 900;
@@ -477,6 +501,7 @@ function renderImages() {
     img.alt = item.name;
     img.title = item.name;
     img.loading = "lazy";
+    img.decoding = "async"; // 圖片在背景解碼，不卡住捲動
     img.onerror = () => { img.classList.add("broken"); const n = mainEl.querySelectorAll("img.broken").length; footerEl.textContent = `已顯示全部 ${currentImages.length} 張圖片（依檔名排序）　⚠ 其中 ${n} 張無法顯示（檔案壞掉或瀏覽器不支援這種格式）`; };
     pageEls.push(img);
     return img;
@@ -573,7 +598,7 @@ function bookProgressText(b) {
 }
 function renderBookshelf() {
   chapterPanel.innerHTML = "";
-  chapterPanel.classList.remove("open");
+  setPanel(chapterBtn, chapterPanel, false);
   if (books.length <= 1) {
     chapterNav.style.display = "none";
     publishBooks();
@@ -599,7 +624,7 @@ function renderBookshelf() {
     btn.textContent = (b.dup ? "⚠ " : "") + b.name + bookProgressText(b);
     btn.title = (b.path || currentRootName) + (b.dup ? "\n⚠ 有同名的書：圖書館用書名認作品，同名的會被當成同一部" : "");
     btn.addEventListener("click", () => {
-      chapterPanel.classList.remove("open");
+      setPanel(chapterBtn, chapterPanel, false);
       if (b !== currentBook) openBook(b);
     });
     chapterPanel.appendChild(btn);
@@ -615,13 +640,18 @@ function publishBooks() {
   }));
 }
 
+// 書櫃、閱讀紀錄的彈出面板：開／關時同步 aria-expanded（螢幕閱讀器才知道），Esc 可以關閉並把焦點還給按鈕
+function setPanel(btn, panel, on) {
+  panel.classList.toggle("open", on);
+  btn.setAttribute("aria-expanded", on ? "true" : "false");
+}
 chapterBtn.addEventListener("click", (e) => {
   e.stopPropagation();
-  chapterPanel.classList.toggle("open");
+  setPanel(chapterBtn, chapterPanel, !chapterPanel.classList.contains("open"));
 });
 
 document.addEventListener("click", (e) => {
-  if (!chapterNav.contains(e.target)) chapterPanel.classList.remove("open");
+  if (!chapterNav.contains(e.target)) setPanel(chapterBtn, chapterPanel, false);
 });
 
 function restoreProgress() {
@@ -637,7 +667,7 @@ function restoreProgress() {
 function renderHistoryNav() {
   const hist = getHistory(currentFolderName);
   historyPanel.innerHTML = "";
-  historyPanel.classList.remove("open");
+  setPanel(historyBtn, historyPanel, false);
   if (!hist.length) {
     historyNav.style.display = "none";
     return;
@@ -653,8 +683,8 @@ function renderHistoryNav() {
     const label = h.total ? `${h.idx + 1}/${h.total}` : `${h.idx + 1}`;
     btn.textContent = `${label} · ${timeAgo(h.ts)}`;
     btn.addEventListener("click", () => {
-      if (pageEls[h.idx]) pageEls[h.idx].scrollIntoView({ block: "start", behavior: "smooth" });
-      historyPanel.classList.remove("open");
+      if (pageEls[h.idx]) pageEls[h.idx].scrollIntoView({ block: "start", behavior: smoothBehavior() });
+      setPanel(historyBtn, historyPanel, false);
     });
     historyPanel.appendChild(btn);
   }
@@ -662,11 +692,17 @@ function renderHistoryNav() {
 
 historyBtn.addEventListener("click", (e) => {
   e.stopPropagation();
-  historyPanel.classList.toggle("open");
+  setPanel(historyBtn, historyPanel, !historyPanel.classList.contains("open"));
 });
 
 document.addEventListener("click", (e) => {
-  if (!historyNav.contains(e.target)) historyPanel.classList.remove("open");
+  if (!historyNav.contains(e.target)) setPanel(historyBtn, historyPanel, false);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  for (const [btn, panel] of [[chapterBtn, chapterPanel], [historyBtn, historyPanel]]) {
+    if (panel.classList.contains("open")) { setPanel(btn, panel, false); btn.focus(); e.preventDefault(); }
+  }
 });
 
 window.addEventListener("beforeunload", () => { snapshotCurrentProgress(); });
@@ -696,7 +732,7 @@ function updateCurrentPage() {
   backToTop.style.display = window.scrollY > 600 ? "flex" : "none";
 }
 
-backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: smoothBehavior() }));
 
 // ---------- keyboard navigation ----------
 window.addEventListener("keydown", (e) => {
@@ -707,20 +743,20 @@ window.addEventListener("keydown", (e) => {
     case "ArrowDown":
     case "PageDown":
       e.preventDefault();
-      window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" });
+      window.scrollBy({ top: window.innerHeight * 0.9, behavior: smoothBehavior() });
       break;
     case "ArrowUp":
     case "PageUp":
       e.preventDefault();
-      window.scrollBy({ top: -window.innerHeight * 0.9, behavior: "smooth" });
+      window.scrollBy({ top: -window.innerHeight * 0.9, behavior: smoothBehavior() });
       break;
     case "Home":
       e.preventDefault();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: smoothBehavior() });
       break;
     case "End":
       e.preventDefault();
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      window.scrollTo({ top: document.body.scrollHeight, behavior: smoothBehavior() });
       break;
   }
 });
@@ -731,7 +767,7 @@ function showError(prefix, e) {
   console.error(prefix, e);
   pageIndicator.textContent = "";
   let box = document.getElementById("gvError");
-  if (!box) { box = document.createElement("div"); box.id = "gvError"; box.style.cssText = "width:100%;max-width:720px;margin:20px auto;padding:14px 16px;border:1px solid #633;background:#2a1414;color:#f99;border-radius:8px;font-size:14px;line-height:1.7;white-space:pre-wrap;"; }
+  if (!box) { box = document.createElement("div"); box.id = "gvError"; box.setAttribute("role", "alert"); box.style.cssText = "width:100%;max-width:720px;margin:20px auto;padding:14px 16px;border:1px solid var(--err-border);background:var(--err-bg);color:var(--err-text);border-radius:8px;font-size:14px;line-height:1.7;white-space:pre-wrap;"; }
   box.textContent = "⚠ " + prefix + "\n" + (e && e.name ? e.name + "：" : "") + (e && e.message ? e.message : String(e));
   mainEl.prepend(box);
 }
@@ -743,7 +779,7 @@ function showError(prefix, e) {
 function showAbortHint() {
   pageIndicator.textContent = "";
   let box = document.getElementById("gvHint");
-  if (!box) { box = document.createElement("div"); box.id = "gvHint"; box.style.cssText = "width:100%;max-width:720px;margin:20px auto;padding:12px 16px;border:1px solid #444;background:#1c1c1c;color:#aaa;border-radius:8px;font-size:13px;line-height:1.7;"; }
+  if (!box) { box = document.createElement("div"); box.id = "gvHint"; box.setAttribute("role", "status"); box.style.cssText = "width:100%;max-width:720px;margin:20px auto;padding:12px 16px;border:1px solid var(--btn-border);background:var(--panel-bg);color:var(--muted2);border-radius:8px;font-size:13px;line-height:1.7;"; }
   box.textContent = "沒有選到資料夾。如果你有按「選擇」卻沒有反應：可能是瀏覽器在你選完之後，沒有把資料夾交給網頁（Opera 常見：它不會跳出「允許網站查看檔案」的詢問，等於被拒絕）。可以試試網址列左邊鎖頭 → 網站設定，把「檔案編輯」改成允許再選一次；還是不行的話，請改用 Chrome 或 Edge。";
   mainEl.prepend(box);
 }
@@ -830,7 +866,7 @@ function showFolderNotFound(name) {
   const box = document.getElementById("empty");
   if (!box) return;
   const note = document.createElement("div");
-  note.style.cssText = "color:#e9a;margin-bottom:14px;";
+  note.style.cssText = "color:var(--dup);margin-bottom:14px;";
   note.textContent = "找不到「" + name + "」：這個瀏覽器還沒開過這本書所在的資料夾（資料夾要在這台電腦上）。請用「選擇資料夾」選一次它所在的大資料夾，之後就會記住。";
   box.prepend(note);
 }
