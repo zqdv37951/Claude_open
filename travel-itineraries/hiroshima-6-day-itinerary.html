@@ -2,9 +2,15 @@
 <html lang="zh-Hant"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+/* 避免先閃一下錯的主題：在首次繪製前套用已儲存的選擇（只做這件事；切換鈕的邏輯在頁尾） */
+try { var __t = localStorage.getItem('travel-plan-theme'); if (__t === 'light' || __t === 'dark') document.documentElement.setAttribute('data-theme', __t); } catch (e) {}
+</script>
 <title>廣島 6 天 5 夜：宮島・尾道・岩國・呉</title>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{
   --bg:#f1f4f2; --surface:#ffffff; --surface-2:#e7ece9;
@@ -382,6 +388,49 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:38px 0 0}
 .cp-src{font-size:11.5px;color:var(--ink-faint);margin-top:6px;line-height:1.5}
 .cp-srcs{columns:1;padding-left:18px;font-size:13px;line-height:1.9}
 @media(min-width:768px){.cp-srcs{columns:2}}
+
+/* ── 現代化與無障礙補強（依 modern-web-guidance：dark-mode、accessibility、responsive-table、defer-rendering-heavy-content、scrollspy） ── */
+:root{color-scheme:light dark;accent-color:var(--teal)}
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+.visually-hidden:where(:not(:focus-within,:active)){position:absolute!important;clip-path:inset(50%)!important;overflow:hidden!important;
+  width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;border:0!important;white-space:nowrap!important}
+.skip-link{position:fixed;inset-block-start:8px;inset-inline-start:8px;z-index:100;padding:8px 14px;border-radius:8px;
+  background:var(--teal);color:#fff;font-size:14px;text-decoration:none}
+section[tabindex="-1"]:focus{outline:none}
+section[tabindex="-1"]:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+.nav-in{scroll-target-group:auto}
+.nav a:is(:target-current,.target-current){color:var(--teal-ink);border-bottom-color:var(--teal);font-weight:700}
+/* 行內樣式搬進樣式表 */
+.th-w{width:110px}
+.card-gap{margin-top:14px}
+.card-reason{margin:4px 0 10px}
+.h3-gap{margin-top:22px}
+.h3-anchor{scroll-margin-top:58px}
+.plan-note{margin:6px 0 0}
+.tip-p{margin:0;font-size:14.5px;line-height:1.65}
+label.uv-t{display:block;cursor:pointer}
+/* 首屏之外的重內容先不算版面（content-visibility:auto＋預估高度；列印時一律展開） */
+#regions,#cp,#glossary,#verify{content-visibility:auto;contain-intrinsic-size:auto none auto 1600px;padding-bottom:30px}
+@media print{#regions,#cp,#glossary,#verify{content-visibility:visible}}
+/* 窄容器時表格堆成「一列一張卡」；欄名由 data-label 注入（thead 在這種版面隱藏） */
+.tw,.car-wrap{container-type:inline-size}
+@container (width < 560px){
+  table.stackable,table.kv{min-width:0}
+  table.kv,table.kv tbody,table.kv tr,table.kv th,table.kv td{display:block}
+  table.kv tr{padding:10px 12px;border-bottom:1px solid var(--line)}
+  table.kv tr:last-child{border-bottom:none}
+  table.kv th,table.kv td{border:0;padding:2px 0;width:auto}
+  table.kv th{font-size:12px;color:var(--ink-faint)}
+  table.stackable,table.stackable tbody,table.stackable tr,table.stackable td{display:block}
+  table.stackable thead{display:none}
+  table.stackable tr{padding:10px 12px;border-bottom:1px solid var(--line)}
+  table.stackable tr:last-child{border-bottom:none}
+  table.stackable td{border:0;padding:2px 0;white-space:normal}
+  table.stackable td.num{white-space:normal}
+  table.stackable td:first-child{font-weight:700}
+  table.stackable td:not(:first-child)::before{content:attr(data-label) "：";color:var(--ink-faint);font-size:12px}
+}
 h3.day-h{margin:0;font:inherit}
 .slot-meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
 .slot-meta .pill{font-family:var(--font-body);font-size:11.5px;background:var(--surface-2);color:var(--ink-soft);
@@ -400,7 +449,8 @@ h3.day-h{margin:0;font:inherit}
 </style>
 </head><body>
 
-<nav class="nav"><div class="nav-in" id="nav-in"></div></nav>
+<a class="skip-link visually-hidden" href="#content">跳到主要內容</a>
+<nav class="nav" aria-label="頁面章節"><div class="nav-in" id="nav-in"></div></nav>
 
 <header class="hero"><div class="wrap">
   <div class="eyebrow">2026 · 12 · 03 — 12 · 08　/　TAIPEI → HIROSHIMA　/　三位成人</div>
@@ -415,37 +465,40 @@ h3.day-h{margin:0;font:inherit}
   <div id="checklist"></div>
 </div></header>
 
-<div class="wrap">
-  <section id="pretrip"><h2>行前總覽</h2><div id="pretrip-body"></div>
+<main class="wrap" id="content">
+  <section id="pretrip" tabindex="-1"><h2>行前總覽</h2><div id="pretrip-body"></div>
     <div class="alert"><b>⚠️ 調研改變了行程的三件事</b>
       <p>①廣島城天守閣已於 2026/3/22 閉城，行程不排天守，改排縮景園；②Dreamination 點燈是 12/4 才開幕，所以 12/3 夜晚沒有燈，點燈夜排在 12/7；③和平紀念資料館 12 月 16:30–17:30 要線上預約，所以 12/3 排 14:30 入館以避開；④12/4 是 Dreamination 與聖誕市集同日開幕，12/6 傍晚排了市集；錦帶橋「橋守導覽」只有 12/5 有開，要參加得和 12/6 對調（見「活動慶典」與 12/5 的二選一）。</p></div>
   </section>
   <hr class="rule">
-  <section id="transport"><h2>航班・住宿・交通</h2><div id="transport-body"></div></section>
+  <section id="transport" tabindex="-1"><h2>航班・住宿・交通</h2><div id="transport-body"></div></section>
   <hr class="rule">
-  <section id="events"><h2>同期活動慶典</h2>
+  <section id="events" tabindex="-1"><h2>同期活動慶典</h2>
     <div id="events-body"></div></section>
   <hr class="rule">
-  <section id="plans" data-timeline><h2>逐日行程</h2>
+  <section id="plans" data-timeline tabindex="-1"><h2>逐日行程</h2>
     <p class="lede">時間軸上每一站都可展開「附近推薦」，依實際座標距離排序；站點旁的 <b>編號</b> 與下方地圖標記一一對應。</p>
     <div id="plans-body"></div></section>
   <hr class="rule">
-  <section id="map-sec"><h2>路線地圖</h2><p class="muted" id="map-note"></p><div id="map"></div></section>
+  <section id="map-sec" tabindex="-1"><h2>路線地圖</h2><p class="muted" id="map-note"></p><div id="map"></div></section>
   <hr class="rule">
-  <section id="regions"><h2>五區各 30 選（景點 / 美食 / 店家）</h2>
+  <section id="regions" tabindex="-1"><h2>五區各 30 選（景點 / 美食 / 店家）</h2>
     <p class="lede">每區景點、美食、店家各 10 項，是行程之外的備選庫。標題連向地圖；沒有座標的項目（OpenStreetMap 查不到或有多個分店）只給 Google 地圖搜尋連結，避免填入沒驗證過的點位。</p>
     <div id="regions-body"></div></section>
   <hr class="rule">
-  <section id="cp"><h2>廣島 CP 值 30 家</h2>
+  <section id="cp" tabindex="-1"><h2>廣島 CP 值 30 家</h2>
     <div id="cp-body"></div></section>
   <hr class="rule">
-  <section id="verify"><h2>出發前要自己確認的事</h2>
+  <section id="verify" tabindex="-1"><h2>出發前要自己確認的事</h2>
     <p class="lede">下面每一條都是這份行程<strong>建置時驗不了</strong>的東西——不是沒查，是查不到或在建置環境打不開。
       一句籠統的免責宣告沒有用，所以把具體項目列出來讓你逐條勾掉。</p>
     <div id="verify-body"></div></section>
-  <section id="tips"><h2>全程實用貼士</h2><div id="tips-body"></div></section>
+  <section id="tips" tabindex="-1"><h2>全程實用貼士</h2><div id="tips-body"></div></section>
   <hr class="rule">
-  <section id="glossary"><h2>日文—繁體中文對照表</h2><div id="glossary-body"></div></section>
+  <section id="glossary" tabindex="-1"><h2>日文—繁體中文對照表</h2><div id="glossary-body"></div></section>
+</main>
+
+<div class="wrap">
   <footer>
     <p><b>資料查證時間：2026 年 10 月 28 日。</b>營業時間、休館日、票價、點燈日期與交通所需時間，均來自查證當日可取得的官方頁面與公開資料，可能隨時更動。出發前一週請再確認：
       <a href="https://dreamination.com/" target="_blank" rel="noopener">ひろしまドリミネーション</a>・
@@ -914,6 +967,38 @@ if (typeof module !== 'undefined' && module.exports) {
     return url ? '<a href="' + E(url) + '" target="_blank" rel="noopener">' + E(name) + ' ↗</a>' : E(name);
   }
 
+  function whenReady(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn();
+  }
+  // 勾選狀態存在這個瀏覽器的 localStorage（只是方便，讀寫失敗不影響頁面）。
+  // key 用項目文字的雜湊而不是序號，之後改清單順序時才不會把勾選對到別的項目。
+  function hash(str) { var h = 5381; for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+  function persistChecks(scope, prefix, textSel) {
+    document.querySelectorAll(scope + ' input[type=checkbox]').forEach(function (b) {
+      var src = b.closest('li'), t = src ? (src.querySelector(textSel) || src).textContent : '';
+      var k = prefix + '-' + hash(t);
+      try { if (localStorage.getItem(k) === '1') b.checked = true; } catch (e) {}
+      b.addEventListener('change', function () {
+        try { if (b.checked) localStorage.setItem(k, '1'); else localStorage.removeItem(k); } catch (e) {}
+      });
+    });
+  }
+  // 可橫向捲動的表格：外層給 tabindex、role=region 與名稱，鍵盤才捲得到；表格本身用 <caption> 命名
+  var capSeq = 0;
+  function scrollTable(caption, wrapClass, tableClass, theadHTML, bodyHTML) {
+    var id = 'cap-' + (++capSeq);
+    return '<div class="' + wrapClass + '" tabindex="0" role="region" aria-labelledby="' + id + '"><table class="' + tableClass + '">'
+      + '<caption id="' + id + '" class="visually-hidden">' + E(caption) + '</caption>' + (theadHTML || '') + '<tbody>' + bodyHTML + '</tbody></table></div>';
+  }
+  // 同名連結（「Google 地圖」出現上百次）指向不同地點：用 aria-label 補上地名，名稱開頭保留可見文字
+  function labelMapLinks(root) {
+    (root || document).querySelectorAll('.poi-card').forEach(function (c) {
+      var h = c.querySelector('h4'); if (!h) return;
+      var nm = h.textContent.replace(/\s*↗\s*$/, '').trim();
+      c.querySelectorAll('.poi-maplink a:not([aria-label])').forEach(function (a) { a.setAttribute('aria-label', a.textContent.trim() + '：' + nm); });
+    });
+  }
+
   /* ---------- 1. tab 導覽（page-contract.md#tab-nav，項目跟著 trip 實際區塊產生） ---------- */
   var tabs = [['#pretrip', '行前總覽'], ['#transport', '航班・住宿・交通'], ['#events', '活動慶典'], ['#plans', '逐日行程'], ['#map-sec', '路線地圖']];
   (hl.regions || []).forEach(function (r) { tabs.push(['#rg-' + r.key, r.name + ' 30 選']); });
@@ -933,24 +1018,70 @@ if (typeof module !== 'undefined' && module.exports) {
       e.preventDefault();
     }, { passive: false });
   })();
-  // 主題切換：色票本來就定義了 :root[data-theme]，這裡只補上 UI 與記憶
+  // 主題切換（page-contract.md#theme-toggle 的 data-theme／travel-plan-theme 維持不變；行為依 modern-web-guidance 的 dark-mode-toggle）：
+  // ① 想切到的主題若等於系統偏好，就移除儲存值（不把它釘死，之後系統自動換日夜模式還能跟著走）；
+  // ② 系統偏好改變時要重畫按鈕文字；③ 其他分頁改了就同步。
   (function () {
-    var root = document.documentElement, btn = $('theme-btn');
-    function sysDark() { return matchMedia('(prefers-color-scheme: dark)').matches; }
-    function cur() { return root.getAttribute('data-theme') || (sysDark() ? 'dark' : 'light'); }
+    var root = document.documentElement, btn = $('theme-btn'), key = 'travel-plan-theme', mq = matchMedia('(prefers-color-scheme: dark)');
+    function cur() { return root.getAttribute('data-theme') || (mq.matches ? 'dark' : 'light'); }
     function paint() { btn.textContent = cur() === 'dark' ? '☀ 淺色' : '☾ 深色'; }
-    try { var save = localStorage.getItem('travel-plan-theme'); if (save) root.setAttribute('data-theme', save); } catch (e) {}
-    paint();
+    function apply(v) { if (v === 'light' || v === 'dark') root.setAttribute('data-theme', v); else root.removeAttribute('data-theme'); paint(); }
+    try { apply(localStorage.getItem(key)); } catch (e) { paint(); }
     btn.addEventListener('click', function () {
       var next = cur() === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      try { localStorage.setItem('travel-plan-theme', next); } catch (e) {}
+      if (next === (mq.matches ? 'dark' : 'light')) {
+        root.removeAttribute('data-theme'); try { localStorage.removeItem(key); } catch (e) {}
+      } else {
+        root.setAttribute('data-theme', next); try { localStorage.setItem(key, next); } catch (e) {}
+      }
       paint();
     });
+    mq.addEventListener('change', paint);
+    window.addEventListener('storage', function (e) { if (e.key === key || e.key === null) apply(e.newValue); });
+  })();
+
+  // 目前所在章節：導覽列對應連結標 aria-current（有 scroll-target-group 就用瀏覽器原生追蹤，沒有就用 IntersectionObserver）
+  (function () {
+    var links = [].slice.call(document.querySelectorAll('#nav-in a[href^="#"]')), nav = $('nav-in');
+    function keepVisible(a) {
+      var l = a.offsetLeft, r = l + a.offsetWidth;
+      if (l < nav.scrollLeft) nav.scrollLeft = Math.max(0, l - 12);
+      else if (r > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = r - nav.clientWidth + 12;
+    }
+    function mark(cur) {
+      links.forEach(function (a) {
+        var on = a === cur;
+        a.classList.toggle('target-current', on);
+        if (on) { a.setAttribute('aria-current', 'true'); keepVisible(a); } else a.removeAttribute('aria-current');
+      });
+    }
+    if (window.CSS && CSS.supports && CSS.supports('scroll-target-group: auto')) {
+      // :target-current 在 scrollend 當下可能還沒更新，所以等捲動停下來一小段時間再讀（scroll／scrollend 都重排一次計時）
+      var timer, sync = function () { mark(document.querySelector('#nav-in a:target-current')); },
+          later = function () { clearTimeout(timer); timer = setTimeout(sync, 150); };
+      sync();
+      document.addEventListener('scroll', later, { passive: true });
+      document.addEventListener('scrollend', later);
+    } else if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) mark(links.filter(function (a) { return a.getAttribute('href') === '#' + e.target.id; })[0]);
+        });
+      }, { rootMargin: '-40% 0px -55% 0px' });
+      links.forEach(function (a) { var t = document.querySelector(a.getAttribute('href')); if (t) io.observe(t); });
+    }
   })();
 
   /* ---------- 2. 頁頂待辦清單 ---------- */
   $('checklist').innerHTML = renderChecklistHTML(computeReminders(trip.startDate, trip.reminders || []));
+  // 引擎輸出的核取方塊沒有標籤：用 aria-labelledby 指到旁邊看得見的文字（待辦內容＋截止日）
+  document.querySelectorAll('#checklist .todo-item').forEach(function (li, i) {
+    var inp = li.querySelector('input'), d = li.querySelector('.todo-deadline'), t = li.querySelector('.todo-text');
+    if (!inp || !d || !t) return;
+    d.id = 'todo-d-' + i; t.id = 'todo-t-' + i; inp.id = 'todo-' + i;
+    inp.setAttribute('aria-labelledby', t.id + ' ' + d.id);
+  });
+  persistChecks('#checklist', 'hiro-todo', '.todo-text');
 
   /* ---------- 3. 行前須知 ---------- */
   var pt = trip.preTrip || {}, ptRows = [
@@ -959,9 +1090,9 @@ if (typeof module !== 'undefined' && module.exports) {
     ['必備 App', Array.isArray(pt.apps) ? pt.apps.join('・') : pt.apps],
     ['購票時機', pt.ticketTip]
   ].filter(function (r) { return r[1]; });
-  $('pretrip-body').innerHTML = '<div class="tw"><table><tbody>' + ptRows.map(function (r) {
-    return '<tr><th style="width:110px">' + E(r[0]) + '</th><td>' + E(r[1]) + '</td></tr>';
-  }).join('') + '</tbody></table></div>';
+  $('pretrip-body').innerHTML = scrollTable('行前須知', 'tw', 'kv', '', ptRows.map(function (r) {
+    return '<tr><th scope="row" class="th-w">' + E(r[0]) + '</th><td>' + E(r[1]) + '</td></tr>';
+  }).join(''));
 
   /* ---------- 4. 航班 + 住宿 + 交通方案 + 免責聲明 ---------- */
   var f = trip.flights || {}, fh = '<h3>航班</h3><div class="grid">';
@@ -978,20 +1109,21 @@ if (typeof module !== 'undefined' && module.exports) {
   }
   fh += '<h3>住宿</h3><p class="muted">住宿尚未訂：5 晚、三位成人，由你自己決定。下面只給「片區」建議與各價位的代表旅館；價格是公開資料的粗估，請以訂房網的日期報價為準，本頁不查實時房價。</p>';
   (trip.hotelAreas || []).forEach(function (a) {
-    fh += '<div class="card" style="margin-top:14px"><h4>' + E(a.area) + '</h4><p class="muted" style="margin:4px 0 10px">' + E(a.reason) + '</p>'
+    fh += '<div class="card card-gap"><h4>' + E(a.area) + '</h4><p class="muted card-reason">' + E(a.reason) + '</p>'
       + ((a.options || []).length
-        ? '<div class="tw"><table><thead><tr><th>價位</th><th>選項</th><th>參考價</th><th>備註</th></tr></thead><tbody>'
-          + a.options.map(function (o) {
-            // 住宿的訂房連結跟時間軸站點共用 bookingUrl 機制（page-contract.md#booking）
-            var bk = o.bookingUrl
-              ? ' ' + reminderBadgeHTML(o.leadDays, { kind: o.bookingKind || 'reserve', url: o.bookingUrl })
-              : (o.actionLink && o.actionLink.url
-                  ? ' <a class="action-link" href="' + escapeHTML(o.actionLink.url)
-                    + '" target="_blank" rel="noopener">' + escapeHTML(o.actionLink.label || '前往') + ' →</a>'
-                  : '');
-            return '<tr><td><span class="pill">' + E(o.tier) + '</span></td><td><b>' + E(o.name) + '</b>' + bk + '</td>'
-              + '<td class="mono">' + E(o.priceRange || '') + '</td><td>' + E(o.note || '') + '</td></tr>';
-          }).join('') + '</tbody></table></div>'
+        ? scrollTable('住宿選項：' + a.area, 'tw', 'stackable',
+            '<thead><tr><th scope="col">價位</th><th scope="col">選項</th><th scope="col">參考價</th><th scope="col">備註</th></tr></thead>',
+            a.options.map(function (o) {
+              // 住宿的訂房連結跟時間軸站點共用 bookingUrl 機制（page-contract.md#booking）
+              var bk = o.bookingUrl
+                ? ' ' + reminderBadgeHTML(o.leadDays, { kind: o.bookingKind || 'reserve', url: o.bookingUrl })
+                : (o.actionLink && o.actionLink.url
+                    ? ' <a class="action-link" href="' + escapeHTML(o.actionLink.url)
+                      + '" target="_blank" rel="noopener">' + escapeHTML(o.actionLink.label || '前往') + ' →</a>'
+                    : '');
+              return '<tr><td><span class="pill">' + E(o.tier) + '</span></td><td><b>' + E(o.name) + '</b>' + bk + '</td>'
+                + '<td class="mono">' + E(o.priceRange || '') + '</td><td>' + E(o.note || '') + '</td></tr>';
+            }).join(''))
         : '')
       + '</div>';
   });
@@ -1001,7 +1133,7 @@ if (typeof module !== 'undefined' && module.exports) {
   (function () {
     var c = trip.transportPlan;
     if (!c) return;
-    var h = '<h3 style="margin-top:22px">' + E(c.title || '交通方案') + '</h3>';
+    var h = '<h3 class="h3-gap">' + E(c.title || '交通方案') + '</h3>';
     if (c.lede) h += '<p class="lede">' + E(c.lede) + '</p>';
     h += '<div class="car">';
     var r = c.recommendation;
@@ -1013,13 +1145,13 @@ if (typeof module !== 'undefined' && module.exports) {
         + '</div>';
     }
     if ((c.compare || []).length) {
-      h += '<div class="car-h">比較：三種做法</div><div class="car-wrap"><table class="car-tbl">'
-        + '<thead><tr><th>方案</th><th>費用</th><th>優點</th><th>缺點</th><th>結論</th></tr></thead><tbody>'
-        + c.compare.map(function (x) {
+      h += '<div class="car-h">比較：三種做法</div>' + scrollTable('交通方案比較：大眾運輸、全程租車、只租一天', 'car-wrap', 'car-tbl stackable',
+        '<thead><tr><th scope="col">方案</th><th scope="col">費用</th><th scope="col">優點</th><th scope="col">缺點</th><th scope="col">結論</th></tr></thead>',
+        c.compare.map(function (x) {
           return '<tr' + (/推薦/.test(x.verdict || '') && !/不推薦/.test(x.verdict || '') ? ' class="rec"' : '') + '><td>' + E(x.option)
             + '</td><td>' + E(x.cost || '') + '</td><td>' + E(x.pros || '')
             + '</td><td>' + E(x.cons || '') + '</td><td>' + E(x.verdict || '') + '</td></tr>';
-        }).join('') + '</tbody></table></div>';
+        }).join(''));
     }
     if ((c.carDocuments || []).length) {
       h += '<div class="car-h">如果你還是想租車：證件</div><ul class="car-list">'
@@ -1115,7 +1247,7 @@ if (typeof module !== 'undefined' && module.exports) {
       html += '<div class="plan-head' + (pl.recommended ? '' : ' alt') + '" id="plan-' + E(pl.key) + '">'
         + '<h3>' + E(pl.name) + (pl.recommended ? '<span class="badge-rec">推薦</span>' : '') + '</h3>'
         + (pl.reason ? '<p>' + E(pl.reason) + '</p>' : '')
-        + (pl === mainPlan ? '' : '<p class="muted" style="margin:6px 0 0">此方案的站點沒有編號——地圖畫的是推薦方案。</p>')
+        + (pl === mainPlan ? '' : '<p class="muted plan-note">此方案的站點沒有編號——地圖畫的是推薦方案。</p>')
         + '</div>';
     }
     function statusBadge(o) {
@@ -1136,7 +1268,7 @@ if (typeof module !== 'undefined' && module.exports) {
         // 地圖連結排在標題與時段標籤之間（同一行），不要另起一行
         var maps = (typeof buildMapAppLinks === 'function' && typeof s.lat === 'number')
           ? '<span class="poi-maplink poi-maplink--inline">' + buildMapAppLinks(s.lat, s.lng, s.name).map(function (l) {
-              return '<a href="' + l.url + '" target="_blank" rel="noopener">' + E(l.label) + '</a>'; }).join('') + '</span>' : '';
+              return '<a href="' + l.url + '" target="_blank" rel="noopener" aria-label="' + E(l.label + '：' + s.name) + '">' + E(l.label) + '</a>'; }).join('') + '</span>' : '';
         var num = (pl === mainPlan) ? (++mapNo) : null;
         var numBadge = num ? '<span class="tl-num" title="地圖上的第 ' + num + ' 個標記">' + num + '</span>' : '';
         return '<li><span class="tl-t">' + E(s.time || '') + '</span><div>'
@@ -1144,7 +1276,7 @@ if (typeof module !== 'undefined' && module.exports) {
             + (s.period ? '<span class="pill">' + E(s.period) + '</span>' : '') + '</h4>'
           + (s.review ? '<p class="muted">' + E(s.review) + '</p>' : '')
           + metaHTML(s)
-          + '<button class="nearby-toggle" data-target="' + pid + '" aria-expanded="false">▸ 顯示附近特色美食・店家・景點</button>'
+          + '<button class="nearby-toggle" data-target="' + pid + '" aria-controls="' + pid + '" aria-expanded="false">▸ 顯示附近特色美食・店家・景點</button>'
           + '<div class="nearby-panel" id="' + pid + '" data-lat="' + s.lat + '" data-lng="' + s.lng + '" data-name="' + E(s.name) + '" data-plan="' + E(pl.key) + '" hidden></div>'
           + '</div></li>';
       }).join('') + '</ul>';
@@ -1188,6 +1320,7 @@ if (typeof module !== 'undefined' && module.exports) {
           + '<p class="nb-cat">附近行程其他站點</p>'
           + nearbyGridHTML(others, lat, lng, nm, { sourceClass: 'transit', sourceLabel: '行程途經', hitStore: transitHits, mapAppLinksFn: buildMapAppLinks });
         panel.dataset.rendered = '1';
+        labelMapLinks(panel);
       }
       panel.hidden = open;
       btn.setAttribute('aria-expanded', String(!open));
@@ -1204,13 +1337,16 @@ if (typeof module !== 'undefined' && module.exports) {
   $('map-note').textContent = '地圖顯示「' + mainPlan.name + '」的 ' + pts.length
     + ' 個站點，依行程順序連線。標記上的編號與上方逐日行程的編號一一對應——'
     + '看到地圖上第 7 個點，往上找編號 7 就是那一站。';
-  if (typeof L !== 'undefined' && typeof initTravelMap === 'function') {
-    initTravelMap('map', pts);
-  } else {
-    // 離線／CDN 不可達：收掉空容器，說明文字改成誠實的版本
-    $('map').style.display = 'none';
-    $('map-note').textContent = '地圖需要連網才能顯示。目前離線，站點位置請看上方逐日行程——每一站標題旁都有可點的地圖連結。';
-  }
+  // Leaflet 用 defer 載入（不擋住首屏文字）：deferred 腳本會在 DOMContentLoaded 之前執行，所以到那時 L 有就是有、沒有就是載入失敗
+  whenReady(function () {
+    if (typeof L !== 'undefined' && typeof initTravelMap === 'function') {
+      initTravelMap('map', pts);
+    } else {
+      // 離線／CDN 不可達：收掉空容器，說明文字改成誠實的版本
+      $('map').style.display = 'none';
+      $('map-note').textContent = '地圖需要連網才能顯示。目前離線，站點位置請看上方逐日行程——每一站標題旁都有可點的地圖連結。';
+    }
+  });
 
   /* ---------- 7.5 預先跑一遍每站附近推薦，只為了餵滿 transitHits ---------- */
   document.querySelectorAll('.nearby-panel').forEach(function (panel) {
@@ -1223,7 +1359,7 @@ if (typeof module !== 'undefined' && module.exports) {
   /* ---------- 8. 五區各 30 選（poiWallHTML，engine-contract.md#poi-wall） ---------- */
   var rg = '';
   (hl.regions || []).forEach(function (r) {
-    rg += '<h3 id="rg-' + E(r.key) + '" style="scroll-margin-top:58px">' + E(r.name) + '</h3>';
+    rg += '<h3 id="rg-' + E(r.key) + '" class="h3-anchor">' + E(r.name) + '</h3>';
     [['spots', '推薦景點'], ['food', '特色美食'], ['shops', '店家與伴手禮']].forEach(function (c) {
       var items = r[c[0]] || [];
       if (!items.length) return;
@@ -1250,6 +1386,7 @@ if (typeof module !== 'undefined' && module.exports) {
     $('transit-wall').innerHTML = '<p class="nb-cat">行程途經（' + transitItems.length + ' 項）</p>'
       + poiWallHTML(transitItems, 'transit', '行程途經', buildMapAppLinks);
   }
+  labelMapLinks($('regions-body'));
 
   /* ---------- 8.5 CP 值 30 家（同品項比價；trip.cpPicks） ---------- */
   (function () {
@@ -1261,12 +1398,13 @@ if (typeof module !== 'undefined' && module.exports) {
       h += '<ul class="cp-method">' + cp.method.map(function (m) { return '<li>' + E(m) + '</li>'; }).join('') + '</ul>';
     }
     (cp.groups || []).forEach(function (g) {
-      h += '<h3 id="cp-' + E(g.key) + '" style="scroll-margin-top:58px">' + E(g.name) + '<span class="cp-unit">比較基準：' + E(g.unit || '') + '</span></h3>';
+      h += '<h3 id="cp-' + E(g.key) + '" class="h3-anchor">' + E(g.name) + '<span class="cp-unit">比較基準：' + E(g.unit || '') + '</span></h3>';
       if ((g.compare || []).length) {
-        h += '<div class="car-wrap"><table class="car-tbl cp-cmp"><thead><tr><th>店</th><th>價格</th><th>備註</th></tr></thead><tbody>'
-          + g.compare.map(function (r) {
+        h += scrollTable(g.name + '：同品項比價表', 'car-wrap', 'car-tbl cp-cmp stackable',
+          '<thead><tr><th scope="col">店</th><th scope="col">價格</th><th scope="col">備註</th></tr></thead>',
+          g.compare.map(function (r) {
             return '<tr><td>' + E(r.n) + '</td><td class="num">' + E(r.p) + '</td><td>' + E(r.note || '') + '</td></tr>';
-          }).join('') + '</tbody></table></div>';
+          }).join(''));
       }
       if (g.verdict) h += '<p class="cp-verdict">' + E(g.verdict) + '</p>';
       h += '<div class="cp-grid">' + (g.items || []).map(function (it) {
@@ -1281,7 +1419,7 @@ if (typeof module !== 'undefined' && module.exports) {
           + (it.why ? '<p class="cp-why">' + E(it.why) + '</p>' : '')
           + (it.caveat ? '<p class="cp-caveat">⚠ ' + E(it.caveat) + '</p>' : '')
           + '<div class="cp-foot"><span class="pill">' + E(it.day || '') + '</span>'
-          + '<a href="' + url + '" target="_blank" rel="noopener">Google 地圖 ↗</a></div>'
+          + '<a href="' + url + '" target="_blank" rel="noopener" aria-label="' + E('Google 地圖：' + it.name) + '">Google 地圖 ↗</a></div>'
           + '<div class="cp-src">來源：' + E(it.src || '') + '</div></article>';
       }).join('') + '</div>';
     });
@@ -1297,7 +1435,7 @@ if (typeof module !== 'undefined' && module.exports) {
   (function () {
     var uv = trip.unverified || [];
     if (!uv.length) { var sec = document.getElementById('verify'); if (sec) sec.style.display = 'none'; return; }
-    var byCat = [];
+    var byCat = [], uvN = 0;
     uv.forEach(function (u) {
       var g = byCat.filter(function (x) { return x.cat === (u.category || '其他'); })[0];
       if (!g) { g = { cat: u.category || '其他', items: [] }; byCat.push(g); }
@@ -1305,25 +1443,35 @@ if (typeof module !== 'undefined' && module.exports) {
     });
     $('verify-body').innerHTML = byCat.map(function (g) {
       return '<div class="uv-cat">' + E(g.cat) + '</div><ul class="uv">' + g.items.map(function (u) {
-        return '<li class="uv-item"><input type="checkbox"><div>'
-          + '<div class="uv-t">' + E(u.item) + '</div>'
+        var uid = 'uv-' + (++uvN);
+        return '<li class="uv-item"><input type="checkbox" id="' + uid + '"><div>'
+          + '<label class="uv-t" for="' + uid + '">' + E(u.item) + '</label>'
           + (u.why ? '<div class="uv-why">驗不了的原因：' + E(u.why) + '</div>' : '')
           + (u.how ? '<div class="uv-how"><b>怎麼確認：</b>' + E(u.how) + '</div>' : '')
           + ((u.where || []).length ? '<div class="uv-where">影響：' + E(u.where.join(' · ')) + '</div>' : '')
           + '</div></li>';
       }).join('') + '</ul>';
     }).join('');
+    persistChecks('#verify-body', 'hiro-uv', '.uv-t');
   })();
 
   $('tips-body').innerHTML = '<div class="grid">' + (trip.tips || []).map(function (t) {
-    return '<div class="card"><p style="margin:0;font-size:14.5px;line-height:1.65">' + E(t) + '</p></div>';
+    return '<div class="card"><p class="tip-p">' + E(t) + '</p></div>';
   }).join('') + '</div>';
+
+  // 窄容器時表格會改成「一列一張卡」：把欄名塞進每個 td 的 data-label，CSS 用 ::before 顯示
+  document.querySelectorAll('table.stackable').forEach(function (t) {
+    var heads = [].map.call(t.querySelectorAll('thead th'), function (th) { return th.textContent.trim(); });
+    t.querySelectorAll('tbody tr').forEach(function (tr) {
+      [].forEach.call(tr.children, function (td, i) { if (heads[i]) td.setAttribute('data-label', heads[i]); });
+    });
+  });
 
   var g = trip.glossary || {};
   $('glossary-body').innerHTML = (g.note ? '<p class="lede">' + E(g.note) + '</p>' : '')
     + (g.groups || []).map(function (grp) {
       return '<h3>' + E(grp.category) + '</h3><dl class="gl">' + (grp.items || []).map(function (it) {
-        return '<div><dt>' + E(it.term) + '</dt><span class="zh">' + E(it.zh || '') + '</span><dd>' + E(it.note || '') + '</dd></div>';
+        return '<div><dt>' + E(it.term) + '</dt><dd class="zh">' + E(it.zh || '') + '</dd><dd>' + E(it.note || '') + '</dd></div>';
       }).join('') + '</dl>';
     }).join('');
 })();
