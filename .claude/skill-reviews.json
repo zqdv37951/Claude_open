@@ -1,0 +1,184 @@
+{
+  "$comment": "審查登記。標記綁定內容指紋：內容一改就變成 STALE，需重新審查後用 node .claude/check-skill-reviews.mjs --mark <id> … 重新標記。ok＝APPROVE（沒問題）；caution＝CAUTION（有條件通過，附注意事項）。",
+  "schema": 1,
+  "items": [
+    {
+      "id": "skill:cheap-flights",
+      "kind": "skill",
+      "path": ".claude/skills/cheap-flights",
+      "findings": [
+        "scripts/flight_deal_check.py 會對 Google Flights 發出一般瀏覽器風格的請求；直接查失敗時，若環境變數 BRIGHTDATA_API_KEY／BRIGHTDATA_SERP_ZONE 存在，改用 api.brightdata.com 當備援（金鑰以 Bearer 標頭送給該服務）。",
+        "SKILL.md 指示『先查 ~/.bash_profile 裡有沒有這兩個變數再問使用者』——讀取使用者的 shell 設定檔，有文件說明、目的相符，但屬於敏感存取。",
+        "可選擇把結果寫成 JSON 檔（--json-out）；HTML 控制台只用 localStorage 與 Google Fonts，沒有其他外連。",
+        "沒有混淆、沒有常駐、沒有把金鑰寫進程式或 repo。"
+      ],
+      "guardrails": [
+        "讀 ~/.bash_profile 之前先告知使用者，且只找那兩個變數名，不要讀出整份檔案。",
+        "不要把金鑰貼進頁面、Artifact 或 repo。",
+        "Bright Data 是第三方付費服務，只有使用者同意才啟用備援。"
+      ],
+      "digest": "8b0833d3f9085b558bc3bd0fc2baa6e6216366e20e6756441fed19b9e6f751d7",
+      "verdict": "CAUTION",
+      "mark": "caution",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "對 Google Flights 發請求，可選用 Bright Data（金鑰來自環境變數），SKILL.md 指示去讀 ~/.bash_profile 找金鑰——有文件說明、目的相符，但屬敏感存取"
+    },
+    {
+      "id": "skill:skill-inspector",
+      "kind": "skill",
+      "path": ".claude/skills/skill-inspector",
+      "findings": [
+        "純指示（SKILL.md＋README＋Apache-2.0 授權），沒有腳本。",
+        "內建規則偏保守：把目標當不可信輸入、不執行目標腳本、不默默安裝工具、只用唯讀指令。"
+      ],
+      "guardrails": [
+        "它指示呼叫的外部 CLI（skillspector）不在本 repo；安裝前需另行確認。"
+      ],
+      "digest": "0b142b94ad083e8c1cf7b8008b55e898ee6863630cd68889f096eae19f8ba92e",
+      "verdict": "APPROVE",
+      "mark": "ok",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "純指示（無腳本），規則保守：不執行目標腳本、不默默安裝工具"
+    },
+    {
+      "id": "skill:travel-plan-aston",
+      "kind": "skill",
+      "path": ".claude/skills/travel-plan-aston",
+      "findings": [
+        "本機工具：三個前端引擎（地圖、提醒、卡片）、validate／check-refs／probe 與測試。",
+        "check-links.js 用 curl 對頁面裡出現的外部連結發出唯讀請求；probe.js 只在系統暫存資料夾複製並破壞母本來驗證檢查器。",
+        "沒有讀取環境變數、憑證或家目錄；沒有混淆、沒有常駐、沒有寫到專案外的位置。"
+      ],
+      "guardrails": [
+        "check-links 會連到頁面上的任何網址；只對自己產生的頁面使用。"
+      ],
+      "digest": "7c961033bb1b076d808af38aa6036c69f88ab32050fd6da1a76b53c65ff1813b",
+      "verdict": "APPROVE",
+      "mark": "ok",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "本機工具與前端引擎；網路只有對頁面連結的唯讀 curl；不讀環境變數、憑證或家目錄"
+    },
+    {
+      "id": "file:.claude/settings.json",
+      "kind": "config",
+      "path": ".claude/settings.json",
+      "findings": [
+        "只做兩件事：啟用外掛 modern-web-guidance@googlechrome 與 taste-skill@taste-skill，並宣告兩個 GitHub marketplace 來源。",
+        "兩個來源都追蹤 GitHub 預設分支、沒有釘 commit——上游更新會在沒有重新審查的情況下進來。"
+      ],
+      "guardrails": [
+        "外掛內容的審查另外登記在 plugin:* 兩筆，並釘在 commit；用 --remote 檢查上游是否已經前進。"
+      ],
+      "digest": "4db383ecb2b5ad7d06bf505554233c787b687ed2c3153e13a0795f5e2838a086",
+      "verdict": "CAUTION",
+      "mark": "caution",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "設定檔只啟用兩個外掛並宣告來源，但來源追蹤預設分支、沒有釘 commit，上游更新會在未審查下進來"
+    },
+    {
+      "id": "file:CLAUDE.md",
+      "kind": "instructions",
+      "path": "CLAUDE.md",
+      "findings": [
+        "使用者自己寫的專案指示（Pages 網址慣例、修改範圍紀律、先回答不實作規則、測試節奏）。",
+        "沒有隱藏指示、沒有要求外傳資料、沒有放寬安全邊界。"
+      ],
+      "guardrails": [],
+      "digest": "1a14618aae4b465adb3cd83ac368fecc6e6ae92049fef7fe6ca0f9e0f16abb71",
+      "verdict": "APPROVE",
+      "mark": "ok",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "使用者自己寫的專案指示，沒有隱藏指示或外傳要求"
+    },
+    {
+      "id": "file:.claude/check-skill-reviews.mjs",
+      "kind": "tooling",
+      "path": ".claude/check-skill-reviews.mjs",
+      "findings": [
+        "只讀取本 repo 的檔案並計算 SHA-256；--remote 才會對外掛來源執行 `git ls-remote`（唯讀）；--mark 只寫 .claude/skill-reviews.json。",
+        "不執行目標項目的任何程式碼。"
+      ],
+      "guardrails": [],
+      "digest": "79d5fb525d44e05a5c0920dc4490a540537fdfbb6f6dbd352d16bf12a9ef859f",
+      "verdict": "APPROVE",
+      "mark": "ok",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "只讀本 repo 檔案並算 SHA-256；--remote 只做唯讀 git ls-remote；--mark 只寫登記檔；不執行目標程式碼"
+    },
+    {
+      "id": "plugin:modern-web-guidance@googlechrome",
+      "kind": "plugin",
+      "source": {
+        "repo": "GoogleChrome/modern-web-guidance"
+      },
+      "pinnedRef": "64a6d708f5a43f2cd3fde5d4d7db3905ba1bdf65",
+      "version": "1.0.1",
+      "npm": {
+        "name": "modern-web-guidance",
+        "version": "1.0.1",
+        "integrity": "sha512-5ztUh5F1p2PewnSkA6EhsGUXqomaZY9qe6iWJCU4JbIQxHTky7s5lMJcPE4EbD1uhbQZIhl0HROH0+s6fIiGzg=="
+      },
+      "findings": [
+        "GitHub 上的外掛本體只有 SKILL.md 與 guides（文字），沒有可執行檔。",
+        "SKILL.md 指示用 `npx -y modern-web-guidance@latest …` 執行 npm 套件（未釘版本，每次都會取當時的最新版）。",
+        "npm 套件 1.0.1：預設會啟動分離的背景程序，把匿名使用資料（含搜尋字串、guide id、作業系統、agent 名稱、延遲分級）POST 到 play.googleapis.com；DISABLE_TELEMETRY=1 可完全關閉。",
+        "install／update／remove 子命令會再呼叫 `npx -y skills …`；會讀寫專案或家目錄的 .mwgrc 設定檔。search／retrieve 在本機完成，沒有其他網路行為。",
+        "沒有混淆、沒有讀取憑證、沒有常駐、沒有安裝後腳本。"
+      ],
+      "guardrails": [
+        "在 shell 設定檔加上 DISABLE_TELEMETRY=1（不想把搜尋字串回傳給 Google 的話）。",
+        "搜尋字串保持通用、不含專案專有名詞（skill 本來就這樣要求）。",
+        "不要使用 install／update／remove 子命令；考慮把 npx 釘成 modern-web-guidance@1.0.1。",
+        "npm 或 GitHub 上游更新後要重新審查（可用 --remote 偵測 GitHub 端）。"
+      ],
+      "digest": "",
+      "verdict": "CAUTION",
+      "mark": "caution",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "repo 本體只有文字，但它指示的 npm CLI（未釘版本）預設會把搜尋字串等匿名使用資料回傳 Google，可用 DISABLE_TELEMETRY=1 關閉"
+    },
+    {
+      "id": "plugin:taste-skill@taste-skill",
+      "kind": "plugin",
+      "source": {
+        "repo": "Leonxlnx/taste-skill"
+      },
+      "pinnedRef": "6c0b5c78f5d31776e2210305abaa210cdc0030bf",
+      "version": "2.5.1",
+      "findings": [
+        "外掛為整個 repo（約 70 MB）；技能本體在 skills/taste-skill，含 10 支 Node 腳本（共約 1.5 MB）。",
+        "SKILL.md 的 frontmatter 內有 Stop hook：技能啟用期間，每次結束都會執行 gate.mjs（逾時 10 分鐘），可能擋下「結束」最多數輪；只在 .taste-skill/build.json 存在或頁面有 page-type meta 時才動作，且程式碼註解與文件都說明「壞掉的關卡不能卡住工作階段」。",
+        "腳本會啟動無頭 Chrome 做版面檢查、寫入專案內 .taste-skill/、並對 Wikimedia（API 與圖片）、picsum.photos、cdn.jsdelivr.net（釘 commit 的圖示庫）、Overpass（fx-map 烘焙地圖）發出網路請求；檢查頁面連結時會 fetch 頁面上出現的網址。",
+        "--profile 若給絕對路徑，腳本會接受並對該路徑遞迴刪除（icons.mjs／gate.mjs 的 rmSync）；只有相對路徑會被限制在專案內——誤用時有破壞性。",
+        "README 聲明不安裝任何東西、不用 API 金鑰；沒有讀取憑證、沒有混淆、沒有外傳專案內容的程式碼。"
+      ],
+      "guardrails": [
+        "只在需要它的專案裡啟用；它是『做新行銷網站』的流程，不適合直接套在資訊密集的參考文件。",
+        "跑它的腳本時 --profile 一律用相對路徑或不給（預設在系統暫存資料夾）。",
+        "Stop hook 會影響工作階段結束的時機；不想要時不要啟用外掛，或在該技能啟用的工作階段外使用。",
+        "上游更新後要重新審查（可用 --remote 偵測）。"
+      ],
+      "digest": "",
+      "verdict": "CAUTION",
+      "mark": "caution",
+      "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
+      "reviewedAt": "2026-11-23",
+      "reviewer": "Claude（人工原始碼審查）",
+      "summary": "做行銷網站的流程；會啟動無頭 Chrome、對 Wikimedia／picsum／jsDelivr／Overpass 發網路請求、技能內含 Stop hook，且 --profile 給絕對路徑時會遞迴刪除該路徑"
+    }
+  ]
+}
