@@ -1,13 +1,20 @@
 {
+  "enabledPlugins": {
+    "modern-web-guidance@googlechrome": true,
+    "taste-skill@taste-skill": true
+  },
   "extraKnownMarketplaces": {
     "googlechrome": {
       "source": {
         "source": "github",
         "repo": "GoogleChrome/modern-web-guidance"
       }
+    },
+    "taste-skill": {
+      "source": {
+        "source": "github",
+        "repo": "Leonxlnx/taste-skill"
+      }
     }
-  },
-  "enabledPlugins": {
-    "modern-web-guidance@googlechrome": true
   }
 }
