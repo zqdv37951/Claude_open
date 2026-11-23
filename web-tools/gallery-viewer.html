@@ -7,23 +7,32 @@
 <style>
   :root {
     --img-width: 900px;
-    --bg: #111; --text: #eee; --header-bg: rgba(17,17,17,0.95); --line: #333; --line2: #262626;
-    --btn-bg: #2a2a2a; --btn-border: #444; --btn-hover: #383838; --muted: #888; --muted2: #aaa; --footer: #666;
-    --panel-bg: #1c1c1c; --img-bg: #1a1a1a; --item-text: #ddd; --active-bg: #3a4d63; --active-text: #fff; --dup: #e9a;
-    --err-text: #f88; --err-bg: #2a1414; --err-border: #633; --shadow: rgba(0,0,0,0.5); --focus: #4da3ff;
+    /* 配色和圖書館同一套（taste-skill 的 putty-black-teal）：暖黑底、提亮的青綠；每組文字對比都在 4.5:1 以上 */
+    --bg: #131211; --text: #ece9e3; --header-bg: rgba(19,18,17,0.95); --line: #302d2a; --line2: #252321;
+    --btn-bg: #252321; --btn-border: #3a3733; --btn-hover: #302d2a; --muted: #a19c92; --muted2: #b5b0a6; --footer: #8a857b;
+    --panel-bg: #1c1b19; --img-bg: #1c1b19; --item-text: #ddd9d1; --active-bg: #23424b; --active-text: #fff; --dup: #ff9a8f;
+    --err-text: #ff9a8f; --err-bg: #2a1a18; --err-border: #6b3a34; --shadow: rgba(0,0,0,0.5); --focus: #58b4c9;
+    --r-sm: 8px; --r-md: 12px; --ease: cubic-bezier(.2,.8,.2,1);
   }
   html:not([data-tmr-gallery]) { color-scheme: dark; }
   /* 跟隨系統的淺色。油猴閱讀器接管時（html[data-tmr-gallery]）版面由它負責，一律維持原本的深色，不受影響 */
   @media (prefers-color-scheme: light) {
     html:not([data-tmr-gallery]) {
       color-scheme: light;
-      --bg: #f3f4f8; --text: #1a1d27; --header-bg: rgba(243,244,248,0.95); --line: #d5d8e2; --line2: #e1e4ee;
-      --btn-bg: #e6e9f1; --btn-border: #c3c8d6; --btn-hover: #d9dde8; --muted: #667089; --muted2: #50586d; --footer: #7a8399;
-      --panel-bg: #ffffff; --img-bg: #e4e6ee; --item-text: #2a2f3d; --active-bg: #d4e0ff; --active-text: #1a1d27; --dup: #b3365e;
-      --err-text: #b32020; --err-bg: #fde8e8; --err-border: #e2a0a0; --shadow: rgba(20,24,40,0.2); --focus: #2f5bd8;
+      --bg: #e8e5df; --text: #0a0a0a; --header-bg: rgba(232,229,223,0.95); --line: #cfcac1; --line2: #dcd8d0;
+      --btn-bg: #f6f4f0; --btn-border: #bdb8ae; --btn-hover: #ece9e3; --muted: #57534a; --muted2: #44403a; --footer: #6b675e;
+      --panel-bg: #f6f4f0; --img-bg: #dfdbd3; --item-text: #1c1b19; --active-bg: #cfe3e8; --active-text: #0a0a0a; --dup: #a8231b;
+      --err-text: #a8231b; --err-bg: #fbe9e7; --err-border: #e0aaa4; --shadow: rgba(10,10,10,0.2); --focus: #1f6376;
     }
   }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  /* 觸控螢幕：每個可點的控制項至少 44px 高 */
+  @media (pointer: coarse) {
+    select, button { min-height: 44px; }
+    #backToTop { width: 48px; height: 48px; }
+    #bookNav button { min-height: 48px; }
+    .chapter-item { min-height: 44px; }
+  }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg); font-family: -apple-system, "PingFang TC", sans-serif; }
@@ -43,11 +52,13 @@
   #pageIndicator { color: var(--muted2); min-width: 60px; text-align: right; }
 
   select, button {
-    background: var(--btn-bg); color: var(--text); border: 1px solid var(--btn-border); border-radius: 6px;
+    background: var(--btn-bg); color: var(--text); border: 1px solid var(--btn-border); border-radius: var(--r-sm);
     padding: 6px 10px; font-size: 12px; cursor: pointer;
   }
   select { max-width: 180px; }
+  button { transition: background .15s, transform .12s var(--ease); }
   button:hover { background: var(--btn-hover); }
+  button:active { transform: translateY(1px); }
 
   .slider-group { display: flex; align-items: center; gap: 6px; color: var(--muted); }
   input[type="range"] { width: 110px; }
@@ -88,7 +99,7 @@
   #chapterNav { display: none; position: relative; flex-shrink: 0; }
   #chapterBtn {
     display: flex; align-items: center; gap: 5px;
-    background: var(--btn-bg); color: var(--muted2); border: 1px solid var(--btn-border); border-radius: 6px;
+    background: var(--btn-bg); color: var(--muted2); border: 1px solid var(--btn-border); border-radius: var(--r-sm);
     padding: 4px 8px; font-size: 12px; cursor: pointer;
   }
   #chapterBtn:hover { background: var(--btn-hover); }
@@ -98,14 +109,14 @@
   }
   #chapterPanel {
     display: none; position: absolute; left: 0; top: 100%; margin-top: 6px;
-    background: var(--panel-bg); border: 1px solid var(--btn-border); border-radius: 8px;
+    background: var(--panel-bg); border: 1px solid var(--btn-border); border-radius: var(--r-sm);
     max-height: 60vh; overflow-y: auto; min-width: 200px; max-width: 320px;
     padding: 6px; box-shadow: 0 4px 18px var(--shadow); z-index: 30;
   }
   #chapterPanel.open { display: block; }
   .chapter-item {
     display: block; width: 100%; text-align: left; background: none; border: none;
-    color: var(--item-text); padding: 8px 10px; font-size: 13px; border-radius: 6px; cursor: pointer;
+    color: var(--item-text); padding: 8px 10px; font-size: 13px; border-radius: var(--r-sm); cursor: pointer;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .chapter-item:hover { background: var(--line); }
@@ -116,14 +127,14 @@
   #historyNav { display: none; position: relative; flex-shrink: 0; }
   #historyBtn {
     display: flex; align-items: center; gap: 5px;
-    background: var(--btn-bg); color: var(--muted2); border: 1px solid var(--btn-border); border-radius: 6px;
+    background: var(--btn-bg); color: var(--muted2); border: 1px solid var(--btn-border); border-radius: var(--r-sm);
     padding: 4px 8px; font-size: 12px; cursor: pointer;
   }
   #historyBtn:hover { background: var(--btn-hover); }
   #historyBtn .chapter-icon { font-size: 14px; }
   #historyPanel {
     display: none; position: absolute; right: 0; top: 100%; margin-top: 6px;
-    background: var(--panel-bg); border: 1px solid var(--btn-border); border-radius: 8px;
+    background: var(--panel-bg); border: 1px solid var(--btn-border); border-radius: var(--r-sm);
     max-height: 60vh; overflow-y: auto; min-width: 180px; max-width: 280px;
     padding: 6px; box-shadow: 0 4px 18px var(--shadow); z-index: 30;
   }
