@@ -94,7 +94,7 @@ assets/
   conditional-features.md           條件式功能
   map.js  reminders.js  poi.js      ← 三份都要原樣內聯進產出的 HTML
   poi.test.js                       poi.js 回歸測試（24 個）
-  map.test.js                       map.js 回歸測試（14 個）
+  map.test.js                       map.js 回歸測試（17 個）
   reminders.test.js                 reminders.js 回歸測試（16 個）
   validate.js                       產出頁面的契約校驗
   check-refs.js                     文件自身的十一項檢查（引用、清單、數字、誤字、指路方式）
