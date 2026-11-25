@@ -56,13 +56,13 @@
       "guardrails": [
         "check-links 會連到頁面上的任何網址；只對自己產生的頁面使用。"
       ],
-      "digest": "7c961033bb1b076d808af38aa6036c69f88ab32050fd6da1a76b53c65ff1813b",
+      "digest": "836db02abca3385005a3881905b987d2826b9c270a8cef8d61d4480c650b3b66",
       "verdict": "APPROVE",
       "mark": "ok",
       "method": "人工原始碼審查（skill-inspector 的備案流程）：SkillSpector 命令列工具未安裝，所以沒有靜態掃描這一條線；信心較低",
-      "reviewedAt": "2026-11-23",
+      "reviewedAt": "2026-11-25",
       "reviewer": "Claude（人工原始碼審查）",
-      "summary": "本機工具與前端引擎；網路只有對頁面連結的唯讀 curl；不讀環境變數、憑證或家目錄"
+      "summary": "重新審查（map.js 大陸輪廓判斷）：只新增純函式、測試與文件；沒有網路、子程序、環境變數或動態執行；其餘內容與前次審查相同"
     },
     {
       "id": "file:.claude/settings.json",
