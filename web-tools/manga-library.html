@@ -257,6 +257,9 @@ select.btn { padding-right: 6px; }
 .shot .noth { height: 120px; display: grid; place-items: center; color: var(--muted); font-size: 22px; background: var(--surface3); }
 .shot span.cap { font-size: 11px; color: var(--muted); padding: 4px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .shotnote { font-size: 12.5px; color: var(--muted); }
+.shotbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
+.shotmsg { white-space: pre-line; }
+#shotBox.drop { outline: 2px dashed var(--accent); outline-offset: 3px; border-radius: var(--r-md); }
 #shotView { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.9); display: flex; flex-direction: column; }
 #shotView .vbar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; color: #eee; font-size: 13px; }
 #shotView .vbar .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1762,7 +1765,7 @@ function openDrawer(key, focusSel, keepEdit) {
     if (editMode && g.entries.length > 1) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn danger'; d.setAttribute('data-del', e.key); const lab = '刪除這個網站的紀錄'; d.textContent = lab; armButton(d, lab, () => doEdit(() => deleteEntries(g, [e], false), '已刪除「' + (SITE_LABEL[e.fam] || e.host) + '」的紀錄', '#editBtn')); acts.append(d); }
     body.append(s);
   });
-  { // 截圖：閱讀器的 📷 上傳到 Drive 的圖；沒有就整區不顯示
+  { // 截圖：閱讀器的 📷 或這裡的「上傳截圖」存到 Drive 的圖；連線後這一區一律顯示（沒有截圖也有上傳按鈕）
     const shHead = document.createElement('div'); shHead.className = 'sec'; shHead.textContent = '截圖'; shHead.hidden = true;
     const shBox = document.createElement('div'); shBox.id = 'shotBox'; shBox.hidden = true; body.append(shHead, shBox);
     loadShots(g, shBox, shHead);
@@ -1832,29 +1835,139 @@ function hideDrawer() {
  * 作品詳細資料列出這部作品（含各網站紀錄）的截圖：縮圖、章節與頁數；點一張從 Drive 取回原圖放大看，可下載、可刪除（連 Drive 的檔案一起刪）。 */
 let shotViewEl = null;
 function closeShotView() { if (shotViewEl) { shotViewEl.remove(); shotViewEl = null; } }
+/* 從圖書館自己上傳截圖：和閱讀器 📷 上傳的是同一種（Apps Script 的 shot_put，存到 Drive 的截圖資料夾、清單記在「截圖」分頁）。
+ * 章節與頁數留空；一次可以選多張或拖曳到截圖區，依序一張一張傳（Apps Script 一次只讓一個請求寫入，同時傳容易「鎖定逾時」）。
+ * 上傳前縮小檔案的做法和閱讀器一樣：只降畫質、不縮尺寸；縮完還是超過約 9 MB 就拒絕；Apps Script 只收 PNG／JPEG／WebP，其他格式轉成 WebP。 */
+const SHOT_MAX_BYTES = 9 * 1024 * 1024;
+async function shotThumbOf(bmp) { // 長邊 320 的 JPEG；超過 4.5 萬字元（試算表一格的上限）就降畫質、縮小
+  for (const [side, q] of [[320, 0.7], [320, 0.5], [240, 0.5], [160, 0.5]]) {
+    const k = Math.min(1, side / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+    const cx = c.getContext('2d');
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+    cx.imageSmoothingQuality = 'high';
+    cx.drawImage(bmp, 0, 0, c.width, c.height);
+    const b = await new Promise((res) => c.toBlob(res, 'image/jpeg', q));
+    if (!b) continue;
+    const t = b64FromBytes(new Uint8Array(await b.arrayBuffer()));
+    if (t.length <= 45000) return t;
+  }
+  return '';
+}
+// 檔案 → { bytes, mime, th, from }；不能用就丟錯誤（訊息直接給使用者看）
+async function shotPrepare(file) {
+  if (file.size > COV_UPLOAD_MAX) throw new Error('圖片太大（原檔上限 30 MB）');
+  const raw = new Uint8Array(await file.arrayBuffer());
+  const m = sniffMime(raw);
+  if (!m) throw new Error('不支援這種圖片（支援 JPG、PNG、GIF、WebP、AVIF）');
+  let bmp;
+  try { bmp = await createImageBitmap(new Blob([raw], { type: m })); } catch (e) { throw new Error('這張圖打不開（檔案可能損壞）'); }
+  try {
+    const enc = async (q) => { // 整張圖重新編成 WebP（不縮尺寸）
+      const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+      const cx = c.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(bmp, 0, 0);
+      const b = await new Promise((res) => c.toBlob(res, 'image/webp', q));
+      return b && b.type === 'image/webp' ? new Uint8Array(await b.arrayBuffer()) : null; // 不支援 WebP 的瀏覽器會回 PNG：不用
+    };
+    let bytes = raw, mime = m;
+    if (m === 'image/gif' || m === 'image/avif') { // Apps Script 不收：轉成 WebP（動圖只留第一格）；不能編 WebP 就轉 PNG
+      const wb = await enc(0.9);
+      if (wb) { bytes = wb; mime = 'image/webp'; }
+      else {
+        const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; c.getContext('2d').drawImage(bmp, 0, 0);
+        const pb = await new Promise((res) => c.toBlob(res, 'image/png'));
+        if (!pb) throw new Error('這種圖片這個瀏覽器無法轉檔'); bytes = new Uint8Array(await pb.arrayBuffer()); mime = 'image/png';
+      }
+    }
+    // 縮小檔案：只降畫質、不縮尺寸。1 MB 以下：只有 PNG 重新編成 WebP 品質 0.9（要省 15% 以上才換）；
+    // 超過 1 MB：品質 0.9 → 0.8 → … → 0.4 一路降到小於 1 MB（降到 0.4 還是太大就用 0.4 的），比原檔小才換
+    const from = bytes.length;
+    if (mime !== 'image/webp' || from > COV_SHRINK_OVER) {
+      if (from > COV_SHRINK_OVER || mime === 'image/png') {
+        let best = null;
+        for (const q of (from > COV_SHRINK_OVER ? [0.9, 0.8, 0.7, 0.6, 0.5, 0.4] : [0.9])) {
+          const wb = await enc(q);
+          if (!wb) { best = null; break; }
+          best = wb;
+          if (from <= COV_SHRINK_OVER || wb.length <= COV_SHRINK_OVER) break;
+        }
+        if (best && (from > COV_SHRINK_OVER ? best.length < from : best.length < from * 0.85)) { bytes = best; mime = 'image/webp'; }
+      }
+    }
+    if (bytes.length > SHOT_MAX_BYTES) throw new Error('截圖太大（' + fmtBytes(bytes.length) + '，上限約 9 MB）');
+    return { bytes, mime, th: await shotThumbOf(bmp), from: file.size };
+  } finally { if (bmp.close) bmp.close(); }
+}
+async function uploadShot(g, file) {
+  const p = await shotPrepare(file);
+  const key = g.entries[0].key, t = Date.now();
+  const r = await api({ type: 'shot_put', key, comic: g.title || '', chapter: '', page: 0, mime: p.mime, b64: b64FromBytes(p.bytes), th: p.th, t });
+  return { item: { id: String(r.id || ''), k: key, m: p.mime, t, n: p.bytes.length, cm: g.title || '', ch: '', pg: 0, th: p.th }, info: { from: p.from, to: p.bytes.length, shrunk: p.bytes.length < p.from, resized: false } };
+}
 async function loadShots(g, box, head) {
-  if (!connected()) return;
-  let items;
+  if (!connected()) return; // 沒連線：整區不顯示（上傳要連到你的試算表）
+  let items = [];
   try { items = (await api({ type: 'shot_index', keys: g.entries.map((e) => e.key) })).items; }
   catch (e) { if (openKey === g.key && box.isConnected) { head.hidden = false; box.hidden = false; box.textContent = '截圖載入失敗：' + e.message; } return; }
-  if (!Array.isArray(items) || !items.length || openKey !== g.key || !box.isConnected) return; // 沒有截圖（或試算表的 Apps Script 還是舊版）：不顯示這一區
+  if (!Array.isArray(items)) items = []; // 沒有截圖（或試算表的 Apps Script 還是舊版）：照樣顯示這一區，讓你可以上傳
+  if (openKey !== g.key || !box.isConnected) return;
   renderShots(g, box, head, items);
 }
 function renderShots(g, box, head, items) {
-  box.textContent = '';
-  head.hidden = false; box.hidden = false; head.textContent = '截圖（' + items.length + '）';
-  const grid = document.createElement('div'); grid.className = 'shots';
-  items.forEach((it) => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'shot'; b.setAttribute('data-shot', it.id);
-    const label = [it.ch, it.pg ? '第 ' + it.pg + ' 頁' : ''].filter(Boolean).join(' · ');
-    b.title = (label ? label + '　' : '') + relTime(it.t) + '（點一下看原圖）';
-    if (it.th) { const im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = 'data:image/jpeg;base64,' + it.th; b.append(im); }
-    else { const nt = document.createElement('div'); nt.className = 'noth'; nt.textContent = '🖼'; b.append(nt); }
-    const cap = document.createElement('span'); cap.className = 'cap'; cap.textContent = (label || '截圖') + '・' + relTime(it.t); b.append(cap);
-    b.addEventListener('click', () => openShot(it, () => { const rest = items.filter((x) => x.id !== it.id); if (rest.length && openKey === g.key && box.isConnected) renderShots(g, box, head, rest); else { head.hidden = true; box.hidden = true; box.textContent = ''; } }));
-    grid.append(b);
-  });
-  box.append(grid);
+  box.textContent = ''; head.hidden = false; box.hidden = false;
+  const bar = document.createElement('div'); bar.className = 'shotbar';
+  const ub = document.createElement('button'); ub.type = 'button'; ub.className = 'btn'; ub.id = 'shotUp'; ub.textContent = '＋ 上傳截圖…'; ub.title = '選一張或多張圖（也可以拖曳圖片到這一區），存到你的 Drive 截圖資料夾';
+  const uf = document.createElement('input'); uf.type = 'file'; uf.accept = 'image/*'; uf.multiple = true; uf.id = 'shotFile'; uf.hidden = true;
+  const msg = document.createElement('div'); msg.className = 'covmsg shotmsg'; msg.id = 'shotMsg'; msg.setAttribute('role', 'status');
+  bar.append(ub, uf);
+  const host = document.createElement('div'); host.className = 'shothost';
+  box.append(bar, msg, host);
+  const paint = () => {
+    head.textContent = '截圖' + (items.length ? '（' + items.length + '）' : '');
+    host.textContent = '';
+    if (!items.length) { const n = document.createElement('div'); n.className = 'shotnote'; n.id = 'shotEmpty'; n.textContent = '還沒有截圖。閱讀器的 📷 或這裡的「上傳截圖」都可以加。'; host.append(n); return; }
+    const grid = document.createElement('div'); grid.className = 'shots';
+    items.forEach((it) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'shot'; b.setAttribute('data-shot', it.id);
+      const label = [it.ch, it.pg ? '第 ' + it.pg + ' 頁' : ''].filter(Boolean).join(' · ');
+      b.title = (label ? label + '　' : '') + relTime(it.t) + '（點一下看原圖）';
+      if (it.th) { const im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = 'data:image/jpeg;base64,' + it.th; b.append(im); }
+      else { const nt = document.createElement('div'); nt.className = 'noth'; nt.textContent = '🖼'; b.append(nt); }
+      const cap = document.createElement('span'); cap.className = 'cap'; cap.textContent = (label || '截圖') + '・' + relTime(it.t); b.append(cap);
+      b.addEventListener('click', () => openShot(it, () => { items = items.filter((x) => x.id !== it.id); if (openKey === g.key && box.isConnected) paint(); }));
+      grid.append(b);
+    });
+    host.append(grid);
+  };
+  paint();
+  let busy = false;
+  const upload = async (list) => {
+    const files = Array.from(list || []).filter((f) => f && (/^image\//.test(f.type) || !f.type));
+    if (!files.length) { msg.className = 'covmsg err'; msg.textContent = '✗ 沒有可以上傳的圖片'; return; }
+    if (busy) return;
+    busy = true; ub.disabled = true;
+    const done = [], fails = [];
+    for (let i = 0; i < files.length; i++) {
+      msg.className = 'covmsg'; msg.textContent = '上傳中 ' + (i + 1) + '/' + files.length + '：' + files[i].name + '…';
+      try {
+        const r = await uploadShot(g, files[i]);
+        done.push(r.info);
+        items = [r.item].concat(items);
+        if (openKey === g.key && box.isConnected) paint();
+      } catch (err) { fails.push(files[i].name + '：' + (err && err.message ? err.message : err)); }
+    }
+    busy = false; ub.disabled = false;
+    if (!box.isConnected) return;
+    msg.className = 'covmsg ' + (fails.length ? 'err' : 'ok');
+    const sum = done.length ? '✓ 已上傳 ' + done.length + ' 張' + (done.length === 1 ? shrinkNote(done[0]) : done.some((x) => x.shrunk) ? '（共縮小 ' + fmtBytes(done.reduce((a, x) => a + x.from, 0)) + ' → ' + fmtBytes(done.reduce((a, x) => a + x.to, 0)) + '）' : '') : '';
+    msg.textContent = [sum].concat(fails.map((f) => '✗ ' + f)).filter(Boolean).join('\n');
+  };
+  ub.addEventListener('click', () => uf.click());
+  uf.addEventListener('change', () => { const l = Array.from(uf.files); uf.value = ''; upload(l); });
+  box.addEventListener('dragover', (e) => { e.preventDefault(); box.classList.add('drop'); });
+  box.addEventListener('dragleave', (e) => { if (!box.contains(e.relatedTarget)) box.classList.remove('drop'); });
+  box.addEventListener('drop', (e) => { e.preventDefault(); box.classList.remove('drop'); upload(e.dataTransfer && e.dataTransfer.files); });
 }
 async function openShot(it, onDeleted) {
   closeShotView();
